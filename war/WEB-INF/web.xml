@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns="http://java.sun.com/xml/ns/javaee"
+xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
+	<servlet>
+		<servlet-name>OMG</servlet-name>
+		<servlet-class>com.monadpad.omg.OMGServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>OMG</servlet-name>
+		<url-pattern>/omg</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>ConfigServlet</servlet-name>
+		<servlet-class>com.monadpad.omg.ConfigServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ConfigServlet</servlet-name>
+		<url-pattern>/config</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>VoteServlet</servlet-name>
+		<servlet-class>com.monadpad.omg.VoteServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>VoteServlet</servlet-name>
+		<url-pattern>/vote</url-pattern>
+	</servlet-mapping>
+
+
+	<servlet>
+		<servlet-name>CollectionsServlet</servlet-name>
+		<servlet-class>com.monadpad.omg.CollectionsServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CollectionsServlet</servlet-name>
+		<url-pattern>/collection</url-pattern>
+	</servlet-mapping>
+
+    <servlet>
+        <servlet-name>SoundSetServlet</servlet-name>
+        <servlet-class>com.monadpad.omg.SoundSetServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SoundSetServlet</servlet-name>
+        <url-pattern>/soundset</url-pattern>
+    </servlet-mapping>
+
+	<welcome-file-list>
+		<welcome-file>omg.jsp</welcome-file>
+	</welcome-file-list>
+</web-app>

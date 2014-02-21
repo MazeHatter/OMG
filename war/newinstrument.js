@@ -1,0 +1,115 @@
+var bottomNote = -100;
+
+document.getElementById("add-another-sound").onclick = function () {
+
+    createNewSound();
+
+};
+
+document.getElementById("save-button").onclick = function () {
+    var warning = document.getElementById("warning");
+    var name = document.getElementById("sound-set-name").value;
+    if (name.length == 0) {
+        warning.innerHTML = "no name for sound set";
+        return;
+    }
+
+    sounds = {name : name, 
+              data: []};
+
+    if (bottomNote > -100) {
+    	sounds.bottomNote = bottomNote;
+    }
+    
+    var cap;
+    var url;
+    var newSounds = document.getElementsByClassName("new-sound");
+    for (var i = 0; i < newSounds.length; i++) {
+    
+        url = newSounds[i].getElementsByClassName("sound-url")[0].value;
+        cap = newSounds[i].getElementsByClassName("sound-caption")[0].value;
+    
+        sounds.data.push({url: url, caption: cap});
+        console.log(sounds);
+    }
+
+    if (sounds.data.length === 0)
+        return;
+
+    
+    xhr = new XMLHttpRequest();
+    xhr.open("POST", "/soundset", true);
+    xhr.onreadystatechange = function(){
+        if (xhr.readyState == 4){
+
+            console.log(xhr.responseText);
+            if (xhr.responseText.indexOf("{") === 0) {
+                var oReturn = JSON.parse(xhr.responseText);
+                if (oReturn.id && oReturn.id > 0) {
+                    window.location = "/?func=newdrumbeat&soundset=" + oReturn.id; 
+                }
+            }
+            else {
+                warning.innerHTML = xhr.responseText;
+                return;
+            }
+
+        }
+    }
+    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+    
+    var bottomNoteParam = bottomNote > -100 ? "&bottomnote=" + (bottomNote + 9) : ""; 
+    
+    xhr.send("name=" + encodeURIComponent(sounds.name) +
+    	bottomNoteParam +	
+        "&data=" + encodeURIComponent(JSON.stringify(sounds)));
+
+
+};
+
+document.getElementById("make-button").onclick= function () {
+
+    var bottomSelect = document.getElementById("bottom-note-select"); 
+    var bottom = bottomSelect.selectedIndex;
+    var top = document.getElementById("top-note-select").selectedIndex;
+    
+    console.log(bottom);
+    if (top < bottom)
+        return;
+    
+    document.getElementById("sound-list").innerHTML = "";
+    
+    console.log(bottomSelect.options);
+    
+    for (var i = bottom; i <= top; i++) {
+    
+        createNewSound(bottomSelect.options[i].innerHTML);
+    
+    } 
+
+    bottomNote = bottom;
+};
+
+function createNewSound(caption) {
+
+    if (!caption)
+        caption = "<input type='text' class='sound-caption'>";
+    else {
+        caption = caption + 
+            "<input type='hidden' class='sound-caption' value='" +
+            caption + "'>";
+    }
+
+
+
+    var newDiv = document.createElement("div");
+    newDiv.className = "new-sound";
+    newDiv.innerHTML = "<div class='field-caption'>Caption: </div> " +
+        caption + "<br/>" +
+        "<div class='field-caption'>URL: </div> " +
+        "<input type='text' class='sound-url'> " +
+        "<button type='button'>Get</button>";
+
+    document.getElementById("sound-list").appendChild(newDiv);   
+
+}
