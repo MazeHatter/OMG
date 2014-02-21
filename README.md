@@ -1,4 +1,0 @@
-OMG
-===
-
-Open Music Gallery
