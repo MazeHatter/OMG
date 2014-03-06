@@ -29,7 +29,7 @@ if (user.isLoggedIn()){
 	<div id="browse-list-view" class="list-view">
 	
 		<div class="relative-container">
-			<h1 class="list-caption">Browse Music Parts:</h1>
+			<h1 class="list-caption">Browse:</h1>
 			
 			<div class="list-view-rightbar">
 				<select class="select-list-filter" id="select-part-type">
@@ -62,30 +62,30 @@ if (user.isLoggedIn()){
 
 
 	<div id="create-panel">
-	
-		Create Parts:
+
+		<h1 class="list-caption">Create:</h1>
 		
 		<div class="panel-box">
-			<span class="create-button" id="create-drumbeat">
+			<div class="create-button" id="create-drumbeat">
 			<img class="create-image" src="img/add.png">Create a Drumbeat
-			</span>
+			</div>
 			<!-- 
 			<span class="create-button">
 			<img class="create-image" src="img/add.png">Random Drumbeat
 			</span>
 			-->
 			<hr/>
-			<span class="create-button" id="create-melody">
+			<div class="create-button" id="create-melody">
 			<img class="create-image" src="img/add.png">Create a Melody
-			</span>
+			</div>
 			<hr/>
-			<span class="create-button" id="create-bassline">
+			<div class="create-button" id="create-bassline">
 			<img class="create-image" src="img/add.png">Create a Bassline
-			</span>
+			</div>
 			<hr/>
-			<span class="create-button" id="create-instrument">
+			<div class="create-button" id="create-instrument">
 			<img class="create-image" src="img/add.png">Create an Instrument / Drumkit
-			</span>
+			</div>
 		</div>
 		
 		<p>These apps <i>write</i> to OMG:</p>
@@ -148,7 +148,7 @@ if (user.isLoggedIn()){
 	
 	</div>
 	
-	<div id="saved-panel">
+	<div id="saved-panel" class="list-view">
 
 		<% if (!hasUser) {%>
 		<div class="login-area" >
@@ -164,15 +164,15 @@ if (user.isLoggedIn()){
 	
 		<div id="saved-toolbar" class="relative-container">
 
-			<h1 class="list-caption">My Collections:</h1>
+			<h1 class="list-caption">My Saved:</h1>
 			
-			<div class="list-view-rightbar">
+			<!--<div class="list-view-rightbar">
 				<select id="select-collection" class="select-list-filter">
 				<option>Saved</option>
 				</select>
 				<div id="newest-button" class="order-button">Newest</div>
 				<div id="most-votes-button" class="order-button">Most Votes</div>
-			</div>
+			</div>-->
 		</div>
 
 		<div id="saved-list">
@@ -268,9 +268,11 @@ if (user.isLoggedIn()){
 
 		<div class="remixer-caption-bar">
 			<div class="remixer-caption" id="melody-maker-caption">Melody Maker</div>
+			<div class="mm-tools">
 			<div class="remixer-button" id="save-mm">Save</div>
 			<div class="remixer-button" id="remixer-mm"><i>+re</i><b>mixer</b></div>
 			<div class="remixer-button" id="play-mm">Play</div>
+			</div>
 			<div class="remixer-button" id="clear-mm">
 				Clear
 			</div>
@@ -279,7 +281,25 @@ if (user.isLoggedIn()){
 		<div class="remixer-area" >
 
 			<div class="remixer-button-row" id="melody-maker-button-row">
+				
+			    <div class="part-key">
+				    Key:
+					<select id="select-root-note-mm">
+					    <option>C</option><option>C#</option><option>D</option><option>Eb</option>
+					    <option>E</option><option>F</option><option>F#</option><option>G</option>
+					    <option>G#</option><option>A</option><option>Bb</option><option>B</option>
+				    </select>
 	
+				    <select id="melody-maker-scale">
+				    	<option value="0,2,4,5,7,9,11">Major</option>
+				    	<option value="0,2,3,5,7,8,10">Minor</option>
+				    	<option value="0,2,4,7,9">Pentatonic</option>
+				    	<option value="0,3,5,6,7,10">Blues</option>
+				    	<option value="0,1,2,3,4,5,6,7,8,9,10,11">Chromatic</option>
+				    </select>
+			    </div>
+
+			    <div class="part-advanced-mm">
 				Bottom Note: <select id="melody-maker-bottom-note" >
 				<option>A0</option><option>Bb0</option><option>B0</option>
 				<option>C1</option><option>C#1</option><option>D1</option><option>Eb1</option><option>E1</option><option>F1</option><option>F#1</option><option>G1</option><option>G#1</option><option>A1</option><option>Bb1</option><option>B1</option>
@@ -303,19 +323,8 @@ if (user.isLoggedIn()){
 				<option>C7</option><option>C#7</option><option>D7</option><option>Eb7</option><option>E7</option><option>F7</option><option>F#7</option><option>G7</option><option>G#7</option><option>A7</option><option>Bb7</option><option>B7</option>
 				<option>C8</option>
 				</select>
-	
-			    Scale:
-			    <select id="melody-maker-scale">
-			    	<option value="0,2,4,5,7,9,11">Major</option>
-			    	<option value="0,2,3,5,7,8,10">Minor</option>
-			    	<option value="0,2,4,7,9">Pentatonic</option>
-			    	<option value="0,3,5,6,7,10">Blues</option>
-			    	<option value="0,1,2,3,4,5,6,7,8,9,10,11">Chromatic</option>
-			    </select>
-			    
-			    <div class="part-key">
-				C Major			
-				</div>
+
+
 				
 			</div>
 	
@@ -334,7 +343,7 @@ if (user.isLoggedIn()){
 <div id="topbar">
 
 	<a href="/"><img id="omg48topbar" src="img/omg48.png"></a>
-	<div class="top-bar-button" id="top-bar-view-button">View: Browse</div>
+	<img  src="img/menu.png" id="top-bar-view-button"/>
 	<div id="top-bar-view-buttons">
 		<div class="top-bar-button" id="browse-button">Browse</div>
 		<div class="top-bar-button" id="create-button">Create</div>

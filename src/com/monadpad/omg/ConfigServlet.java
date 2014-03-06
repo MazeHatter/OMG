@@ -136,7 +136,8 @@ public class ConfigServlet extends HttpServlet {
 			entity.setProperty("MELODY", 0);
 			entity.setProperty("CHORDPROGRESSION", 0);
 			entity.setProperty("SECTION", 0);
-			ds.put(entity);*/
+			ds.put(entity);
+			*/
 		}
 
 
