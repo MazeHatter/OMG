@@ -25,22 +25,94 @@ if (user.isLoggedIn()){
 
 <body>
 
-<div id="left-panel">  
+<div id="bbody">
+
+<div id="left-panel">
+	<div id="left-panel-heading">Main Controls</div>
+	<div id="left-panel-go-back">
+		<a href="javascript:void(0)">
+			Go Back To Main Controls
+		</a>
+	</div>
+	<hr/>
+	<div id="main-controls">
+		<span class="main-controls-section">CREATE A NEW</span>
+		<div class="create-button" id="create-melody">
+			<img class="create-image2" src="img/add.png">
+			Melody
+		</div>
+		<div class="create-button" id="create-drumbeat">
+			<img class="create-image2" src="img/add.png">
+			Drumbeat
+		</div>
+		<div class="create-button" id="create-bassline">
+			<img class="create-image2" src="img/add.png">
+			Bassline
+		</div>
+		<div class="create-button" id="create-instrument">
+			<img class="create-image2" src="img/add.png">
+			Instrument / Drumkit
+		</div>
+		<hr/>
+		<span class="main-controls-section">THE GALLERY:</span>
+		<div class="browse-button" id="browse-melodies">
+			<img class="create-image2" src="img/add.png">
+			Browse Melodies
+		</div>
+		<div class="browse-button" id="browse-drumbeats">
+			<img class="create-image2" src="img/add.png">
+			Browse Drumbeats
+		</div>
+		<div class="browse-button" id="browse-basslines">
+			<img class="create-image2" src="img/add.png">
+			Browse Basslines
+		</div>
+		<div class="browse-button" id="browse-sections">
+			<img class="create-image2" src="img/add.png">
+			Browse Sections
+		</div>
+
+		<hr/>
+		<span class="main-controls-section">RECENTLY SAVED:</span>
+		<div class="nodata">(none - you should <em>totally</em> make something)</div>
+		<hr/>
+		<div id="contact">
+			Have a Question? Need Help?
+			<br/>
+			<a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a>
+		</div>
+	</div>
+  
 	<div id="browse-list-view" class="list-view">
 	
 		<div class="relative-container">
-			<h1 class="list-caption">Browse:</h1>
+			<table class="filter-controls">
+				<tr>
+					<td>
+						<select class="select-list-filter" id="select-part-type">
+						<option>Melodies</option>
+						<option>Drumbeats</option>
+						<option>Basslines</option>
+						<option>Sections</option>
+						</select>
+					</td>
+					<td>
+						<select class="select-list-filter" id="select-browse-order">
+						<option value="newest">Newest</option>
+						<option value="mostvotes">Most Votes</option>
+						</select>
+					</td>
+				</tr>
+			</table>
+
+			<!--
+			<h1 class="list-caption">Browsing:</h1>
 			
 			<div class="list-view-rightbar">
-				<select class="select-list-filter" id="select-part-type">
-				<option>Drumbeats</option>
-				<option>Basslines</option>
-				<option>Melodies</option>
-				<option>Sections</option>
-				</select>
 				<div id="newest-button" class="order-button">Newest</div>
 				<div id="most-votes-button" class="order-button">Most Votes</div>
 			</div>
+			-->
 		
 			<div id="parts-list">
 				<h2>Loading...</h2>
@@ -66,26 +138,11 @@ if (user.isLoggedIn()){
 		<h1 class="list-caption">Create:</h1>
 		
 		<div class="panel-box">
-			<div class="create-button" id="create-drumbeat">
-			<img class="create-image" src="img/add.png">Create a Drumbeat
-			</div>
 			<!-- 
 			<span class="create-button">
 			<img class="create-image" src="img/add.png">Random Drumbeat
 			</span>
 			-->
-			<hr/>
-			<div class="create-button" id="create-melody">
-			<img class="create-image" src="img/add.png">Create a Melody
-			</div>
-			<hr/>
-			<div class="create-button" id="create-bassline">
-			<img class="create-image" src="img/add.png">Create a Bassline
-			</div>
-			<hr/>
-			<div class="create-button" id="create-instrument">
-			<img class="create-image" src="img/add.png">Create an Instrument / Drumkit
-			</div>
 		</div>
 		
 		<p>These apps <i>write</i> to OMG:</p>
@@ -182,8 +239,28 @@ if (user.isLoggedIn()){
 </div>
 
 <div id="right-panel">
+
+	<div id="welcome" class="remixer-zone">
+		<p class="headline"><em>You</em> can make <b>beats</b>, <b>melodies</b>, <b>mixes</b>, and <b>songs</b>!</p>	
+		
+		<p class="app-desc">Music created with OMG can be used freely and without royalties for any purpose,
+		including soundtracks for games, films, videos, commercials, TV and radio, events, parties, restuarants, clubs
+		and anything else you want!</p>
+
+		<p class="getting-started">
+		<br/>
+		<br/>
+			<span class="getting-started-subtext">to create music</span>
+			<br/>
+			Draw Here
+			<br/>
+			<span class="getting-started-subtext">for 4 Seconds</span>
+		</p>	
+	</div>
+
+
 	<div id="remixer">
-	
+
 		<div class="remixer-zone" id="remixer-zone">
 			<div class="remixer-caption-bar" id="current-section">
 				<div class="remixer-caption" id="remixer-caption">Welcome to OpenMusicGallery.net!</div>
@@ -213,9 +290,6 @@ if (user.isLoggedIn()){
 					Show me how it works!
 					</div>
 					
-					<p><b>The Best Part is...</b> Music created with OMG can be used freely and without royalties for any purpose,
-					including soundtracks for games, films, videos, commercials, TV and radio, events, parties, restuarants, clubs
-					and anything else you want!</p>
 					
 					<p>These apps <i>write</i> to OMG:</p>
 					<div id="applist2">
@@ -259,7 +333,6 @@ if (user.isLoggedIn()){
 		</div>
 
 		<div class="remixer-bottom-bar">
-		Questions? <a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a>
 		</div>			
 
 	</div>
@@ -323,8 +396,7 @@ if (user.isLoggedIn()){
 				<option>C7</option><option>C#7</option><option>D7</option><option>Eb7</option><option>E7</option><option>F7</option><option>F#7</option><option>G7</option><option>G#7</option><option>A7</option><option>Bb7</option><option>B7</option>
 				<option>C8</option>
 				</select>
-
-
+				</div>
 				
 			</div>
 	
@@ -341,6 +413,7 @@ if (user.isLoggedIn()){
 	
 	
 <div id="topbar">
+	<div id="topbar-inner">
 
 	<a href="/"><img id="omg48topbar" src="img/omg48.png"></a>
 	<img  src="img/menu.png" id="top-bar-view-button"/>
@@ -353,6 +426,7 @@ if (user.isLoggedIn()){
 	
 	<div id="topbarright">
 		<div id="remixer-pause-button">pause</div>
+	</div>
 	</div>
 </div>
 
@@ -374,7 +448,7 @@ if (user.isLoggedIn()){
 	<div id="demo-text"></div>
 </div>
 
-
+</div> <!--bbody-->
 <script src="omg.js"></script>
 
 </body>

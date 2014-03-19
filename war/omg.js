@@ -225,6 +225,8 @@ function displayResults(results) {
                 if (!omg.playedSound && omg.player.context) {
                     initSound();
                 }
+                
+            	omg.welcome.style.display = "none";
 
                 if (!omg.remixerShowing) {
                     showRemixer();
@@ -545,10 +547,10 @@ function setupMelodyDiv(part) {
 }
 
 function getTimeCaptionMS(oldTime) {
-	return getTimeCaption(oldTime / 1000);
+	return getTimeCaption(oldTime / 1000, oldTime);
 }
 
-function getTimeCaption(oldTime) {
+function getTimeCaption(oldTime, oldTimeMS) {
     if (!oldTime) {
         return "";
     }
@@ -573,7 +575,13 @@ function getTimeCaption(oldTime) {
         return days + " days ago";    
     }
 
-    var date = new Date(oldTime);
+    var date;
+    if (oldTimeMS != undefined) {
+    	date = new Date(oldTimeMS);
+    }
+    else {
+    	date = new Date(oldTime * 1000);	
+    }
     var monthday = getMonthCaption(date.getMonth()) + " " + date.getDate();
     if (days < 365) {
     	return monthday;
@@ -593,50 +601,22 @@ function getMonthCaption(month) {
 
 function setupClicks() {
 
-    var newestButton = document.getElementById("newest-button");
-    newestButton.onclick = function () {
-        if (omg.order !== "newest" || omg.currentPage > 1) {
-            omg.order = "newest";
-        	omg.currentPage = 1;
-        	getContributions();
-
-            newestButton.style.backgroundColor = "#FF9900";
-            mostVotesButton.style.backgroundColor = "#777777";
-        }
+	omg.goBackToControls.onclick = function () {
+		omg.goBackToControls.style.display = "none";
+		omg.mainControlsHeader.style.display = "block";
+		
+		omg.mainControls.style.display = "block";
+		
+		omg.listView.style.display = "none";
+	};
+	
+	var selectOrder = document.getElementById("select-browse-order");
+	selectOrder.onchange = function () {
+		omg.order = selectOrder.value;
+		omg.currentPage = 1;
+    	getContributions();
     };
-    var mostVotesButton = document.getElementById("most-votes-button");
-    mostVotesButton.onclick = function () {
-        if (omg.order !== "mostvotes" || omg.currentPage > 1) {
-            omg.order = "mostvotes";
-        	omg.currentPage = 1;
-            getContributions();
-
-            mostVotesButton.style.backgroundColor = "#FF9900";
-            newestButton.style.backgroundColor = "#777777";
-        }
-    };
-
-    if (omg.order === "newest") {
-    	newestButton.style.backgroundColor = "#FF9900";
-    }
-    else {
-    	mostVotesButton.style.backgroundColor = "#FF9900";	
-    }
-    
-
-    var mouseOver = function (e) {
-        e.target.style.backgroundColor = "#FF9900";
-    }
-    var mouseOut = function (e) {
-        if (omg.order !== e.target.innerHTML.toLowerCase().replace(" ", ""))
-            e.target.style.backgroundColor = "#777777";
-    }
-
-    newestButton.onmouseover = mouseOver;
-    newestButton.onmouseout = mouseOut;
-    mostVotesButton.onmouseover = mouseOver;
-    mostVotesButton.onmouseout = mouseOut;
-
+        
     var createDrumbeatButton = document.getElementById("create-drumbeat");
     createDrumbeatButton.onclick = function () {
     	var newBeats = createDrumbeat();
@@ -666,16 +646,28 @@ function setupClicks() {
     	window.location = "/newinstrument.jsp";
     };
     
-    var selectType = document.getElementById("select-part-type");
-    selectType.onchange = function () {
-    	omg.type = selectType.value;
+    omg.selectType.onchange = function () {
+    	omg.type = omg.selectType.value;
     	omg.currentPage = 1;
     	getContributions();
     };
 
-    omg.createButton.onclick = createButtonClick;
-    omg.browseButton.onclick = browseButtonClick;
-    
+    var button = document.getElementById("browse-basslines");
+    button.onclick = function () {
+    	browseButtonClick("BASSLINE", 2)
+    };
+    button = document.getElementById("browse-melodies");
+    button.onclick = function () {
+    	browseButtonClick("MELODY", 0)
+    };
+    button = document.getElementById("browse-drumbeats");
+    button.onclick = function () {
+    	browseButtonClick("DRUMBEAT", 1)
+    };
+    button = document.getElementById("browse-sections");
+    button.onclick = function () {
+    	browseButtonClick("SECTION", 3)
+    };
     omg.savedButton.onclick = function () {
     	omg.leftPanel.style.display = "block";
     	omg.listView.style.display = "none";
@@ -742,6 +734,8 @@ function setupClicks() {
 
 function setupRemixer() {
 
+	omg.mainControls = document.getElementById("main-controls");
+	omg.mainControlsHeader = document.getElementById("left-panel-heading");
 	omg.remixerCaption = document.getElementById("remixer-caption");
 	omg.createPanel = document.getElementById("create-panel");
 	omg.listView = document.getElementById("browse-list-view");
@@ -757,7 +751,9 @@ function setupRemixer() {
     omg.createButton = document.getElementById("create-button");
     omg.browseButton = document.getElementById("browse-button");
     omg.savedButton = document.getElementById("my-saved-button");
-
+    omg.goBackToControls = document.getElementById("left-panel-go-back");
+    omg.welcome = document.getElementById("welcome");
+    omg.selectType = document.getElementById("select-part-type"); 
     
     omg.pauseButton = document.getElementById("remixer-pause-button");
     omg.pauseButton.onclick = function (e) {
@@ -1290,7 +1286,7 @@ function sendVote(entry, value) {
 function setupAsCurrentInList(searchResult, div) {
 
     if (omg.currentDivInList) {
-        omg.currentDivInList.style.backgroundColor = "#ffefc6";
+        omg.currentDivInList.style.backgroundColor = "#ffefd6";
         var child = omg.currentDivInList.getElementsByClassName("vote-up");
         if (child.length > 0)
             omg.currentDivInList.removeChild(child[0]);
@@ -1754,17 +1750,16 @@ function setRemixerWidth() {
     }
     else {
     	width = omg.topbar.clientWidth - (350 + 8 + 12 + 20);
-    	omg.viewButtons.style.display = "inline-block";
+    	//omg.viewButtons.style.display = "inline-block";
     	
-    	if (!omg.remixerShowing)
-    		showRemixer();
+//    	if (!omg.remixerShowing)
+//    		showRemixer();
     }
     	
     
     var height = window.innerHeight - 50; 
     	
-    //omg.remixer.style.width = omg.topbar.clientWidth - width + "px";
-    omg.rightPanel.style.width = width + "px";
+    //omg.rightPanel.style.width = width + "px";
     omg.leftPanel.style.height = height + "px";
     
 }
@@ -2340,6 +2335,7 @@ function setupMelodyMakerFretBoard() {
 function showMelodyMaker(type) {
 
 	omg.remixer.style.display = "none";
+	omg.welcome.style.display = "none";
 	omg.remixerShowing = false;
 
 	if (isShrunk()) {
@@ -2491,10 +2487,13 @@ function onMelodyMakerDisplay() {
 		while (el && !isNaN(el.offsetLeft)) {
 			offsetLeft += el.offsetLeft;
 			offsetTop += el.offsetTop;
+			console.log(el);
+			console.log(offsetTop);
 			el = el.parentElement;
 		}
 
 	    var canvas = omg.mm.canvas;
+	    console.log(offsetTop);
 	    var canvasHeight = window.innerHeight - offsetTop - 12 - 38;
 	    canvas.height = canvasHeight;
 	    canvas.width = canvas.clientWidth;
@@ -2866,12 +2865,24 @@ function createButtonClick() {
 
 }
 
-function browseButtonClick() {
+function browseButtonClick(type, selectedIndex) {
+
+	if (selectedIndex != undefined)
+		omg.selectType.selectedIndex = selectedIndex;
+	
 	omg.leftPanel.style.display = "block";
 	omg.savedPanel.style.display = "none";
-	omg.listView.style.display = "block";
 	omg.createPanel.style.display = "none";
+	omg.mainControls.style.display = "none";
+	omg.goBackToControls.style.display = "block";
+	omg.mainControlsHeader.style.display = "none";
+	omg.listView.style.display = "block";
+	
+	omg.type = type;
+	omg.currentPage = 1;
+	getContributions();
 
+	
 	if (isShrunk()) {
 		omg.remixer.style.display = "none";
 		omg.remixerShowing = false;
@@ -2879,9 +2890,9 @@ function browseButtonClick() {
 		omg.viewButton.className = "top-bar-view-button";
 	}
 	else {
-		omg.createButton.className = "top-bar-button";
-		omg.browseButton.className = "top-bar-button-selected";
-		omg.savedButton.className = "top-bar-button";
+//		omg.createButton.className = "top-bar-button";
+//		omg.browseButton.className = "top-bar-button-selected";
+//		omg.savedButton.className = "top-bar-button";
 	} 
 }
 
