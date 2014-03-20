@@ -14,7 +14,7 @@ h1 {
 #topbar {
 	color: black;
 	width: 100%;
-	height: 48px;
+	height: 42px;
 	background-color: #E0E0E0;
 	font: 13px Helvetica, arial, freesans, clean, sans-serif;
 	position:fixed;
@@ -29,6 +29,7 @@ h1 {
 	vertical-align: middle;
 	width: 48px;
 	height: 48px;
+	margin-top:-2px;
 }
 
 #topbartext {
@@ -37,8 +38,8 @@ h1 {
 
 #topbarright {
 	position: absolute;
-	right: 6px;
-	top: 6px;
+	right: 0px;
+	top: 2px;
 }
 
 
@@ -195,25 +196,18 @@ h1 {
 	color: #404040;
 }
 
-#right-panel {
-	position: absolute;
-	top: 64px;
-	/*overflow-x:hidden;*/
-	margin:4px;
-}
 
 .remixer-caption-bar {
 	position:relative;
 	background-color:#4fa5d5;	
-	/*text-align:center;*/
-	font: 20px Helvetica, arial, freesans, clean, sans-serif;
-	color:white;
+	font: 18px Helvetica, arial, freesans, clean, sans-serif;
+	/*color:white;*/
 	padding:8px;
 }
 
 .remixer-caption {
-	display:inline-block;
-
+	text-align:center;
+	font: 20px Helvetica, arial, freesans, clean, sans-serif;
 	padding-top:6px;  
 }
 
@@ -255,7 +249,7 @@ h1 {
 }
 
 .remixer-pause-button {
-	padding-top:12px;
+	padding-top:0px;
 	padding-left:10px;
 	padding-right:10px;
 	border:#4fa5d5 1px solid;
@@ -587,13 +581,31 @@ div.vote-down {
     padding:10px;
 }
 
+#right-panel {
+	position: absolute;
+	top: 40px;
+	/*overflow-x:hidden;*/
+	margin:4px;
+}
+#left-panel {
+    overflow-y:auto;
+}
+
+
 @media all and (max-width: 960px) {
+	#bbody {
+		position:relative;
+	}
 	#omg48topbar {
-	vertical-align: top;
+		vertical-align: top;
+	}
+	
+	#right-panel {
+		width:94%;
+        display:none;
 	}
 	
     #left-panel {
-        display:none;
         margin:auto;    
         margin-top:50px;
         padding-left:5px;
@@ -639,7 +651,7 @@ div.vote-down {
 	}
 	
 	#right-panel {
-		left:360px;
+		left:370px;
 		width:680px;
 	}
 	
@@ -666,8 +678,8 @@ div.vote-down {
 	#left-panel {
 	    position:fixed;
 	    margin:5px;    
-	    margin-top:58px;
-	    width:325px;
+	    margin-top:54px;
+	    width:365px;
 	    /*overflow-y:scroll;
 	    overflow-x:hidden;*/
 	}
@@ -859,10 +871,15 @@ hr {
 	width:100%;
 }
 
-.app-desc, .nodata {
+.app-desc,.nodata {
 	color:#404040;
 	font:10pt Helvetica, arial, freesans, clean, sans-serif;
 }
+
+#welcome {
+	padding:22px;
+}
+
 
 #remixer {
 	display:none;

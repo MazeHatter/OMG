@@ -38,43 +38,48 @@ if (user.isLoggedIn()){
 	<div id="main-controls">
 		<span class="main-controls-section">CREATE A NEW</span>
 		<div class="create-button" id="create-melody">
-			<img class="create-image2" src="img/add.png">
+			<img class="create-image2" src="img/add2.png">
 			Melody
 		</div>
 		<div class="create-button" id="create-drumbeat">
-			<img class="create-image2" src="img/add.png">
+			<img class="create-image2" src="img/add2.png">
 			Drumbeat
 		</div>
 		<div class="create-button" id="create-bassline">
-			<img class="create-image2" src="img/add.png">
+			<img class="create-image2" src="img/add2.png">
 			Bassline
 		</div>
 		<div class="create-button" id="create-instrument">
-			<img class="create-image2" src="img/add.png">
+			<img class="create-image2" src="img/add2.png">
 			Instrument / Drumkit
 		</div>
 		<hr/>
 		<span class="main-controls-section">THE GALLERY:</span>
 		<div class="browse-button" id="browse-melodies">
-			<img class="create-image2" src="img/add.png">
+			<img class="create-image2" src="img/browse.png">
 			Browse Melodies
 		</div>
 		<div class="browse-button" id="browse-drumbeats">
-			<img class="create-image2" src="img/add.png">
+			<img class="create-image2" src="img/browse.png">
 			Browse Drumbeats
 		</div>
 		<div class="browse-button" id="browse-basslines">
-			<img class="create-image2" src="img/add.png">
+			<img class="create-image2" src="img/browse.png">
 			Browse Basslines
 		</div>
 		<div class="browse-button" id="browse-sections">
-			<img class="create-image2" src="img/add.png">
+			<img class="create-image2" src="img/browse.png">
 			Browse Sections
 		</div>
 
 		<hr/>
-		<span class="main-controls-section">RECENTLY SAVED:</span>
-		<div class="nodata">(none - you should <em>totally</em> make something)</div>
+		<span class="main-controls-section">SAVED:</span>
+		<div class="browse-button" id="my-saved">
+			<img class="create-image2" src="img/browse.png">
+			My Saved
+		</div>
+		
+		<div class="nodata">(you should <em>totally</em> make something)</div>
 		<hr/>
 		<div id="contact">
 			Have a Question? Need Help?
@@ -140,7 +145,7 @@ if (user.isLoggedIn()){
 		<div class="panel-box">
 			<!-- 
 			<span class="create-button">
-			<img class="create-image" src="img/add.png">Random Drumbeat
+			<img class="create-image" src="img/add2.png">Random Drumbeat
 			</span>
 			-->
 		</div>
@@ -262,8 +267,8 @@ if (user.isLoggedIn()){
 	<div id="remixer">
 
 		<div class="remixer-zone" id="remixer-zone">
+			<div class="remixer-caption" id="remixer-caption"><i>re</i><b>mixer</b></div>
 			<div class="remixer-caption-bar" id="current-section">
-				<div class="remixer-caption" id="remixer-caption">Welcome to OpenMusicGallery.net!</div>
 				<div class="remixer-button-row" id="section-button-row">
 					<div class="remixer-button" id="save-button">Save</div>
 					<div class="remixer-button" id="share-button">Share</div>
@@ -339,8 +344,8 @@ if (user.isLoggedIn()){
 
 	<div id="melody-maker" class="remixer-zone">
 
+		<div class="remixer-caption" id="melody-maker-caption">Melody Maker</div>
 		<div class="remixer-caption-bar">
-			<div class="remixer-caption" id="melody-maker-caption">Melody Maker</div>
 			<div class="mm-tools">
 			<div class="remixer-button" id="save-mm">Save</div>
 			<div class="remixer-button" id="remixer-mm"><i>+re</i><b>mixer</b></div>

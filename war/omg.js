@@ -602,12 +602,7 @@ function getMonthCaption(month) {
 function setupClicks() {
 
 	omg.goBackToControls.onclick = function () {
-		omg.goBackToControls.style.display = "none";
-		omg.mainControlsHeader.style.display = "block";
-		
-		omg.mainControls.style.display = "block";
-		
-		omg.listView.style.display = "none";
+		showMainControls();
 	};
 	
 	var selectOrder = document.getElementById("select-browse-order");
@@ -668,10 +663,13 @@ function setupClicks() {
     button.onclick = function () {
     	browseButtonClick("SECTION", 3)
     };
-    omg.savedButton.onclick = function () {
+    
+    document.getElementById("my-saved").onclick = function () {
+    	
+    	hideMainControls();
+    	
     	omg.leftPanel.style.display = "block";
     	omg.listView.style.display = "none";
-    	omg.createPanel.style.display = "none";
     	omg.savedPanel.style.display = "block";
 
     	if (isShrunk()) {
@@ -1746,6 +1744,7 @@ function setRemixerWidth() {
     var width;
     if (isShrunk()) {
     	width = omg.topbar.clientWidth - 8;
+    	omg.rightPanel.style.width = width + "px";
     	omg.viewButtons.style.display = "none";
     }
     else {
@@ -1858,8 +1857,8 @@ function doInitStuff() {
 		}
 	}
 	
-	if (func === "createmelody") {
-		createButtonClick();
+	//if (func === "createmelody") {
+	if (!isShrunk()) {
 		showMelodyMaker("MELODY");
 		doGetContributions = false;
 	}
@@ -1948,7 +1947,6 @@ function getSoundSet(id, callback) {
 }
 
 function setupRemixerForPlay() {
-	omg.remixerCaption.innerHTML = "<i>re</i><b>mixer</b>";
     omg.remixer.nosection.style.display = "none";
     omg.remixer.sectionButtonRow.style.display = "inline-block";
 }
@@ -2418,9 +2416,12 @@ function fadeOut(audio) {
 }
 
 function welcomeMessage() {
-    omg.remixerCaption.innerHTML = "Welcome to OpenMusicGallery.net!";
-    omg.remixer.nosection.style.display = "block";
+    //omg.remixerCaption.innerHTML = "Welcome to OpenMusicGallery.net!";
+    //omg.remixer.nosection.style.display = "block";
 
+	omg.remixer.style.display = "none";
+	omg.remixerShowing = false;
+	omg.welcome.style.display = "block";
 }
 
 function setupNoteImages() {
@@ -2487,13 +2488,10 @@ function onMelodyMakerDisplay() {
 		while (el && !isNaN(el.offsetLeft)) {
 			offsetLeft += el.offsetLeft;
 			offsetTop += el.offsetTop;
-			console.log(el);
-			console.log(offsetTop);
 			el = el.parentElement;
 		}
 
 	    var canvas = omg.mm.canvas;
-	    console.log(offsetTop);
 	    var canvasHeight = window.innerHeight - offsetTop - 12 - 38;
 	    canvas.height = canvasHeight;
 	    canvas.width = canvas.clientWidth;
@@ -2845,26 +2843,6 @@ function demo() {
 	steps[0].call();
 }
 
-function createButtonClick() {
-	omg.leftPanel.style.display = "block";
-	omg.listView.style.display = "none";
-	omg.savedPanel.style.display = "none";
-	omg.createPanel.style.display = "block";
-
-	if (isShrunk()) {
-		omg.remixer.style.display = "none";
-		omg.remixerShowing = false;
-		omg.viewButtons.style.display = "none";
-		omg.viewButton.className = "top-bar-view-button";
-	} 
-	else {
-		omg.createButton.className = "top-bar-button-selected";
-		omg.browseButton.className = "top-bar-button";
-		omg.savedButton.className = "top-bar-button";
-	}
-
-}
-
 function browseButtonClick(type, selectedIndex) {
 
 	if (selectedIndex != undefined)
@@ -2873,9 +2851,7 @@ function browseButtonClick(type, selectedIndex) {
 	omg.leftPanel.style.display = "block";
 	omg.savedPanel.style.display = "none";
 	omg.createPanel.style.display = "none";
-	omg.mainControls.style.display = "none";
-	omg.goBackToControls.style.display = "block";
-	omg.mainControlsHeader.style.display = "none";
+	hideMainControls();
 	omg.listView.style.display = "block";
 	
 	omg.type = type;
@@ -2982,5 +2958,22 @@ function drawDrumCanvas(part, subbeat) {
 				columnWidth - 2, canvas.height);
 	}
 	context.globalAlpha = 0;
+
+}
+
+function hideMainControls() {
+	omg.mainControls.style.display = "none";
+	omg.goBackToControls.style.display = "block";
+	omg.mainControlsHeader.style.display = "none";
+
+}
+
+function showMainControls() {
+	omg.goBackToControls.style.display = "none";
+	omg.savedPanel.style.display = "none";
+	omg.listView.style.display = "none";
+	
+	omg.mainControls.style.display = "block";
+	omg.mainControlsHeader.style.display = "block";
 
 }
