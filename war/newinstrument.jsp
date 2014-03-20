@@ -112,9 +112,9 @@ input[type='button']  {
 <body>
 
 <div id="topbar">
-       <a href="/">
-       <img id="omg48topbar" src="img/omg128.png"/>
-       </a>
+	<div id="topbar-inner">
+	<a href="/"><img id="omg48topbar" src="img/omg48.png"></a>
+	</div>
 </div>
 
 <div id="page">

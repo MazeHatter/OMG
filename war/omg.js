@@ -1,6 +1,6 @@
 var omg = {type: "DRUMBEAT",
         order: "newest", 
-        remixerShowing: isShrunk(), 
+        remixerShowing: false, 
         bpm: 120, beats: 8, subbeats: 4, 
         section: {type: "SECTION", data: {}, parts: []},
         onBeatPlayedListeners: [], 
@@ -212,8 +212,8 @@ function displayResults(results) {
 
         partDetail = document.createElement("div");
         partDetail.className = "part-caption";
-        partDetail.innerHTML = "<span class='part-type-caption'>Type:</span>" +
-        " <span class='part-type'>" + data.type + "</span>";
+        //partDetail.innerHTML = "<span class='part-type-caption'>Type:</span> " +
+        partDetail.innerHTML = "<span class='part-type'>" + data.type + "</span>";
         part.appendChild(partDetail);
 
         partList.appendChild(part);        
@@ -295,7 +295,9 @@ function loadSinglePart(searchResult) {
 			cancelPart(oldPart, true);
             ic--;
 		}
-		//toggleMute(omg.section.parts[ic], true);
+		else if (!omg.player.playing) {
+			toggleMute(omg.section.parts[ic], true);
+		}
 	}
 
 	if (!searchResult.data && searchResult.json) {
@@ -614,9 +616,15 @@ function setupClicks() {
         
     var createDrumbeatButton = document.getElementById("create-drumbeat");
     createDrumbeatButton.onclick = function () {
+
     	var newBeats = createDrumbeat();
+    	
+        if (isShrunk()) {
+        	omg.leftPanel.style.display = "none";
+        }
         if (!omg.remixerShowing) 
             showRemixer();    
+
 
     	loadSinglePart({
     		type: "DRUMBEAT",
@@ -720,12 +728,22 @@ function setupClicks() {
     omg.viewButton = document.getElementById("top-bar-view-button");
     omg.viewButton.onclick = function () {
     	if (omg.viewButton.className == "top-bar-view-button-selected") {
-    		omg.viewButtons.style.display = "none";
-    		omg.viewButton.className = "top-bar-view-button";
+    		//omg.viewButtons.style.display = "none";
+    		//omg.viewButton.className = "top-bar-view-button";
     	}
     	else {
-    		omg.viewButtons.style.display = "block";
-    		omg.viewButton.className = "top-bar-view-button-selected";
+    		
+    		omg.welcome.style.display = "none";
+    		
+    		omg.mm.style.display = "none";
+    		omg.mm.showing = false;
+    		omg.remixer.style.display = "none";
+    		omg.remixerShowing = false;
+    		
+    		omg.leftPanel.style.display = "block";
+    		
+    		//viewButtons.style.display = "block";
+    		//omg.viewButton.className = "top-bar-view-button-selected";
     	}
     };
 }
@@ -752,7 +770,8 @@ function setupRemixer() {
     omg.goBackToControls = document.getElementById("left-panel-go-back");
     omg.welcome = document.getElementById("welcome");
     omg.selectType = document.getElementById("select-part-type"); 
-    
+	omg.gettingStartedCountdown = document.getElementById("seconds-to-go");
+
     omg.pauseButton = document.getElementById("remixer-pause-button");
     omg.pauseButton.onclick = function (e) {
     	if (omg.player.playing)
@@ -803,6 +822,10 @@ function setupRemixer() {
 
 function showRemixer() {
 
+	omg.rightPanel.style.display = "block";
+	
+	omg.welcome.style.display = "none";
+	
     if (!omg.collections) {
         omg.collections = {};
         //getCollections();
@@ -1028,6 +1051,9 @@ function cancelPart(part, leaveEmpty) {
         	omg.section.data.rootNote = null;
         	omg.section.data.scale = null;
         	if (!leaveEmpty) {
+        		
+        		omg.pauseButton.style.display = "none";
+        		
 	            omg.remixer.sectionButtonRow.style.display = "none";
 	            pause();
 	            welcomeMessage();
@@ -1048,13 +1074,17 @@ function cancelPart(part, leaveEmpty) {
 
 function pausePart(part) {
     if (part.osc && part.oscStarted) {
-        part.osc.stop(0);
-        part.playingI = null;
+        
+    	fadeOut(part.gain.gain, function () {
+        	part.osc.stop(0);
+            part.playingI = null;
 
-        part.osc.disconnect(part.gain);
-        part.gain.disconnect(omg.player.context.destination);
-        part.oscStarted = false;
-        part.osc = null;
+            part.osc.disconnect(part.gain);
+            part.gain.disconnect(omg.player.context.destination);
+            part.oscStarted = false;
+            part.osc = null;
+    	});
+    	
     }
 }
 
@@ -1231,7 +1261,9 @@ function playNote(note, part) {
 	var fromNow = 1000 * (note.beats/(omg.bpm/60));
 
 	setTimeout(function () {
-		fadeOut(audio);
+		fadeOut(audio.gain2.gain, function () {
+			audio.stop(0);
+		});
 	}, fromNow - 100);
 	
     if (part)
@@ -1448,48 +1480,48 @@ function initSound() {
 
 function getImageUrlForNote(note) {
     if (!omg.noteImageUrls) {
-        var images = [["note_half", "note_rest_half", 2],
-                      ["note_dotted_quarter", "note_rest_dotted_quarter", 1.5],
-                      ["note_quarter", "note_rest_quarter", 1],
-                      ["note_dotted_eighth", "note_rest_dotted_eighth", 0.75],
-                      ["note_eighth", "note_rest_eighth", 0.5],
-                      ["note_dotted_sixteenth", "note_rest_dotted_sixteenth", 0.375],
-                      ["note_sixteenth", "note_rest_sixteenth", 0.25],
-                      ["note_thirtysecond", "note_rest_thirtysecond", 0.125]];
+        var images = [[2, "note_half", "note_rest_half"],
+                      [1.5, "note_dotted_quarter", "note_rest_dotted_quarter"],
+                      [1, "note_quarter", "note_rest_quarter"],
+                      [0.75, "note_dotted_eighth", "note_rest_dotted_eighth"],
+                      [0.5, "note_eighth", "note_rest_eighth", "note_eighth_upside"],
+                      [0.375, "note_dotted_sixteenth", "note_rest_dotted_sixteenth"],
+                      [0.25, "note_sixteenth", "note_rest_sixteenth", "note_sixteenth_upside"],
+                      [0.125, "note_thirtysecond", "note_rest_thirtysecond"]];
         omg.noteImageUrls = images;
     }
 
     var draw_noteImage;
     if (note.beats == 2.0) {
-        draw_noteImage = omg.noteImageUrls[0][note.rest ? 1 : 0];
+        draw_noteImage = omg.noteImageUrls[0][note.rest ? 2 : 1];
     }
     if (note.beats == 1.5) {
-        draw_noteImage = omg.noteImageUrls[1][note.rest ? 1 : 0];
+        draw_noteImage = omg.noteImageUrls[1][note.rest ? 2 : 1];
     }
     if (note.beats == 1.0) {
-        draw_noteImage = omg.noteImageUrls[2][note.rest ? 1 : 0];
+        draw_noteImage = omg.noteImageUrls[2][note.rest ? 2 : 1];
     }
     if (note.beats == 0.75) {
-        draw_noteImage = omg.noteImageUrls[3][note.rest ? 1 : 0];
+        draw_noteImage = omg.noteImageUrls[3][note.rest ? 2 : 1];
     }
     if (note.beats == 0.5) {
-        draw_noteImage = omg.noteImageUrls[4][note.rest ? 1 : 0];
+        draw_noteImage = omg.noteImageUrls[4][note.rest ? 2 : 1];
     }
     if (note.beats == 0.375) {
-        draw_noteImage = omg.noteImageUrls[5][note.rest ? 1 : 0];
+        draw_noteImage = omg.noteImageUrls[5][note.rest ? 2 : 1];
     }
     if (note.beats == 0.25) {
-        draw_noteImage = omg.noteImageUrls[6][note.rest ? 1 : 0];
+        draw_noteImage = omg.noteImageUrls[6][note.rest ? 2 : 1];
     }
     if (note.beats == 0.125) {
-        draw_noteImage = omg.noteImageUrls[7][note.rest ? 1 : 0];
+        draw_noteImage = omg.noteImageUrls[7][note.rest ? 2 : 1];
     }
 
     return "img/notes/" + draw_noteImage + ".png";
 
 }
 
-function getImageForNote(note) {
+function getImageForNote(note, upsideDown) {
 
     var draw_noteImage;
     if (note.beats == 2.0) {
@@ -1505,13 +1537,15 @@ function getImageForNote(note) {
         draw_noteImage = omg.noteImages[3][note.rest ? 1 : 0];
     }
     if (note.beats == 0.5) {
-        draw_noteImage = omg.noteImages[4][note.rest ? 1 : 0];
+        draw_noteImage = omg.noteImages[4][note.rest ? 1 : 
+        	upsideDown ? 2 : 0];
     }
     if (note.beats == 0.375) {
         draw_noteImage = omg.noteImages[5][note.rest ? 1 : 0];
     }
     if (note.beats == 0.25) {
-        draw_noteImage = omg.noteImages[6][note.rest ? 1 : 0];
+        draw_noteImage = omg.noteImages[6][note.rest ? 1 : 
+        	upsideDown ? 2 : 0];
     }
     if (note.beats == 0.125) {
         draw_noteImage = omg.noteImages[7][note.rest ? 1 : 0];
@@ -1760,6 +1794,7 @@ function setRemixerWidth() {
     	
     //omg.rightPanel.style.width = width + "px";
     omg.leftPanel.style.height = height + "px";
+    //omg.welcome.style.height = height - 55 + "px";
     
 }
 
@@ -1858,14 +1893,17 @@ function doInitStuff() {
 	}
 	
 	//if (func === "createmelody") {
-	if (!isShrunk()) {
-		showMelodyMaker("MELODY");
+	//if (!isShrunk()) {
+		showMelodyMaker("MELODY", true);
 		doGetContributions = false;
-	}
+	//}
 
 	if (func && func.toLowerCase() === "share" && type) {
 		var newPart = {id: id, type: type}; 
 		getOMG(newPart, function (result) {
+			if (isShrunk())
+				omg.leftPanel.style.display = "none";
+			
 			showRemixer();
             if (newPart.type == "SECTION") {
             	loadSection(result);                
@@ -2065,6 +2103,13 @@ function drawMelodyMakerCanvas() {
 
 	canvas.width = canvas.clientWidth;
 
+	if (omg.mm.welcomeStyle) {
+		console.log(omg.mm.drawStarted ? 
+				(Date.now() - omg.mm.drawStarted) / 4000 : 0);
+		context.globalAlpha = omg.mm.drawStarted ? 
+				(Date.now() - omg.mm.drawStarted) / 4000 : 0;	
+	}	
+
 	context.fillStyle = "white";
 	context.fillRect(0, 0, canvas.width, fretHeight);
 	
@@ -2162,6 +2207,9 @@ function getKeyName(data) {
 function setupMelodyMaker() {
 
 	omg.mm = document.getElementById("melody-maker");
+	omg.mm.caption = document.getElementById("melody-maker-caption");
+	omg.mm.toolbar = document.getElementById("melody-maker-toolbar");
+	omg.mm.subtoolbar = document.getElementById("melody-maker-button-row");
 
     omg.mm.canvas = document.getElementById("melody-maker-canvas");
     omg.mm.data = {type:"MELODY", notes: []};
@@ -2254,17 +2302,17 @@ function setupMelodyMaker() {
 		});
 	};
 
-	var addRests = document.getElementById("add-rests-mm");
+	omg.mm.addRests = document.getElementById("add-rests-mm");
 	var beats;
 	var restImage;
 	for (var iimg = 0; iimg < omg.noteImageUrls.length; iimg++) {
-		beats = omg.noteImageUrls[iimg][2];
+		beats = omg.noteImageUrls[iimg][0];
 		if (!(beats % 0.25 == 0))
 			continue;
 		
 		restImage = document.createElement("img");
 		restImage.className = "add-rest-image";
-		restImage.src = getNoteImageUrl(iimg, 1);
+		restImage.src = getNoteImageUrl(iimg, 2);
 		restImage.onclick = (function (beats) {
 			return function () {
 				omg.mm.data.notes.push({rest:true, beats: beats});
@@ -2272,7 +2320,7 @@ function setupMelodyMaker() {
 			};
 		})(beats);
 		
-		addRests.appendChild(restImage);
+		omg.mm.addRests.appendChild(restImage);
 	}
 	
 }
@@ -2330,12 +2378,30 @@ function setupMelodyMakerFretBoard() {
     drawMelodyMakerCanvas();
 }
 
-function showMelodyMaker(type) {
+function showMelodyMaker(type, welcomeStyle) {
 
+	omg.rightPanel.style.display = "block";
+	
 	omg.remixer.style.display = "none";
 	omg.welcome.style.display = "none";
 	omg.remixerShowing = false;
 
+	var visibility;
+	omg.mm.welcomeStyle = welcomeStyle;
+	if (welcomeStyle) {
+		visibility = "hidden";
+		omg.welcome.style.display = "block";
+		//omg.mm.canvas.style.opacity = 0.33;
+	}
+	else {
+		visibility = "visible";
+	}
+	omg.mm.caption.style.visibility = visibility;
+	omg.mm.toolbar.style.visibility = visibility;
+	omg.mm.addRests.style.visibility = visibility;
+	omg.mm.subtoolbar.style.visibility = visibility;
+	
+	
 	if (isShrunk()) {
 		omg.leftPanel.style.display = "none";
 	}
@@ -2349,10 +2415,12 @@ function showMelodyMaker(type) {
     if (type == "BASSLINE") {
     	omg.mm.selectBottomNote.selectedIndex = 19;
     	omg.mm.selectTopNote.selectedIndex = 39;
+    	omg.mm.caption.innerHTML = "Bassline Maker";
     }
     else {
     	omg.mm.selectBottomNote.selectedIndex = 39;
     	omg.mm.selectTopNote.selectedIndex = 70;
+    	omg.mm.caption.innerHTML = "Melody Maker";
     }
     
     onMelodyMakerDisplay();
@@ -2399,29 +2467,32 @@ function makeOsc(part) {
 
 }
 
-function fadeOut(audio) {
+function fadeOut(gain, callback) {
 	
-	var level = audio.gain2.gain.value;
+	var level = gain.value;
 	var dpct = 0.015;
 	var interval = setInterval(function () {
-		if (level > 0 && audio && audio.gain2) {
+		if (level > 0) {
 			level = level - dpct;
-			audio.gain2.gain.setValueAtTime(level, 0);
+			gain.setValueAtTime(level, 0);
 		}
 		else {
 			clearInterval(interval);
-			audio.stop(0);
+			
+			if (callback)
+				callback();
 		}
  	}, 1);
 }
 
 function welcomeMessage() {
-    //omg.remixerCaption.innerHTML = "Welcome to OpenMusicGallery.net!";
-    //omg.remixer.nosection.style.display = "block";
-
+ 
+	//omg.gettingStartedCountdown.innerHTML = "4";
+	showMelodyMaker("MELODY", true);
 	omg.remixer.style.display = "none";
 	omg.remixerShowing = false;
 	omg.welcome.style.display = "block";
+	omg.welcome.style.opacity = 1;
 }
 
 function setupNoteImages() {
@@ -2434,12 +2505,22 @@ function setupNoteImages() {
 	omg.noteImages = [];
 	for (var i = 0; i < omg.noteImageUrls.length; i++) {
 
+		
 		var noteImage = new Image();
-	    noteImage.src = getNoteImageUrl(i, 0);
+	    noteImage.src = getNoteImageUrl(i, 1);
 	    var restImage = new Image();
-	    restImage.src = getNoteImageUrl(i, 1);
+	    restImage.src = getNoteImageUrl(i, 2);
+	    
+	    var imageBundle = [noteImage, restImage];
+	    var upsideDown = getNoteImageUrl(i, 3); 
+	    if (upsideDown){
+	    	var upsideImage = new Image();
+	    	upsideImage.src = upsideDown;
+	    	imageBundle.push(upsideImage);
+    	}
 
-		omg.noteImages.push([noteImage, restImage]);
+	    
+		omg.noteImages.push(imageBundle);
 	}
 }
 
@@ -2502,25 +2583,25 @@ function onMelodyMakerDisplay() {
 			
 			var y = e.clientY - offsetTop;
 			canvas.onmove(y);
-		}
+		};
 
 		canvas.ontouchmove = function (e) {
 			e.preventDefault();
 			
 			var y = e.targetTouches[0].pageY - offsetTop;
 			canvas.onmove(y);
-		}
+		};
 
 		canvas.onmove = function (y) {
 			var oldCurrent = omg.mm.frets.current;
 			var fret = omg.mm.frets.length - Math.floor(y / omg.mm.frets.height);
 			
 			if (fret >= omg.mm.frets.length) {
-				if (omg.mm.frets.current != -1) {
+				fret = omg.mm.frets.length - 1;
+				/*if (omg.mm.frets.current != -1) {
 					doneTouching();
 				}
-
-				fret = -1;
+				fret = -1;*/
 			}
 			
 			omg.mm.frets.current = fret;			
@@ -2566,11 +2647,15 @@ function onMelodyMakerDisplay() {
 		};
 		
 		canvas.ondown = function (y) {
+
+			if (omg.mm.welcomeStyle && !omg.mm.drawStarted) {				
+				startDrawCountDown()
+			} 
 			
 			var fret = omg.mm.frets.length - Math.floor(y / omg.mm.frets.height) ;
 
 			if (fret >= omg.mm.frets.length)
-				return;
+				fret = omg.mm.frets.length - 1;
 
 			var noteNumber = omg.mm.frets[fret].note;
 
@@ -2646,6 +2731,7 @@ function drawMelodyCanvas(part, low, high) {
 	context.fillStyle = "white";
 	context.fillRect(0, 0, canvas.width, fretHeight);
 	
+	var upsideDownNoteImage;
 	var noteImage = getImageForNote({beats: 1});
 	var noteHeight = noteImage.height;
 	var noteWidth = noteImage.width;
@@ -2679,17 +2765,28 @@ function drawMelodyCanvas(part, low, high) {
 			iy = ((frets -1) - (fretNumber - low)) * 
 				fretHeight + fretHeight * 0.5 -
 				noteImage.height * 0.75;
-
-			iy2 = ( (fretNumber - low)) * 
-				fretHeight + fretHeight * 0.5 -
-				noteImage.height * 0.75;
 		}
 		
 		if (iy < 0) {
-			context.save();
-			context.scale(1, -1);
-			context.drawImage(noteImage, i * noteWidth + noteWidth, iy2 - canvas.height);
-			context.restore();
+			upsideDownNoteImage = getImageForNote(note, true);
+
+			if (upsideDownNoteImage != noteImage) {
+				iy = ((frets -1) - (fretNumber - low)) * 
+					fretHeight + fretHeight * 0.5 -
+					noteImage.height * 0.25;
+				context.drawImage(upsideDownNoteImage, i * noteWidth + noteWidth, iy );
+			}
+			else {
+				iy2 = ( (fretNumber - low)) * 
+				fretHeight + fretHeight * 0.5 -
+					noteImage.height * 0.75;
+				
+				context.save();
+				context.scale(1, -1);
+				context.drawImage(noteImage, i * noteWidth + noteWidth, iy2 - canvas.height);
+				context.restore();
+			}
+			
 		}
 		else {
 			context.drawImage(noteImage, i * noteWidth + noteWidth, iy);
@@ -2873,7 +2970,10 @@ function browseButtonClick(type, selectedIndex) {
 }
 
 function getNoteImageUrl(i, j) {
-	return "img/notes/" + omg.noteImageUrls[i][j] + ".png";
+	var fileName = omg.noteImageUrls[i][j];
+	if (fileName) {
+		return "img/notes/" + fileName + ".png";	
+	}	
 }
 
 function rescale(part, rootNote, scale) {
@@ -2976,4 +3076,52 @@ function showMainControls() {
 	omg.mainControls.style.display = "block";
 	omg.mainControlsHeader.style.display = "block";
 
+}
+
+function startDrawCountDown() {
+	omg.mm.drawStarted = Date.now();
+	var secondsToGo = 4;
+
+	visibility = "visible";
+	omg.mm.caption.style.visibility = visibility;
+	omg.mm.toolbar.style.visibility = visibility;
+	omg.mm.addRests.style.visibility = visibility;
+	omg.mm.subtoolbar.style.visibility = visibility;
+
+	var opacity = 0;
+	omg.mm.caption.style.opacity = 0;
+	omg.mm.toolbar.style.opacity = 0;
+	omg.mm.addRests.style.opacity = 0;
+	omg.mm.subtoolbar.style.opacity = 0;
+	omg.welcome.style.opacity = 1 - opacity;
+
+	var now;
+	var fadeInterval = setInterval(function countdown() {
+		now = Date.now() - omg.mm.drawStarted;
+
+		if (now < 2000) {
+			opacity = Math.min(1, now / 2000);
+			omg.welcome.style.opacity = 1 - opacity;
+		}
+		else {
+			opacity = Math.min(1, (now - 2000) / 2000);
+			omg.welcome.style.opacity = 0;
+			omg.mm.caption.style.opacity = opacity;
+			omg.mm.toolbar.style.opacity = opacity;
+			omg.mm.addRests.style.opacity = opacity;
+			omg.mm.subtoolbar.style.opacity = opacity;
+
+		}
+				
+		if (now >= 4000) {
+			omg.mm.welcomeStyle = false;
+			omg.mm.drawStarted = 0;
+			
+			clearInterval(fadeInterval);
+		}
+		else {
+			//omg.gettingStartedCountdown.innerHTML = 4 - Math.floor(now / 1000);
+		}
+		
+	}, 1000 / 60);
 }

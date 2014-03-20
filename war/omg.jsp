@@ -34,7 +34,7 @@ if (user.isLoggedIn()){
 			Go Back To Main Controls
 		</a>
 	</div>
-	<hr/>
+	<hr class="left-panel-dividor"/>
 	<div id="main-controls">
 		<span class="main-controls-section">CREATE A NEW</span>
 		<div class="create-button" id="create-melody">
@@ -53,7 +53,7 @@ if (user.isLoggedIn()){
 			<img class="create-image2" src="img/add2.png">
 			Instrument / Drumkit
 		</div>
-		<hr/>
+		<hr class="left-panel-dividor"/>
 		<span class="main-controls-section">THE GALLERY:</span>
 		<div class="browse-button" id="browse-melodies">
 			<img class="create-image2" src="img/browse.png">
@@ -72,7 +72,7 @@ if (user.isLoggedIn()){
 			Browse Sections
 		</div>
 
-		<hr/>
+		<hr class="left-panel-dividor"/>
 		<span class="main-controls-section">SAVED:</span>
 		<div class="browse-button" id="my-saved">
 			<img class="create-image2" src="img/browse.png">
@@ -80,11 +80,12 @@ if (user.isLoggedIn()){
 		</div>
 		
 		<div class="nodata">(you should <em>totally</em> make something)</div>
-		<hr/>
+		<hr class="left-panel-dividor"/>
 		<div id="contact">
 			Have a Question? Need Help?
 			<br/>
 			<a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a>
+			<br/>
 		</div>
 	</div>
   
@@ -245,25 +246,6 @@ if (user.isLoggedIn()){
 
 <div id="right-panel">
 
-	<div id="welcome" class="remixer-zone">
-		<p class="headline"><em>You</em> can make <b>beats</b>, <b>melodies</b>, <b>mixes</b>, and <b>songs</b>!</p>	
-		
-		<p class="app-desc">Music created with OMG can be used freely and without royalties for any purpose,
-		including soundtracks for games, films, videos, commercials, TV and radio, events, parties, restuarants, clubs
-		and anything else you want!</p>
-
-		<p class="getting-started">
-		<br/>
-		<br/>
-			<span class="getting-started-subtext">to create music</span>
-			<br/>
-			Draw Here
-			<br/>
-			<span class="getting-started-subtext">for 4 Seconds</span>
-		</p>	
-	</div>
-
-
 	<div id="remixer">
 
 		<div class="remixer-zone" id="remixer-zone">
@@ -345,7 +327,7 @@ if (user.isLoggedIn()){
 	<div id="melody-maker" class="remixer-zone">
 
 		<div class="remixer-caption" id="melody-maker-caption">Melody Maker</div>
-		<div class="remixer-caption-bar">
+		<div class="remixer-caption-bar" id="melody-maker-toolbar">
 			<div class="mm-tools">
 			<div class="remixer-button" id="save-mm">Save</div>
 			<div class="remixer-button" id="remixer-mm"><i>+re</i><b>mixer</b></div>
@@ -407,11 +389,33 @@ if (user.isLoggedIn()){
 	
 			<canvas id="melody-maker-canvas">
 			</canvas>
+
 			<div id="add-rests-mm">
 			Add Rest:
 			</div>
 
 		</div>
+	</div>
+
+	<div id="welcome" class="remixer-zone">
+		<p class="headline"><em>You</em> can make <b>beats</b>, <b>melodies</b>, <b>mixes</b>, and <b>songs</b>!</p>	
+		
+		<p class="app-desc">Music created with OMG can be used freely and without royalties for any purpose,
+		including soundtracks for games, films, videos, commercials, TV and radio, events, parties, restuarants, clubs
+		and anything else you want!</p>
+
+		<p class="getting-started">
+		<br/>
+		<br/>
+			<span class="getting-started-subtext">to create music</span>
+			<br/>
+			Draw Here
+			<br/>
+			<!--
+			<span class="getting-started-subtext">for <span id="seconds-to-go">4</span> Seconds</span>
+			-->
+		</p>	
+		
 	</div>
 
 </div>
@@ -422,6 +426,7 @@ if (user.isLoggedIn()){
 
 	<a href="/"><img id="omg48topbar" src="img/omg48.png"></a>
 	<img  src="img/menu.png" id="top-bar-view-button"/>
+	<span id="omg-title">open music gallery</span>
 	<div id="top-bar-view-buttons">
 		<div class="top-bar-button" id="browse-button">Browse</div>
 		<div class="top-bar-button" id="create-button">Create</div>
@@ -455,6 +460,7 @@ if (user.isLoggedIn()){
 
 </div> <!--bbody-->
 <script src="omg.js"></script>
+<script src="omgdraw.js"></script>
 
 </body>
 </html>
