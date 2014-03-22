@@ -17,6 +17,10 @@ if (user.isLoggedIn()){
 <html>
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<link rel="apple-touch-icon" href="http://openmusicgallery.appspot.com/img/omg256.png" />
+
 <meta property="og:image" content="http://openmusicgallery.appspot.com/img/omg256.png"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 <title>OMG - Open Music Gallery</title>   
@@ -330,8 +334,8 @@ if (user.isLoggedIn()){
 		<div class="remixer-caption-bar" id="melody-maker-toolbar">
 			<div class="mm-tools">
 			<div class="remixer-button" id="save-mm">Save</div>
-			<div class="remixer-button" id="remixer-mm"><i>+re</i><b>mixer</b></div>
 			<div class="remixer-button" id="play-mm">Play</div>
+			<div class="remixer-button" id="remixer-mm"><i>+re</i><b>mixer</b></div>
 			</div>
 			<div class="remixer-button" id="clear-mm">
 				Clear

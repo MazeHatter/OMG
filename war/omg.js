@@ -360,10 +360,29 @@ function loadSinglePart(searchResult) {
 function setupPartDiv(part) {
     var type = part.data.type;
     part.div.innerHTML = "<div class='remixer-part-type'>" + type + 
-    "</div><div class='remixer-part-rightbar'></div>" +
-    "<hr class='part-hr'/>";
+	    "</div><div class='remixer-part-leftbar'>" +
+	    getSelectInstrument() + "</div>" +
+	    "<div class='remixer-part-rightbar'></div>" +
+	    "<hr class='part-hr'/>";
 
     part.div.rightBar = part.div.getElementsByClassName("remixer-part-rightbar")[0];
+    part.div.selectInstrument = part.div.getElementsByClassName("remixer-part-instrument")[0];
+    
+    part.div.selectInstrument.onchange = function () {
+    	var instrument = part.div.selectInstrument.value;
+    	
+    	if (instrument == "sine") {
+    		//todo osc thing
+    		
+    		return;
+    	}
+    	
+    	getSoundSet(instrument, function (ss) {
+    		loadSoundSetForPart(ss, part);
+    		//loadSoundSet(ss);
+    	});
+
+    };
 
     if (type == "DRUMBEAT") {
         setupDivForDrumbeat(part);
@@ -986,7 +1005,7 @@ function setupPlayer() {
             	p.go();        		
         	}
 
-        	console.log("set new bpm");
+        	debug("set new bpm");
     	}
     };
     
@@ -996,7 +1015,7 @@ function setupPlayer() {
     	for (var i = 0; i < parts.length; i++) {
     		if (!parts[i].loaded) {
     			allReady = false;
-    			console.log("part " + i + " is not ready");
+    			debug("part " + i + " is not ready");
     		}
     	}
     	if (!allReady) {
@@ -1220,7 +1239,7 @@ function loadSound(sound, part) {
             omg.player.loadedSounds[key] = buffer;
             onSoundLoaded(true, part);
         }, function () {
-            console.log("error :(");
+            debug("error :(");
             onSoundLoaded(false, part);
         });
     }
@@ -1304,7 +1323,7 @@ function sendVote(entry, value) {
     xhr.onreadystatechange = function(){
         if (xhr.readyState == 4){
 
-            console.log(xhr.responseText);
+            debug(xhr.responseText);
         }
     }
     xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
@@ -1925,7 +1944,7 @@ function doInitStuff() {
 			}
 	    }
 	    catch (e) {
-	        console.log(e);
+	        debug(e);
 	    }
 	//}
 	
@@ -2095,6 +2114,9 @@ function isShrunk() {
 
 function drawMelodyMakerCanvas() {
 
+    var backgroundAlpha = 1;
+    var noteAlpha = 1;
+
 	var frets = omg.mm.frets;
 	var fretHeight = frets.height;
 
@@ -2103,12 +2125,42 @@ function drawMelodyMakerCanvas() {
 
 	canvas.width = canvas.clientWidth;
 
+    var now;	
+        
 	if (omg.mm.welcomeStyle) {
-		console.log(omg.mm.drawStarted ? 
-				(Date.now() - omg.mm.drawStarted) / 4000 : 0);
-		context.globalAlpha = omg.mm.drawStarted ? 
-				(Date.now() - omg.mm.drawStarted) / 4000 : 0;	
+        noteAlpha = 0;
+
+        if (omg.mm.drawStarted) { 
+            now = Date.now() - omg.mm.drawStarted;
+		    context.globalAlpha =  0.3;
+    		context.fillStyle = "#4fa5d5";
+            context.fillRect(0, 0, 
+                now / 4000 * canvas.width, canvas.height);
+		    context.globalAlpha =  1;
+        }
+
+        drawGettingStartedLines(canvas, context);
+
+		if (omg.mm.animationStarted) {
+		    now = Date.now() - omg.mm.animationStarted;
+		    if (now < 800) {
+    		    backgroundAlpha = now / 800;
+		    }
+		    else if (now > 1600) {
+                noteAlpha = (now - 1600) / 400;
+            }
+            else {		    
+	            backgroundAlpha = 1;
+		    }
+		}
+		else {
+		    return;
+		}
 	}	
+
+    context.lineWidth = 1;
+
+    context.globalAlpha = backgroundAlpha;
 
 	context.fillStyle = "white";
 	context.fillRect(0, 0, canvas.width, fretHeight);
@@ -2121,9 +2173,20 @@ function drawMelodyMakerCanvas() {
 				canvas.width, fretHeight);
 	}
 
-	var noteImage = getImageForNote({beats: 1});
-	var noteHeight = noteImage.height;
-	var noteWidth = noteImage.width;
+    var noteHeight;
+    var noteWidth;    
+    if (!omg.rawNoteWidth) {
+	    var noteImage = getImageForNote({beats: 1});
+	    noteHeight = noteImage.height;
+	    noteWidth = noteImage.width;
+	    omg.rawNoteWidth = noteWidth;
+	    omg.rawNoteHeight = noteHeight;    
+    }
+    else {
+        noteHeight = omg.rawNoteHeight;
+        noteWidth = omg.rawNoteWidth;
+    }
+
 	if (noteWidth * (omg.mm.data.notes.length + 2) > canvas.width) {
 		noteWidth = canvas.width / (omg.mm.data.notes.length + 2);
 	}
@@ -2143,10 +2206,10 @@ function drawMelodyMakerCanvas() {
 		else {
 			y = (omg.mm.frets.length - note.note - omg.mm.frets.rootNote) * 
 					fretHeight + fretHeight * 0.5 -
-					noteImage.height * 0.75;
+					noteHeight * 0.75;
 		}
 		context.fillRect(omg.mm.playingI * noteWidth + noteWidth + 
-				(noteImage.width / 2 - noteWidth / 2), y, 
+				(omg.rawNoteWidth / 2 - omg.rawNoteWidth / 2), y, 
 				noteWidth, noteHeight);
 	}
 	
@@ -2168,8 +2231,11 @@ function drawMelodyMakerCanvas() {
 	context.stroke();
 	context.closePath();
 
+    context.globalAlpha = noteAlpha;
+
 	for (var i = 0; i < omg.mm.data.notes.length; i++) {
-		noteImage = getImageForNote(omg.mm.data.notes[i]);
+		note = omg.mm.data.notes[i]
+		noteImage = getImageForNote(note);
 		if (omg.mm.data.notes[i].rest) {
 			y = restHeight;
 		}
@@ -2178,8 +2244,14 @@ function drawMelodyMakerCanvas() {
 					fretHeight + fretHeight * 0.5 -
 					noteImage.height * 0.75;
 		}
-		context.drawImage(noteImage, i * noteWidth + noteWidth, y);
+		
+		note.x = i * noteWidth + noteWidth;
+		note.y = y;
+		
+		context.drawImage(noteImage, note.x, y);
 	}
+	
+	omg.mm.drawnOnce = true;
 }
 
 
@@ -2389,6 +2461,7 @@ function showMelodyMaker(type, welcomeStyle) {
 	var visibility;
 	omg.mm.welcomeStyle = welcomeStyle;
 	if (welcomeStyle) {
+        omg.mm.drawnOnce = false;
 		visibility = "hidden";
 		omg.welcome.style.display = "block";
 		//omg.mm.canvas.style.opacity = 0.33;
@@ -2553,6 +2626,7 @@ function doneTouching() {
 	omg.mm.frets.touching = -1;
 	omg.mm.osc.frequency.setValueAtTime(0, 0);				
 	drawMelodyMakerCanvas();
+	
 }
 
 function onMelodyMakerDisplay() {
@@ -2581,44 +2655,50 @@ function onMelodyMakerDisplay() {
 		canvas.onmousemove = function (e) {
 			e.preventDefault();
 			
+			var x = e.clientX - offsetLeft;
 			var y = e.clientY - offsetTop;
-			canvas.onmove(y);
+			canvas.onmove(x, y);
 		};
 
 		canvas.ontouchmove = function (e) {
 			e.preventDefault();
-			
+
+			var x = e.targetTouches[0].pageX - offsetLeft;			
 			var y = e.targetTouches[0].pageY - offsetTop;
-			canvas.onmove(y);
+			canvas.onmove(x, y);
 		};
 
-		canvas.onmove = function (y) {
+		canvas.onmove = function (x, y) {
 			var oldCurrent = omg.mm.frets.current;
 			var fret = omg.mm.frets.length - Math.floor(y / omg.mm.frets.height);
-			
 			if (fret >= omg.mm.frets.length) {
 				fret = omg.mm.frets.length - 1;
-				/*if (omg.mm.frets.current != -1) {
-					doneTouching();
-				}
-				fret = -1;*/
 			}
 			
 			omg.mm.frets.current = fret;			
 			
-			if (fret > -1 && omg.mm.frets.touching > -1 && 
-					omg.mm.frets.touching != fret) {
+			if (fret > -1 && omg.mm.frets.touching > -1) {
+    			var note = omg.mm.data.notes[omg.mm.data.notes.length - 1];
+			
+			    if (omg.mm.frets.touching != fret) {
 				
-				var noteNumber = omg.mm.frets[fret].note;
+				    var noteNumber = omg.mm.frets[fret].note;
 				
-		        omg.mm.osc.frequency.setValueAtTime(makeFrequency(noteNumber), 0);
-		        
-		        var note = {note: fret - omg.mm.frets.rootNote, scaledNote: noteNumber, beats: 0.25};
-		        omg.mm.data.notes.push(note);
-				omg.mm.lastNewNote = Date.now();
-		        addTimeToNote(note, omg.mm.lastNewNote);
-		        
-				omg.mm.frets.touching = fret;
+		            omg.mm.osc.frequency.setValueAtTime(makeFrequency(noteNumber), 0);
+		            
+		            note = {note: fret - omg.mm.frets.rootNote, scaledNote: noteNumber, beats: 0.25,
+		                    drawData: []};
+		            omg.mm.data.notes.push(note);
+				    omg.mm.lastNewNote = Date.now();
+		            addTimeToNote(note, omg.mm.lastNewNote);
+		            
+				    omg.mm.frets.touching = fret;
+			    }
+
+			    if (omg.mm.welcomeStyle && note) {
+    			    note.drawData.push({x: x, y: y, originalX: x, originalY: y});
+		        }
+			
 			}
 			
 			if (oldCurrent != omg.mm.frets.current) {
@@ -2635,41 +2715,47 @@ function onMelodyMakerDisplay() {
 		canvas.onmousedown = function (e) {
 			e.preventDefault();
 			
+			var x = e.clientX - offsetLeft;
 			var y = e.clientY - offsetTop;
-			canvas.ondown(y);
+			canvas.ondown(x, y);
 		};
 
 		canvas.ontouchstart = function (e) {
 			e.preventDefault();
 			
+			var x = e.targetTouches[0].pageX - offsetLeft;
 			var y = e.targetTouches[0].pageY - offsetTop;
-			canvas.ondown(y);
+			canvas.ondown(x, y);
 		};
 		
-		canvas.ondown = function (y) {
+		canvas.ondown = function (x, y) {
 
-			if (omg.mm.welcomeStyle && !omg.mm.drawStarted) {				
-				startDrawCountDown()
-			} 
-			
 			var fret = omg.mm.frets.length - Math.floor(y / omg.mm.frets.height) ;
-
 			if (fret >= omg.mm.frets.length)
 				fret = omg.mm.frets.length - 1;
-
+			
 			var noteNumber = omg.mm.frets[fret].note;
 
 			omg.mm.frets.touching = fret;
 			
 	        omg.mm.osc.frequency.setValueAtTime(makeFrequency(noteNumber), 0);
 	        
-	        var note = {note: fret - omg.mm.frets.rootNote, scaledNote: noteNumber, beats: 0.25};
+	        var note = {note: fret - omg.mm.frets.rootNote, scaledNote: noteNumber, beats: 0.25,
+	                    drawData: []};
 	        omg.mm.data.notes.push(note);
 
 	        omg.mm.lastNewNote = Date.now();
 	        var skip = false;
 	        
 	        addTimeToNote(note, omg.mm.lastNewNote);
+
+			if (omg.mm.welcomeStyle) {
+				if (!omg.mm.drawStarted && !omg.mm.animationStarted) {				
+					startDrawCountDown();
+				}
+
+			    note.drawData.push({x: x, y: y, originalX: x, originalY: y});
+			} 
 	        
 	        drawMelodyMakerCanvas();
 		};
@@ -3080,6 +3166,7 @@ function showMainControls() {
 
 function startDrawCountDown() {
 	omg.mm.drawStarted = Date.now();
+
 	var secondsToGo = 4;
 
 	visibility = "visible";
@@ -3114,14 +3201,144 @@ function startDrawCountDown() {
 		}
 				
 		if (now >= 4000) {
-			omg.mm.welcomeStyle = false;
 			omg.mm.drawStarted = 0;
 			
 			clearInterval(fadeInterval);
+			
+			animateDrawing();
 		}
 		else {
 			//omg.gettingStartedCountdown.innerHTML = 4 - Math.floor(now / 1000);
 		}
 		
+		drawMelodyMakerCanvas();
+		
 	}, 1000 / 60);
+}
+
+function getSelectInstrument(type) {
+	var select = "<select class='remixer-part-instrument'>";
+	
+	//select += "<option value='sine'>Sine Wave</option>";
+	//select += "<option value='6303373460504576'>Cheese</option>";
+	//select += "<option value='6139672929501184'>Cheese2</option>";
+		
+	return select + "</select>";
+	
+	return "";
+}
+
+function debug(out) {
+	console.log(out);
+}
+
+function loadSoundSetForPart(ss, part) {
+	part.soundset = ss;
+	var note;
+	var noteIndex;
+
+	for (var ii = 0; ii < part.data.notes.length; ii++) {
+		note = part.data.notes[ii];
+		
+		if (note.rest)
+			continue;
+
+		noteIndex = note.scaledNote - ss.bottomNote;
+		if (noteIndex < 0) {
+			noteIndex = noteIndex % 12 + 12;
+		}
+		else if (noteIndex >= ss.data.data.length) {
+			var moveOctaves = 1 + Math.floor((noteIndex - ss.data.data.length) / 12);
+			noteIndex = noteIndex - moveOctaves * 12;
+		}
+		note.sound = ss.data.data[noteIndex].url;
+
+		if (!note.sound)
+			continue;
+		
+        if (omg.player.loadedSounds[note.sound]) {
+            //sounds[isnd].audio = p.loadedSounds[note.sound];
+        }
+        else {
+            loadSound(note.sound, part);
+        }
+	}
+
+}
+
+function drawGettingStartedLines(canvas, context) {
+
+    if (!omg.mm.animationStarted)
+        context.lineWidth = 4;
+    else {
+        context.lineWidth = 1 + 3 * (1 - ((Date.now() - omg.mm.animationStarted) / omg.mm.animationLength));
+    }
+
+    context.beginPath();
+    var note;
+    for (var i = 0; i < omg.mm.data.notes.length; i++) {
+        note = omg.mm.data.notes[i];
+        
+        for (var j = 0; j < note.drawData.length; j++) {
+            
+            if (j == 0) {
+                context.moveTo(note.drawData[j].x, note.drawData[j].y);
+                if (note.drawData.length == 1) {
+                    context.lineTo(note.drawData[j].x, note.drawData[j].y + 5);
+                }
+            }    
+            else {
+                context.lineTo(note.drawData[j].x, note.drawData[j].y);
+            }
+        }
+    
+    }
+    context.stroke();
+    context.closePath();
+}
+
+function animateDrawing() {
+    omg.mm.animationLength = 1900;
+    
+    var context = omg.mm.canvas.getContext("2d");
+
+    var animationStarted = Date.now();
+    omg.mm.animationStarted = animationStarted;
+    var now;
+    var nowP;
+    var i;
+    var j;
+    var notes = omg.mm.data.notes;
+    var noteCount = notes.length;
+    var drawData;
+    var startX;
+    var dx;
+    var animateInterval = setInterval(function () {
+        console.log("animating");
+
+        now = Date.now() - omg.mm.animationStarted;
+        nowP = now / (omg.mm.animationLength - 200);
+        
+        for (i = 0; i < noteCount; i++) {
+            drawData = notes[i].drawData;
+            
+            for (j = 0; j < drawData.length; j++) {
+                startX = drawData[j].originalX;
+
+                dx = startX - notes[i].x - omg.rawNoteWidth / 2;
+                
+                drawData[j].x = startX - dx * nowP;
+            }
+            
+        }
+ 
+       if (nowP > 1) {
+            omg.mm.welcomeStyle = false;
+            clearInterval(animateInterval);
+            omg.mmanimationStarted = 0;
+        }
+ 
+        drawMelodyMakerCanvas();
+            
+    }, 1000 / 60);
 }
