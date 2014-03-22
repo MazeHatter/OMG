@@ -936,3 +936,17 @@ hr {
 .remixer-part-leftbar {
 	display:inline-block;
 }
+
+.auto-add-rests-on {
+	padding:4px;
+	display:inline-block;
+	color:white;
+	background-color:#4fa5d5;
+	border:1px solid gray;
+}
+
+.auto-add-rests-off {
+	padding:4px;
+	display:inline-block;
+	border:1px solid gray;
+}

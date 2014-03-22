@@ -2126,7 +2126,7 @@ function drawMelodyMakerCanvas() {
 	canvas.width = canvas.clientWidth;
 
     var now;	
-        
+
 	if (omg.mm.welcomeStyle) {
         noteAlpha = 0;
 
@@ -2233,23 +2233,26 @@ function drawMelodyMakerCanvas() {
 
     context.globalAlpha = noteAlpha;
 
-	for (var i = 0; i < omg.mm.data.notes.length; i++) {
-		note = omg.mm.data.notes[i]
-		noteImage = getImageForNote(note);
-		if (omg.mm.data.notes[i].rest) {
-			y = restHeight;
-		}
-		else {
-			y = (omg.mm.frets.length - omg.mm.data.notes[i].note - omg.mm.frets.rootNote) * 
-					fretHeight + fretHeight * 0.5 -
-					noteImage.height * 0.75;
-		}
+    if (!omg.mm.drawnOnce || noteAlpha > 0) {
+    
+	    for (var i = 0; i < omg.mm.data.notes.length; i++) {
+		    note = omg.mm.data.notes[i]
+		    noteImage = getImageForNote(note);
+		    if (omg.mm.data.notes[i].rest) {
+			    y = restHeight;
+		    }
+		    else {
+			    y = (omg.mm.frets.length - omg.mm.data.notes[i].note - omg.mm.frets.rootNote) * 
+					    fretHeight + fretHeight * 0.5 -
+					    noteImage.height * 0.75;
+		    }
 		
-		note.x = i * noteWidth + noteWidth;
-		note.y = y;
+		    note.x = i * noteWidth + noteWidth;
+		    note.y = y;
 		
-		context.drawImage(noteImage, note.x, y);
-	}
+		    context.drawImage(noteImage, note.x, y);
+	    }
+    }
 	
 	omg.mm.drawnOnce = true;
 }
@@ -2301,6 +2304,7 @@ function setupMelodyMaker() {
 	omg.mm.clearButton = document.getElementById("clear-mm");
 	omg.mm.clearButton.onclick = function () {
 		omg.mm.data.notes = [];
+		omg.mm.lastNewNote = 0;
 		drawMelodyMakerCanvas();
 	}; 
 	
@@ -2394,6 +2398,18 @@ function setupMelodyMaker() {
 		
 		omg.mm.addRests.appendChild(restImage);
 	}
+	
+	omg.mm.autoAddRests = true;
+	var autoAdd = document.createElement("div");
+	autoAdd.innerHTML = "Auto Add";
+	autoAdd.className = "auto-add-rests-on";
+	omg.mm.addRests.appendChild(autoAdd);
+	
+	autoAdd.onclick = function () {
+    	omg.mm.autoAddRests = !omg.mm.autoAddRests;
+    	autoAdd.className = "auto-add-rests-" + 
+    	        (omg.mm.autoAddRests ? "on" : "off");
+	};
 	
 }
 
@@ -2736,11 +2752,33 @@ function onMelodyMakerDisplay() {
 			
 			var noteNumber = omg.mm.frets[fret].note;
 
+            var note;
+            
+            if (omg.mm.autoAddRests && omg.mm.lastNewNote) {
+                var lastNoteTime = Date.now() - omg.mm.lastNewNote;
+                if (lastNoteTime < 450) {
+    	            note = {rest: true, beats: 0.5};
+                }
+                else if (lastNoteTime < 650) {
+                    note = {rest: true, beats: 1};
+                }
+                else if (lastNoteTime < 900) {
+                    note = {rest: true, beats: 1.5};
+                }
+                else if (lastNoteTime < 4000) {
+                    note = {rest: true, beats: 2};
+                }
+
+                if (note) {
+        	        omg.mm.data.notes.push(note);                
+                }
+            }
+
 			omg.mm.frets.touching = fret;
 			
 	        omg.mm.osc.frequency.setValueAtTime(makeFrequency(noteNumber), 0);
 	        
-	        var note = {note: fret - omg.mm.frets.rootNote, scaledNote: noteNumber, beats: 0.25,
+	        note = {note: fret - omg.mm.frets.rootNote, scaledNote: noteNumber, beats: 0.25,
 	                    drawData: []};
 	        omg.mm.data.notes.push(note);
 
@@ -3278,7 +3316,10 @@ function drawGettingStartedLines(canvas, context) {
     var note;
     for (var i = 0; i < omg.mm.data.notes.length; i++) {
         note = omg.mm.data.notes[i];
-        
+
+        if (!note.drawData)
+            continue;
+                    
         for (var j = 0; j < note.drawData.length; j++) {
             
             if (j == 0) {
@@ -3298,7 +3339,7 @@ function drawGettingStartedLines(canvas, context) {
 }
 
 function animateDrawing() {
-    omg.mm.animationLength = 1900;
+    omg.mm.animationLength = 2000;
     
     var context = omg.mm.canvas.getContext("2d");
 
@@ -3317,17 +3358,21 @@ function animateDrawing() {
         console.log("animating");
 
         now = Date.now() - omg.mm.animationStarted;
-        nowP = now / (omg.mm.animationLength - 200);
+        nowP = now / (omg.mm.animationLength - 400);
         
         for (i = 0; i < noteCount; i++) {
             drawData = notes[i].drawData;
+
+            if (!drawData)
+                continue;
             
             for (j = 0; j < drawData.length; j++) {
                 startX = drawData[j].originalX;
 
-                dx = startX - notes[i].x - omg.rawNoteWidth / 2;
+                dx = startX - notes[i].x - omg.rawNoteWidth * 0.65;
                 
                 drawData[j].x = startX - dx * nowP;
+                drawData[j].y = drawData[j].originalY - 10 * nowP;
             }
             
         }
