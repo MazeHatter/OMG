@@ -358,16 +358,46 @@ function loadSinglePart(searchResult) {
 
 
 function setupPartDiv(part) {
-    var type = part.data.type;
-    part.div.innerHTML = "<div class='remixer-part-type'>" + type + 
-	    "</div><div class='remixer-part-leftbar'>" +
-	    getSelectInstrument() + "</div>" +
-	    "<div class='remixer-part-rightbar'></div>" +
-	    "<hr class='part-hr'/>";
 
-    part.div.rightBar = part.div.getElementsByClassName("remixer-part-rightbar")[0];
-    part.div.selectInstrument = part.div.getElementsByClassName("remixer-part-instrument")[0];
+    var minButton = document.createElement("div");
+    minButton.className = "remixer-part-command";
+    minButton.innerHTML = "&minus;";
+    minButton.onclick = function (e) {
+    	resizePart(part, "MINI");
+    	e.stopPropagation();
+    };
+    part.div.appendChild(minButton);
+
+    var maxButton = document.createElement("div");
+    maxButton.className = "remixer-part-command";
+    maxButton.innerHTML = "&plus;";
+    maxButton.onclick = function (e) {
+    	resizePart(part, "RESTORE");
+    	e.stopPropagation();
+    };
+    maxButton.style.display = "none";
+    part.div.appendChild(maxButton);
+
+    var type = part.data.type;
+    var typeDiv = document.createElement("div");
+    typeDiv.className ='remixer-part-type';
+    typeDiv.innerHTML = type;
+    part.div.appendChild(typeDiv);
     
+    var barDiv = document.createElement("div");
+    barDiv.className ='remixer-part-leftbar';
+    barDiv.innerHTML = getSelectInstrument();
+    part.div.appendChild(barDiv);
+
+    part.div.rightBar = document.createElement("div");
+    part.div.rightBar.className = "remixer-part-rightbar";
+    part.div.appendChild(part.div.rightBar);
+
+	var hr = document.createElement("hr");
+	hr.className = 'part-hr';
+    part.div.appendChild(hr);
+
+    part.div.selectInstrument = part.div.getElementsByClassName("remixer-part-instrument")[0];
     part.div.selectInstrument.onchange = function () {
     	var instrument = part.div.selectInstrument.value;
     	
@@ -401,25 +431,6 @@ function setupPartDiv(part) {
     };
     part.div.rightBar.appendChild(muteButton);
     part.div.muteButton = muteButton;
-
-    var minButton = document.createElement("div");
-    minButton.className = "remixer-part-command";
-    minButton.innerHTML = "&minus;";
-    minButton.onclick = function (e) {
-    	resizePart(part, "MINI");
-    	e.stopPropagation();
-    };
-    part.div.rightBar.appendChild(minButton);
-
-    var maxButton = document.createElement("div");
-    maxButton.className = "remixer-part-command";
-    maxButton.innerHTML = "&plus;";
-    maxButton.onclick = function (e) {
-    	resizePart(part, "RESTORE");
-    	e.stopPropagation();
-    };
-    maxButton.style.display = "none";
-    part.div.rightBar.appendChild(maxButton);
 
     var closePartButton = document.createElement("div");
     closePartButton.innerHTML = "&times;";
@@ -790,6 +801,7 @@ function setupRemixer() {
     omg.welcome = document.getElementById("welcome");
     omg.selectType = document.getElementById("select-part-type"); 
 	omg.gettingStartedCountdown = document.getElementById("seconds-to-go");
+	omg.addToRemixerHint = document.getElementById("add-to-remixer-hint");
 
     omg.pauseButton = document.getElementById("remixer-pause-button");
     omg.pauseButton.onclick = function (e) {
@@ -1618,8 +1630,8 @@ function loadSection(searchResult) {
 function resizePart(part, resize) {
     var div = part.div;
     var show;
-    var minButton = div.getElementsByClassName("remixer-part-command")[1];
-    var maxButton = div.getElementsByClassName("remixer-part-command")[2];
+    var minButton = div.getElementsByClassName("remixer-part-command")[0];
+    var maxButton = div.getElementsByClassName("remixer-part-command")[1];
     if (resize == "MINI") {
         show = "none";
         showInline = "none";
@@ -2756,13 +2768,20 @@ function onMelodyMakerDisplay() {
             
             if (omg.mm.autoAddRests && omg.mm.lastNewNote) {
                 var lastNoteTime = Date.now() - omg.mm.lastNewNote;
-                if (lastNoteTime < 450) {
+                console.log(lastNoteTime);
+                if (lastNoteTime < 210) {
+
+                }
+                else if (lastNoteTime < 300) {
+    	            note = {rest: true, beats: 0.25};
+                }
+                else if (lastNoteTime < 450) {
     	            note = {rest: true, beats: 0.5};
                 }
-                else if (lastNoteTime < 650) {
+                else if (lastNoteTime < 800) {
                     note = {rest: true, beats: 1};
                 }
-                else if (lastNoteTime < 900) {
+                else if (lastNoteTime < 1200) {
                     note = {rest: true, beats: 1.5};
                 }
                 else if (lastNoteTime < 4000) {
@@ -3380,10 +3399,60 @@ function animateDrawing() {
        if (nowP > 1) {
             omg.mm.welcomeStyle = false;
             clearInterval(animateInterval);
-            omg.mmanimationStarted = 0;
+            omg.mm.animationStarted = 0;
+            
+			omg.mm.play();
+            
+            fadeDiv(omg.dialogBorder, 300, true)
+            setTimeout(function () {
+                fadeDiv(omg.addToRemixerHint, 300, true);
+            }, 200);
+            
+            var closeHint = function () {
+   		        omg.dialogBorder.onclick = null;
+		        fadeDiv(omg.addToRemixerHint, 300, false);
+		        fadeDiv(omg.dialogBorder, 300, false);
+            };
+            
+            document.getElementById("add-to-remixer-hint-got-it").onclick = closeHint;
+            omg.dialogBorder.onclick = closeHint;
+            document.getElementById("add-to-remixer-from-hint").onclick = function() {
+                closeHint();
+                omg.mm.remixerButton.onclick();
+            };
+	
         }
  
         drawMelodyMakerCanvas();
             
     }, 1000 / 60);
+}
+
+function fadeDiv(div, length, on) {
+    var startedFade = Date.now();
+    var percent;
+    
+    if (on)
+        div.style.opacity = 0;
+        
+    div.style.display = "block";
+    
+	var fadeDivInterval = setInterval(function () {
+	    percent = (Date.now() - startedFade) / length;
+	    
+	    if (!on)
+	        percent = 1 - percent;
+	    	    
+        div.style.opacity = (div == omg.dialogBorder) ?
+            0.6 * percent : percent;
+        
+       if ((on && percent >= 1) || (!on && percent <= 0)) {
+            clearInterval(fadeDivInterval);
+            if (!on)
+                div.style.display = "none";
+       }
+             
+	}, 1000 / 60);
+
+        
 }

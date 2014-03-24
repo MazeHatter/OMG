@@ -444,7 +444,6 @@ if (user.isLoggedIn()){
 	</div>
 </div>
 
-
 <div id="dialog-border"></div>
 
 <div id="share-dialog">
@@ -456,6 +455,19 @@ if (user.isLoggedIn()){
 	<br/>
 	url: <input type="text" id="share-url"></input>
 </div>
+
+<div id="add-to-remixer-hint">
+	This melody can be combined with drumbeats, basslines, 
+	and more in the <em>re</em><b>mixer</b> 
+	<hr/>
+	<div class="remixer-button" id="add-to-remixer-from-hint">
+		+<em>re</em><b>mixer</b>
+	</div> 
+	Add Melody to <em>re</em><b>mixer</b>
+	
+	<div class="remixer-button" id="add-to-remixer-hint-got-it">Got it</div> 
+</div>
+
 
 <div id="demo-mode">
 	<div id="press-to-stop">(press to stop demo)</div>
