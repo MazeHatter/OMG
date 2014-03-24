@@ -583,16 +583,6 @@ div.vote-down {
     padding:10px;
 }
 
-#right-panel {
-	position: absolute;
-	top: 40px;
-	/*overflow-x:hidden;*/
-	margin:4px;
-}
-#left-panel {
-    overflow-y:auto;
-}
-
 #add-to-remixer-hint {
 	position:absolute;
 	top:2px;
@@ -616,8 +606,8 @@ div.vote-down {
 	}
 	
 	#right-panel {
-		width:94%;
-        display:none;
+		/*width:94%;*/
+		margin:48px 4px 0px 4px;
 	}
 	
     #left-panel {
@@ -626,6 +616,7 @@ div.vote-down {
         padding-left:5px;
         padding-right:5px;
         overflow-x:hidden;
+        display:none;
     }
     
     #top-bar-view-buttons {
@@ -667,10 +658,13 @@ div.vote-down {
 	}
 	
 	#right-panel {
+		position: absolute;
+		top: 40px;
 		left:370px;
 		width:650px;
 		overflow-x:hidden;
 		overflow-y:hidden;
+		margin:4px;
 	}
 	
     #player-button {
@@ -698,8 +692,8 @@ div.vote-down {
 	    margin:5px;    
 	    margin-top:50px;
 	    width:365px;
-	    /*overflow-y:scroll;
-	    overflow-x:hidden;*/
+    	overflow-y:auto;
+   	    /*overflow-x:hidden;*/
 	}
 
 	#create-panel {
@@ -850,7 +844,7 @@ div.vote-down {
 .add-rest-image {
 	vertical-align:middle;
 	height:30px;
-	margin:0px 5px;
+	margin:2px;
 	border:1px solid gray;
 }
 

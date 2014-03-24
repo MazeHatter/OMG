@@ -395,7 +395,7 @@ if (user.isLoggedIn()){
 			</canvas>
 
 			<div id="add-rests-mm">
-			Add Rest:
+			Add:
 			</div>
 
 		</div>
@@ -409,8 +409,11 @@ if (user.isLoggedIn()){
 		and anything else you want!</p>
 
 		<p class="getting-started">
-		<br/>
-		<br/>
+			<span id="getting-started-whitespace">
+				<br/>
+				<br/>
+				<br/>
+			</span>
 			<span class="getting-started-subtext">to create music</span>
 			<br/>
 			Draw Here

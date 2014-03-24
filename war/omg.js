@@ -1805,28 +1805,24 @@ function getOMG(data, callback) {
 }
 
 function setRemixerWidth() {
+
+    var height = window.innerHeight - 50; 
     var listView = omg.listView;
     var width;
     if (isShrunk()) {
     	width = omg.topbar.clientWidth - 8;
-    	omg.rightPanel.style.width = width + "px";
+    	//omg.rightPanel.style.width = width + "px";
     	omg.viewButtons.style.display = "none";
+    	document.getElementById("getting-started-whitespace").style.display = "none";
     }
     else {
+    
+        omg.leftPanel.style.height = height + "px";
+
     	width = omg.topbar.clientWidth - (350 + 8 + 12 + 20);
-    	//omg.viewButtons.style.display = "inline-block";
     	
-//    	if (!omg.remixerShowing)
-//    		showRemixer();
     }
-    	
-    
-    var height = window.innerHeight - 50; 
-    	
-    //omg.rightPanel.style.width = width + "px";
-    omg.leftPanel.style.height = height + "px";
-    //omg.welcome.style.height = height - 55 + "px";
-    
+    	    
 }
 
 function createDrumbeat() {
@@ -2137,6 +2133,26 @@ function drawMelodyMakerCanvas() {
 
 	canvas.width = canvas.clientWidth;
 
+    var noteHeight;
+    var noteWidth;    
+    if (!omg.rawNoteWidth) {
+	    var noteImage = getImageForNote({beats: 1});
+	    noteHeight = noteImage.height;
+	    noteWidth = noteImage.width;
+	    omg.rawNoteWidth = noteWidth;
+	    omg.rawNoteHeight = noteHeight;    
+    }
+    else {
+        noteHeight = omg.rawNoteHeight;
+        noteWidth = omg.rawNoteWidth;
+    }
+
+	if (noteWidth * (omg.mm.data.notes.length + 2) > canvas.width) {
+		noteWidth = canvas.width / (omg.mm.data.notes.length + 2);
+	}
+	var restHeight = canvas.height / 2 - noteHeight / 2; 
+
+
     var now;	
 
 	if (omg.mm.welcomeStyle) {
@@ -2154,12 +2170,13 @@ function drawMelodyMakerCanvas() {
         drawGettingStartedLines(canvas, context);
 
 		if (omg.mm.animationStarted) {
+            var halfTime = omg.mm.animationLength / 2;
 		    now = Date.now() - omg.mm.animationStarted;
 		    if (now < 800) {
     		    backgroundAlpha = now / 800;
 		    }
-		    else if (now > 1600) {
-                noteAlpha = (now - 1600) / 400;
+		    else if (now >= 1500) {
+                noteAlpha = (now - halfTime) / halfTime;
             }
             else {		    
 	            backgroundAlpha = 1;
@@ -2185,24 +2202,6 @@ function drawMelodyMakerCanvas() {
 				canvas.width, fretHeight);
 	}
 
-    var noteHeight;
-    var noteWidth;    
-    if (!omg.rawNoteWidth) {
-	    var noteImage = getImageForNote({beats: 1});
-	    noteHeight = noteImage.height;
-	    noteWidth = noteImage.width;
-	    omg.rawNoteWidth = noteWidth;
-	    omg.rawNoteHeight = noteHeight;    
-    }
-    else {
-        noteHeight = omg.rawNoteHeight;
-        noteWidth = omg.rawNoteWidth;
-    }
-
-	if (noteWidth * (omg.mm.data.notes.length + 2) > canvas.width) {
-		noteWidth = canvas.width / (omg.mm.data.notes.length + 2);
-	}
-	var restHeight = canvas.height / 2 - noteHeight / 2; 
 
 	var note;
 	var y;
@@ -2259,7 +2258,9 @@ function drawMelodyMakerCanvas() {
 					    noteImage.height * 0.75;
 		    }
 		
-		    note.x = i * noteWidth + noteWidth;
+		    if (noteAlpha == 1)
+    		    note.x = i * noteWidth + noteWidth;
+    		    
 		    note.y = y;
 		
 		    context.drawImage(noteImage, note.x, y);
@@ -2413,7 +2414,7 @@ function setupMelodyMaker() {
 	
 	omg.mm.autoAddRests = true;
 	var autoAdd = document.createElement("div");
-	autoAdd.innerHTML = "Auto Add";
+	autoAdd.innerHTML = "auto";
 	autoAdd.className = "auto-add-rests-on";
 	omg.mm.addRests.appendChild(autoAdd);
 	
@@ -2423,6 +2424,30 @@ function setupMelodyMaker() {
     	        (omg.mm.autoAddRests ? "on" : "off");
 	};
 	
+    omg.mm.showRemixerHint = function () {
+        fadeDiv(omg.dialogBorder, 300, true)
+        setTimeout(function () {
+            fadeDiv(omg.addToRemixerHint, 300, true);
+        }, 200);
+        
+        var closeHint = function () {
+	        omg.dialogBorder.onclick = null;
+	        fadeDiv(omg.addToRemixerHint, 300, false);
+	        fadeDiv(omg.dialogBorder, 300, false);
+        };
+        
+        omg.dialogBorder.onclick = closeHint;
+        document.getElementById("add-to-remixer-hint-got-it").onclick = function () {
+            omg.util.setCookie("remixer-got-it", "true");
+            closeHint();
+        };
+        document.getElementById("add-to-remixer-from-hint").onclick = function() {
+            omg.util.setCookie("remixer-got-it", "true");
+            closeHint();
+            omg.mm.remixerButton.onclick();
+        };
+    };
+
 }
 
 function setupMelodyMakerFretBoard() {
@@ -2479,6 +2504,8 @@ function setupMelodyMakerFretBoard() {
 }
 
 function showMelodyMaker(type, welcomeStyle) {
+
+    omg.mm.data.notes = [];
 
 	omg.rightPanel.style.display = "block";
 	
@@ -3328,7 +3355,7 @@ function drawGettingStartedLines(canvas, context) {
     if (!omg.mm.animationStarted)
         context.lineWidth = 4;
     else {
-        context.lineWidth = 1 + 3 * (1 - ((Date.now() - omg.mm.animationStarted) / omg.mm.animationLength));
+        context.lineWidth = 4 * (1 - ((Date.now() - omg.mm.animationStarted) / omg.mm.animationLength));
     }
 
     context.beginPath();
@@ -3359,8 +3386,9 @@ function drawGettingStartedLines(canvas, context) {
 
 function animateDrawing() {
     omg.mm.animationLength = 2000;
-    
-    var context = omg.mm.canvas.getContext("2d");
+
+    var canvas =  omg.mm.canvas;   
+    var context = canvas.getContext("2d");
 
     var animationStarted = Date.now();
     omg.mm.animationStarted = animationStarted;
@@ -3372,54 +3400,53 @@ function animateDrawing() {
     var noteCount = notes.length;
     var drawData;
     var startX;
+    var finishX;
     var dx;
-    var animateInterval = setInterval(function () {
-        console.log("animating");
+    var dx2;
 
+    var noteWidth = omg.rawNoteWidth;
+	if (noteWidth * (noteCount + 2) > canvas.width) {
+		noteWidth = canvas.width / (noteCount + 2);
+	}
+
+    var animateInterval = setInterval(function () {
+     
         now = Date.now() - omg.mm.animationStarted;
-        nowP = now / (omg.mm.animationLength - 400);
+        nowP = now / omg.mm.animationLength;
         
         for (i = 0; i < noteCount; i++) {
             drawData = notes[i].drawData;
 
             if (!drawData)
                 continue;
-            
+                        
             for (j = 0; j < drawData.length; j++) {
                 startX = drawData[j].originalX;
+                finishX = (i + 1) * noteWidth;
 
-                dx = startX - notes[i].x - omg.rawNoteWidth * 0.65;
-                
-                drawData[j].x = startX - dx * nowP;
-                drawData[j].y = drawData[j].originalY - 10 * nowP;
+                dx = startX - finishX;
+                dx2 = startX - finishX - omg.rawNoteWidth * 0.58;
+                notes[i].x = startX - dx * nowP;
+                drawData[j].x = startX - dx2 * nowP;
+                drawData[j].y = drawData[j].originalY;// - 10 * nowP;
             }
             
         }
- 
-       if (nowP > 1) {
+        
+        if (now >= omg.mm.animationLength) {
+            for (i = 0; i < noteCount; i++) {
+                delete notes[i].drawData;
+            }
+        
             omg.mm.welcomeStyle = false;
             clearInterval(animateInterval);
             omg.mm.animationStarted = 0;
             
 			omg.mm.play();
-            
-            fadeDiv(omg.dialogBorder, 300, true)
-            setTimeout(function () {
-                fadeDiv(omg.addToRemixerHint, 300, true);
-            }, 200);
-            
-            var closeHint = function () {
-   		        omg.dialogBorder.onclick = null;
-		        fadeDiv(omg.addToRemixerHint, 300, false);
-		        fadeDiv(omg.dialogBorder, 300, false);
-            };
-            
-            document.getElementById("add-to-remixer-hint-got-it").onclick = closeHint;
-            omg.dialogBorder.onclick = closeHint;
-            document.getElementById("add-to-remixer-from-hint").onclick = function() {
-                closeHint();
-                omg.mm.remixerButton.onclick();
-            };
+			
+			if (!omg.util.getCookie("remixer-got-it")) {
+			    omg.mm.showRemixerHint();
+			}
 	
         }
  
@@ -3456,3 +3483,24 @@ function fadeDiv(div, length, on) {
 
         
 }
+
+omg.util = {};
+omg.util.getCookie = function (c_name) {
+    var i,x,y, cookies=document.cookie.split(";");
+    for (i=0; i < cookies.length; i++) {
+        x = cookies[i].substr(0, cookies[i].indexOf("="));
+        y = cookies[i].substr(cookies[i].indexOf("=") + 1);
+        x = x.replace(/^\s+|\s+$/g, "");
+        if (x == c_name) {
+            return unescape(y);
+        }
+    }
+};
+
+omg.util.setCookie = function (c_name,value,exdays) {
+    var exdate=new Date();
+    exdate.setDate(exdate.getDate() + exdays);
+    var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+    document.cookie=c_name + "=" + c_value;
+};
+
