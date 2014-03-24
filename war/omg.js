@@ -2195,7 +2195,7 @@ function drawMelodyMakerCanvas() {
 	context.fillRect(0, 0, canvas.width, fretHeight);
 	
 	var ii;
-	if (frets.current != undefined && frets.current < frets.length) {
+	if (!omg.mm.animationStarted && frets.current != undefined && frets.current < frets.length) {
 		context.fillStyle = "orange";
 		ii = frets.length - frets.current; 
 		context.fillRect(0, ii * fretHeight , 
@@ -2785,6 +2785,9 @@ function onMelodyMakerDisplay() {
 		
 		canvas.ondown = function (x, y) {
 
+            if (omg.mm.animationStarted)
+                return;
+
 			var fret = omg.mm.frets.length - Math.floor(y / omg.mm.frets.height) ;
 			if (fret >= omg.mm.frets.length)
 				fret = omg.mm.frets.length - 1;
@@ -3288,7 +3291,7 @@ function startDrawCountDown() {
 			omg.mm.drawStarted = 0;
 			
 			clearInterval(fadeInterval);
-			
+			doneTouching();
 			animateDrawing();
 		}
 		else {
@@ -3425,7 +3428,7 @@ function animateDrawing() {
                 finishX = (i + 1) * noteWidth;
 
                 dx = startX - finishX;
-                dx2 = startX - finishX - omg.rawNoteWidth * 0.58;
+                dx2 = dx - omg.rawNoteWidth * 0.58;
                 notes[i].x = startX - dx * nowP;
                 drawData[j].x = startX - dx2 * nowP;
                 drawData[j].y = drawData[j].originalY;// - 10 * nowP;
