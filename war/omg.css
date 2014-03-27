@@ -540,6 +540,13 @@ div.vote-down {
 	text-align:center;
 }
 
+
+#clear-rearranger {
+	position:absolute;
+	right:8px;
+	top:8px;
+}
+
 #clear-remixer {
 	position:absolute;
 	right:8px;
@@ -644,6 +651,12 @@ div.vote-down {
         background-color:white;
         margin:4px;
     }    
+
+	.remixer-button {
+		padding:6px;
+		font: 11pt Arial,Liberation Sans,DejaVu Sans,sans-serif;
+	}
+
 }
 @media all and (min-width: 961px) {
 	#bbody {
@@ -967,4 +980,28 @@ hr {
 
 .remixer-part-instrument {
 	display:none;
+}
+
+.about {
+	text-align:center;
+	color:#808080;
+	font:10pt Helvetica, arial, freesans, clean, sans-serif;
+}
+
+#about {
+	display:none;
+	
+}
+
+#rearranger {
+	display:none;
+}
+
+.rearranger-section {
+	padding:8px;
+	border:1px solid black;
+	border-radius:1px;
+	display:inline-block;
+	margin:4px;
+	font:14pt Helvetica, arial, freesans, clean, sans-serif;
 }

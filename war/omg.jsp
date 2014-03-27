@@ -40,6 +40,17 @@ if (user.isLoggedIn()){
 	</div>
 	<hr class="left-panel-dividor"/>
 	<div id="main-controls">
+		<div class="create-button" id="show-remixer">
+			<img class="create-image2" src="img/browse.png">
+			<em>re</em><b>mixer</b>
+		</div>
+		<div class="create-button" id="show-rearranger">
+			<img class="create-image2" src="img/browse.png">
+			<em>re</em><b>arranger</b>
+		</div>
+	
+		<hr class="left-panel-dividor"/>
+
 		<span class="main-controls-section">CREATE A NEW</span>
 		<div class="create-button" id="create-melody">
 			<img class="create-image2" src="img/add2.png">
@@ -85,11 +96,8 @@ if (user.isLoggedIn()){
 		
 		<div class="nodata">(you should <em>totally</em> make something)</div>
 		<hr class="left-panel-dividor"/>
-		<div id="contact">
-			Have a Question? Need Help?
-			<br/>
-			<a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a>
-			<br/>
+		<div class="about">
+		<a id="about-hyperlink" href="javascript:void(0)">About</a>
 		</div>
 	</div>
   
@@ -258,6 +266,7 @@ if (user.isLoggedIn()){
 				<div class="remixer-button-row" id="section-button-row">
 					<div class="remixer-button" id="save-button">Save</div>
 					<div class="remixer-button" id="share-button">Share</div>
+					<div class="remixer-button" id="add-to-rearranger"><i>+re</i><b>arranger</b></div>
 					
 					<div class="remixer-button" id="clear-remixer">
 					Clear
@@ -275,47 +284,9 @@ if (user.isLoggedIn()){
 				</div> 
 				
 				<div class="remixer-message" id="no-section-message">
-					<p class="headline">Where it's <b><i>easy</i></b> to make <b>beats</b>, <b>melodies</b>, <b>mixes</b>, and <b>arrangements</b>!</p>
-										
-					<div id="show-me-how">
-					Show me how it works!
-					</div>
-					
-					
-					<p>These apps <i>write</i> to OMG:</p>
-					<div id="applist2">
-						<div class="app2" onclick="gotoURL('apps.htm#omgdrums')">
-							<img class="applogo" src="img/omgdrums48.png">
-							<div class="appname">OMG Drums</div>
-							<div class="appdesc">Open Source drum machine for Android</div> 
-						</div>
-						<div class="app2" onclick="gotoURL('apps.htm#tonezart')">
-							<img class="applogo" src="img/tonezart48.png">
-							<div class="appname">Tonezart</div>
-							<div class="appdesc">Make unique, one-of-a-kind ringtones interactively!</div>
-						</div>
-						<div class="app2" onclick="gotoURL('apps.htm#sketchatune')">
-							<img class="applogo" src="img/sketchatune48.png">
-							<div class="appname">Sketch a Tune</div>
-							<div class="appdesc">You doodle. Music is created. It's that simple.</div> 
-						</div>
-						<div><a href="apps.htm">More OMG Apps</a></div>
-					</div>
 
-					<br/>
-					<% if (!hasUser) {%>
-					<div class="login-area" >
-						Login with Google for more features:<br/> 
-						<a href="<%=loginUrl%>"><img class="signingoogle" src="img/signingoogle.png"></a>
-					</div>
-					<% } else { %>
-					<div id="logout-area">
-						<h3>
-						Logged in as <span id="login-name"><%=userName%></span> - 
-						<a id="logout-link" href="<%=logoutUrl%>">Log Out</a>
-						</h3>
-					</div>
-					<% } %>
+					<p class="nodata">The <em>re</em><b>mixer</b> combines melodies, beats, basslines and more into <em>sections</em>.</p> 
+					<p class="nodata">Choose something from the gallery, or <a href="javascript:void(0)" id="create-drumbeat-hyperlink">create a drumbeat</a>.</p> 
 					
 				</div>
 		
@@ -327,6 +298,39 @@ if (user.isLoggedIn()){
 		</div>			
 
 	</div>
+
+	<div id="rearranger">
+
+		<div class="remixer-zone">
+			<div class="remixer-caption"><i>re</i><b>arranger</b></div>
+			<div class="remixer-caption-bar">
+				<div class="remixer-button-row" id="rearranger-tools">
+					<div class="remixer-button" id="rearranger-save-button">Save</div>
+					<div class="remixer-button" id="rearranger-share-button">Share</div>
+					
+					<div class="remixer-button" id="clear-rearranger">
+					Clear
+					</div>
+				</div>
+			</div>
+		
+			<div class="remixer-area" id="rearranger-area">
+						
+				<div class="remixer-message" id="rearranger-is-empty">
+
+					<p class="nodata">The <em>re</em><b>arranger</b> combines <em>sections</em> into a <em>song</em>.</p> 
+
+				</div>
+		
+			</div>
+		
+		</div>
+
+		<div class="remixer-bottom-bar">
+		</div>			
+
+	</div>
+
 
 	<div id="melody-maker" class="remixer-zone">
 
@@ -405,7 +409,7 @@ if (user.isLoggedIn()){
 		<p class="headline"><em>You</em> can make <b>beats</b>, <b>melodies</b>, <b>mixes</b>, and <b>songs</b>!</p>	
 		
 		<p class="app-desc">Music created with OMG can be used freely and without royalties for any purpose,
-		including soundtracks for games, films, videos, commercials, TV and radio, events, parties, restuarants, clubs
+		including soundtracks for games, films, videos, commercials, TV and radio, events, parties, restaurants, clubs
 		and anything else you want!</p>
 
 		<p class="getting-started">
@@ -422,6 +426,59 @@ if (user.isLoggedIn()){
 			<span class="getting-started-subtext">for <span id="seconds-to-go">4</span> Seconds</span>
 			-->
 		</p>	
+		
+	</div>
+
+
+	<div id="about" class="remixer-zone">
+		<div class="remixer-caption">About OMG</div>
+		<div class="remixer-caption-bar">
+		</div>
+
+		<div class="remixer-area" >
+
+		<p class="app-desc">Open Music Gallery forms the basis of a digital network that replaces record labels and other channels of copyrighted "closed" music.</p>
+
+		<% if (!hasUser) {%>
+		<div class="login-area" >
+			Login with Google for more features:<br/> 
+			<a href="<%=loginUrl%>"><img class="signingoogle" src="img/signingoogle.png"></a>
+		</div>
+		<% } else { %>
+		<div id="logout-area">
+			<h3>
+			Logged in as <span id="login-name"><%=userName%></span> - 
+			<a id="logout-link" href="<%=logoutUrl%>">Log Out</a>
+			</h3>
+		</div>
+		<% } %>
+
+
+		<p class="getting-started">
+		
+			<div class="getting-started-subtext">
+			Have a Question?
+			</div>
+			<div> 
+			<a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a>
+			</div>
+			<br/>
+			<div class="getting-started-subtext">
+				<a target="_blank" href="https://github.com/MazeHatter/OMG/blob/master/LICENSE.md">OMG License</a>
+				<br/>
+				<br/> 
+				<a target="_blank" href="https://github.com/MazeHatter/OMG">OMG Source Code</a>
+			</div>
+			<br/>
+			<div class="getting-started-subtext">
+				OMG Logo by Wes Golinski
+			</div>
+		
+		</p>	
+		</div>
+
+		<div class="remixer-bottom-bar">
+		</div>			
 		
 	</div>
 

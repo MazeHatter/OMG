@@ -28,27 +28,17 @@ var omg = {type: "DRUMBEAT",
 
 window.onload = function () {
 
-    try {
-//        loadCounts();
-    }
-    catch (e) {
-        console.log(e);
-    }
 
-//    try {
     setupRemixer();
-    /*    }
-    catch (e) {
-        console.log(e.description);
-    }
-     */
+    setupRearranger();
+
     try {
 
         setupPlayer();
 
     }
     catch (e) {
-        console.log(e);
+        debug(e);
     }
 
     setupMelodyMaker();
@@ -193,7 +183,7 @@ function displayResults(results) {
         part = document.createElement("div");
         part.className = "part";
         data = results.list[i];
-        data.divInList = part;
+//        data.divInList = part;
 
         partDetail = document.createElement("div");
         partDetail.className = "part-votes";
@@ -218,7 +208,7 @@ function displayResults(results) {
 
         partList.appendChild(part);        
 
-        part.onclick = (function (data) {
+        part.onclick = (function (part, data2) {
             return function () {        
                 // this is mostly for iPhones, requiring 
                 // audio to start in response to a click
@@ -236,18 +226,20 @@ function displayResults(results) {
                     }
                 }
 
+                // make a copy
+                var data3 = JSON.parse(JSON.stringify(data2));
 
                 if (data.type == "SECTION") {
-                    loadSection(data);
+                    loadSection(data3);
                 }
                 else {
-                    loadSinglePart(data);
+                    loadSinglePart(data3);
                 }
 
-                setupAsCurrentInList(data);
+                setupAsCurrentInList(data3, part);
 
             };
-        })(data);
+        })(part, data);
 
     }
     
@@ -633,6 +625,17 @@ function getMonthCaption(month) {
 
 function setupClicks() {
 
+    omg.hideRightPanels = function () {
+        omg.remixer.style.display = "none";
+        omg.welcome.style.display = "none";
+        omg.about.style.display = "none";
+        omg.mm.style.display = "none";
+        omg.rearranger.style.display = "none";
+        
+        omg.mm.showing = false;
+        omg.remixerShowing = false;  
+    };
+
 	omg.goBackToControls.onclick = function () {
 		showMainControls();
 	};
@@ -660,6 +663,15 @@ function setupClicks() {
     		type: "DRUMBEAT",
     		data: newBeats
     	});
+    };
+    
+    document.getElementById("create-drumbeat-hyperlink").onclick = function () {
+    	var newBeats = createDrumbeat();
+    	loadSinglePart({
+    		type: "DRUMBEAT",
+    		data: newBeats
+    	});
+        
     };
     
     var createMelodyButton = document.getElementById("create-melody");
@@ -752,8 +764,6 @@ function setupClicks() {
             cancelPart(omg.section.parts[ip]);
         }
     };
-    
-    document.getElementById("show-me-how").onclick = demo;
 
     omg.viewButton = document.getElementById("top-bar-view-button");
     omg.viewButton.onclick = function () {
@@ -763,18 +773,62 @@ function setupClicks() {
     	}
     	else {
     		
-    		omg.welcome.style.display = "none";
-    		
-    		omg.mm.style.display = "none";
-    		omg.mm.showing = false;
-    		omg.remixer.style.display = "none";
-    		omg.remixerShowing = false;
-    		
+
+            omg.hideRightPanels();    		
     		omg.leftPanel.style.display = "block";
     		
     		//viewButtons.style.display = "block";
     		//omg.viewButton.className = "top-bar-view-button-selected";
     	}
+    };
+    
+    document.getElementById("show-remixer").onclick = function () {
+    
+        if (isShrunk())
+            omg.leftPanel.style.display = "none";
+
+        showRemixer();
+    };
+
+    document.getElementById("show-rearranger").onclick = function () {
+    
+        if (isShrunk())
+            omg.leftPanel.style.display = "none";
+
+        showRearranger();
+    };
+
+    
+    document.getElementById("about-hyperlink").onclick = function () {
+
+        if (isShrunk())
+            omg.leftPanel.style.display = "none";
+
+//        if (omg.displayedRightPanel) {
+//            omg.displayedRightPanel.style.display = "none";
+//        }
+
+        omg.hideRightPanels();
+            
+        omg.displayedRightPanel = omg.about;
+        omg.about.style.display = "block";
+    };
+    
+    document.getElementById("add-to-rearranger").onclick = function () {
+
+        if (omg.player.playing)
+            pause();
+
+        for (var i = 0; i < omg.section.parts.length; i++) {
+            omg.sectionDiv.removeChild(omg.section.parts[i].holder);
+        }
+
+        omg.rearranger.add(omg.section);
+        omg.section = {type: "SECTION", data: {}, parts: []};
+
+        showRearranger();        
+        omg.player.play();
+        
     };
 }
 
@@ -802,6 +856,7 @@ function setupRemixer() {
     omg.selectType = document.getElementById("select-part-type"); 
 	omg.gettingStartedCountdown = document.getElementById("seconds-to-go");
 	omg.addToRemixerHint = document.getElementById("add-to-remixer-hint");
+	omg.about = document.getElementById("about");
 
     omg.pauseButton = document.getElementById("remixer-pause-button");
     omg.pauseButton.onclick = function (e) {
@@ -851,26 +906,67 @@ function setupRemixer() {
 
 }
 
+function setupRearranger() {
+    omg.rearranger = document.getElementById("rearranger");
+    omg.rearranger.area = document.getElementById("rearranger-area");
+    omg.rearranger.emptyMessage = document.getElementById("rearranger-is-empty");
+    omg.rearranger.tools = document.getElementById("rearranger-tools");
+
+    omg.rearranger.playingSection = 0;
+    
+    omg.rearranger.nextSectionLetter = 0; // A
+    omg.rearranger.sections = [];
+    omg.rearranger.add = function (section) {
+
+        omg.rearranger.emptyMessage.style.display = "none";
+
+        section.letter = omg.rearranger.nextSectionLetter;
+        omg.rearranger.nextSectionLetter++;
+    
+        omg.rearranger.sections.push(section);    
+        
+        section.div = document.createElement("div");
+        section.div.className = "rearranger-section";
+        section.div.innerHTML = String.fromCharCode(65 + section.letter);
+        omg.rearranger.area.appendChild(section.div);
+        
+    };
+}
+
 function showRemixer() {
 
+    omg.hideRightPanels();
 	omg.rightPanel.style.display = "block";
 	
-	omg.welcome.style.display = "none";
 	
     if (!omg.collections) {
         omg.collections = {};
         //getCollections();
-    }
-
-    if (omg.mm && omg.mm.showing) {
-    	omg.mm.style.display = "none";
-    	omg.mm.showing = false;
     }
     
     //omg.remixerButton.className = "show-remixer-button-on";
     omg.remixer.style.display = "block";
     omg.remixerShowing = true;
 
+    omg.player.source = "remixer";
+}
+
+function showRearranger() {
+
+    omg.hideRightPanels();
+	omg.rightPanel.style.display = "block";
+
+    if (!omg.collections) {
+        omg.collections = {};
+        //getCollections();
+    }
+
+    if (omg.rearranger.sections.length > 0)
+        omg.rearranger.tools.style.display = "block";
+        
+    omg.rearranger.style.display = "block";
+
+    omg.player.source = "rearranger";
 }
 
 function setupPlayer() {
@@ -980,6 +1076,12 @@ function setupPlayer() {
     };
 
     p.play = function () {
+        omg.rearranger.playingSection = 0;
+
+        if (p.source == "rearranger" && omg.rearranger.sections.length > 0) {
+            omg.rearranger.sections[0].div.style.backgroundColor = "#4fa5d5";
+        }
+    
         p.playing = true;
         loopStarted = Date.now();
         iSubBeat = 0;
@@ -987,7 +1089,6 @@ function setupPlayer() {
         omg.pauseButton.style.display = "inline-block";
         omg.pauseButton.innerHTML = "pause";
 
-        playBeat(iSubBeat);
         p.go();
 
             
@@ -997,12 +1098,30 @@ function setupPlayer() {
 
     	omg.subbeatLength = 60000 / omg.bpm / omg.subbeats; 
     	omg.player.intervalHandle = setInterval(function() {
+            playBeat(iSubBeat);
+
             iSubBeat++;
             if (iSubBeat == omg.beats * omg.subbeats) {
-                iSubBeat = 0;
-                loopStarted = Date.now();
+            
+                if (p.source === "remixer") {
+                    iSubBeat = 0;
+                    loopStarted = Date.now();
+                }
+                else if (p.source === "rearranger") {
+                    omg.rearranger.sections[omg.rearranger.playingSection].
+                        div.style.backgroundColor = "white";
+                    omg.rearranger.playingSection++;
+                    if (omg.rearranger.playingSection >= omg.rearranger.sections.length) {
+                        pause();
+                    }
+                    else {
+                        omg.rearranger.sections[omg.rearranger.playingSection].
+                            div.style.backgroundColor = "#4fa5d5";
+                        iSubBeat = 0;
+                        loopStarted = Date.now();
+                    }
+                }                
             }
-            playBeat(iSubBeat);
     		
     	}, omg.subbeatLength);
     }
@@ -1058,16 +1177,22 @@ function setupPlayer() {
 function pause() {
     clearInterval(omg.player.intervalHandle);
     omg.player.playing = false;
+    omg.pauseButton.innerHTML = "play";
 
-    if (omg.part) {
-        pausePart(omg.part)
+    var section;
+    if (omg.player.source == "remixer") {
+        section = omg.section;
+    }
+    else if (omg.player.source == "rearranger") {
+        section = omg.rearranger.sections[omg.rearranger.playingSection];
     }
 
-    for (var ip = 0; ip < omg.section.parts.length; ip++) {
-        pausePart(omg.section.parts[ip]);
+    if (section) {    
+        for (var ip = 0; ip < section.parts.length; ip++) {
+            pausePart(section.parts[ip]);
+        }
     }
     
-    omg.pauseButton.innerHTML = "play";
 }
 
 function cancelPart(part, leaveEmpty) {
@@ -1088,6 +1213,9 @@ function cancelPart(part, leaveEmpty) {
 	            omg.remixer.sectionButtonRow.style.display = "none";
 	            pause();
 	            welcomeMessage();
+
+        		omg.remixer.nosection.style.display = "block";
+
         	}
         }
     }
@@ -1125,11 +1253,16 @@ function playBeat(iSubBeat) {
         omg.onBeatPlayedListeners[il].call(null, iSubBeat);
     }
 
-    if (omg.part)    
-        playBeatForPart(iSubBeat, omg.part);
+    var section;
+    if (omg.player.source === "remixer") {
+        section = omg.section;
+    }
+    else if (omg.player.source === "rearranger") {
+        section = omg.rearranger.sections[omg.rearranger.playingSection];
+    } 
 
-    for (var ip = 0; ip < omg.section.parts.length; ip++) {
-        playBeatForPart(iSubBeat, omg.section.parts[ip]);
+    for (var ip = 0; ip < section.parts.length; ip++) {
+        playBeatForPart(iSubBeat, section.parts[ip]);
     }
 
 
@@ -1357,7 +1490,7 @@ function setupAsCurrentInList(searchResult, div) {
 
     }
 
-    var div = searchResult.divInList;
+    //var div = searchResult.divInList;
     omg.currentDivInList = div;
     div.style.backgroundColor = "#FFFFFF";
 
@@ -1737,7 +1870,7 @@ function displayCollections(collections) {
 
         partList.appendChild(part);        
 
-        part.onclick = (function (data) {
+        part.onclick = (function (part, data) {
             return function () {        
                 // this is mostly for iPhones, requiring 
                 // audio to start in response to a click
@@ -1754,7 +1887,7 @@ function displayCollections(collections) {
                         loadSinglePart(result);
                     }
 
-                    setupAsCurrentInList(result)
+                    setupAsCurrentInList(result, part)
                 	
                 };
                 
@@ -1767,7 +1900,7 @@ function displayCollections(collections) {
                 
 
             };
-        })(data);
+        })(part, data);
 
     }
 
@@ -1797,7 +1930,7 @@ function getOMG(data, callback) {
     xhr.onreadystatechange = function(){
         if (xhr.readyState == 4){
         	var ooo = JSON.parse(xhr.response);
-        	ooo.list[0].divInList = data.divInList;
+//        	ooo.list[0].divInList = data.divInList;
             callback(ooo.list[0]);
         }
     };
@@ -1816,7 +1949,8 @@ function setRemixerWidth() {
     	document.getElementById("getting-started-whitespace").style.display = "none";
     }
     else {
-    
+
+        omg.leftPanel.style.display = "block";    
         omg.leftPanel.style.height = height + "px";
 
     	width = omg.topbar.clientWidth - (350 + 8 + 12 + 20);
@@ -2507,10 +2641,12 @@ function showMelodyMaker(type, welcomeStyle) {
 
     omg.mm.data.notes = [];
 
+    omg.hideRightPanels();
 	omg.rightPanel.style.display = "block";
 	
 	omg.remixer.style.display = "none";
 	omg.welcome.style.display = "none";
+	omg.about.style.display = "none";
 	omg.remixerShowing = false;
 
 	var visibility;
@@ -2798,7 +2934,7 @@ function onMelodyMakerDisplay() {
             
             if (omg.mm.autoAddRests && omg.mm.lastNewNote) {
                 var lastNoteTime = Date.now() - omg.mm.lastNewNote;
-                console.log(lastNoteTime);
+
                 if (lastNoteTime < 210) {
 
                 }
