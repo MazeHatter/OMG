@@ -49,6 +49,11 @@ public class ConfigServlet extends HttpServlet {
 
 
 		if (entity != null) {
+			
+			if (!entity.hasProperty("SONG")) {
+				entity.setProperty("SONG", 0);
+				ds.put(entity);
+			}
 
 			PrintWriter pw = resp.getWriter();
 			pw.write("{\"sections\" : ");
@@ -61,6 +66,8 @@ public class ConfigServlet extends HttpServlet {
 			pw.write(((Long)entity.getProperty("MELODY")).toString());
 			pw.write(", \"chord_progressions\" : ");
 			pw.write(((Long)entity.getProperty("CHORDPROGRESSION")).toString());
+			pw.write(", \"songs\" : ");
+			pw.write(((Long)entity.getProperty("SONG")).toString());
 
 			pw.write(", \"isloggedin\" : ");
 			pw.write(isLoggedIn ? "true" : "false");
@@ -136,6 +143,7 @@ public class ConfigServlet extends HttpServlet {
 			entity.setProperty("MELODY", 0);
 			entity.setProperty("CHORDPROGRESSION", 0);
 			entity.setProperty("SECTION", 0);
+			entity.setProperty("SONG", 0);
 			ds.put(entity);
 			*/
 		}

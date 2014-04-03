@@ -609,7 +609,11 @@ div.vote-down {
 	}
 	
 	#omg-title {
-	display:none;
+		display:none;
+	}
+	
+	.getting-started-whitespace {
+		display:none;
 	}
 	
 	#right-panel {
@@ -781,7 +785,8 @@ div.vote-down {
 }
 
 #melody-maker {
-	display:none;
+	/*display:none;*/
+	visibility:hidden;
 }
 
 #melody-maker-canvas {
@@ -912,6 +917,7 @@ hr {
 	position:absolute;
 	top:0px;
 	pointer-events:none;
+	display:block;
 }
 
 

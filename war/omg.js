@@ -133,6 +133,7 @@ function getContributions() {
     else if (type.indexOf("Melodies")===0) type = "MELODY";
     else if (type.indexOf("Basslines")===0) type = "BASSLINE";
     else if (type.indexOf("Chord Progressions")===0) type = "CHORDPROGRESSION";
+    else if (type.indexOf("Songs")===0) type = "SONG";
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "/omg?type=" + type + "&order=" + order +
@@ -493,6 +494,9 @@ function setupDivForDrumbeat(part) {
     		part.data.data[ybox].data[xbox] = part.data.data[ybox].data[xbox] ? 0 : 1;
     		drawDrumCanvas(part);
     	}
+    	
+    	part.id = 0;
+    	sectionModified();
 	};
 
     part.isNew = false;
@@ -713,6 +717,10 @@ function setupClicks() {
     button.onclick = function () {
     	browseButtonClick("SECTION", 3)
     };
+    button = document.getElementById("browse-songs");
+    button.onclick = function () {
+    	browseButtonClick("SONG", 4)
+    };
     
     document.getElementById("my-saved").onclick = function () {
     	
@@ -813,23 +821,24 @@ function setupClicks() {
         omg.displayedRightPanel = omg.about;
         omg.about.style.display = "block";
     };
-    
-    document.getElementById("add-to-rearranger").onclick = function () {
 
-        if (omg.player.playing)
-            pause();
+    var addToRearranger = document.getElementById("add-to-rearranger");
+    addToRearranger.onclick = function () {
 
-        for (var i = 0; i < omg.section.parts.length; i++) {
-            omg.sectionDiv.removeChild(omg.section.parts[i].holder);
-        }
-
-        omg.rearranger.add(omg.section);
-        omg.section = {type: "SECTION", data: {}, parts: []};
-
-        showRearranger();        
-        omg.player.play();
+        var letter = omg.rearranger.add(omg.remixer.getSectionData());
         
+        addToRearranger.innerHTML = "Section " + letter;
+
     };
+
+    omg.remixer.saveButton.onclick = function () {
+        save();
+    };
+
+    omg.remixer.shareButton.onclick = function () {
+        save(shareId);
+    };
+
 }
 
 function setupRemixer() {
@@ -898,12 +907,23 @@ function setupRemixer() {
     omg.shareDialog = document.getElementById("share-dialog");
     omg.dialogBorder = document.getElementById("dialog-border");
 
-    omg.remixer.saveButton = document.getElementById("save-button");
-    omg.remixer.saveButton.onclick = save;
-    
+    omg.remixer.saveButton = document.getElementById("save-button");    
     omg.remixer.shareButton = document.getElementById("share-button");
-    omg.remixer.shareButton.onclick = share;
 
+    omg.remixer.getSectionData = function () {
+        var outdata;
+        var outparts;
+	    outdata = JSON.parse(JSON.stringify(omg.section.data));
+	    outparts = [];
+
+	    for (var ip = 0; ip < omg.section.parts.length; ip++) {
+	        outparts.push(omg.section.parts[ip].data);
+	    }
+	    
+	    outdata.parts = JSON.parse(JSON.stringify(outparts));
+        return outdata;
+    };
+    
 }
 
 function setupRearranger() {
@@ -916,21 +936,103 @@ function setupRearranger() {
     
     omg.rearranger.nextSectionLetter = 0; // A
     omg.rearranger.sections = [];
+    var client = {sections: []};
+    omg.rearranger.client = client;
+    
+    var lastSection;
+    var clientSection;
+    
     omg.rearranger.add = function (section) {
-
         omg.rearranger.emptyMessage.style.display = "none";
+
+        if (JSON.stringify(section) === lastSection) {
+            omg.rearranger.nextSectionLetter--;            
+        }
+        lastSection = JSON.stringify(section);
 
         section.letter = omg.rearranger.nextSectionLetter;
         omg.rearranger.nextSectionLetter++;
     
         omg.rearranger.sections.push(section);    
+        clientSection = {parts: []};
+        client.sections.push(clientSection);
         
-        section.div = document.createElement("div");
-        section.div.className = "rearranger-section";
-        section.div.innerHTML = String.fromCharCode(65 + section.letter);
-        omg.rearranger.area.appendChild(section.div);
+        for (var ii = 0; ii < section.parts.length; ii++) {
+            clientSection.parts.push({});
+        }
         
+        clientSection.div = document.createElement("div");
+        clientSection.div.className = "rearranger-section";
+        clientSection.div.innerHTML = String.fromCharCode(65 + section.letter);
+
+        omg.rearranger.area.appendChild(clientSection.div);
+
+        return clientSection.div.innerHTML;
     };
+
+    omg.rearranger.saveButton = document.getElementById("rearranger-save-button");
+    omg.rearranger.saveButton.onclick = function () {
+    	var saveButton = omg.remixer.saveButton;
+	
+	    if (saveButton.innerHTML !== "Save") {
+		    return;
+	    }
+	
+	    saveButton.innerHTML = "(Saving...)";
+	    if (omg.section.id && omg.section.id > 0) {
+		    // already saved?
+	    } else if (omg.section.parts.length == 1) {
+		    var part = omg.section.parts[0];
+		    if (part.id && part.id > 0) {
+			    // already saved?
+		    }
+		    else {
+			    postOMG(part.type, part, function (results) {
+				    saveButton.innerHTML = "(Saved)";
+			    });
+		    }
+	    }
+	    else if (omg.section.parts.length > 0) {
+		    postOMG("SECTION", omg.section, function (results) {
+			    saveButton.innerHTML = "(Saved)";
+		    });
+	    }
+
+    };
+    
+    omg.rearranger.shareButton = document.getElementById("rearranger-share-button");
+    omg.rearranger.shareButton.onclick = function () {
+    	if (omg.rearranger.id && omg.rearranger.id > 0) {
+		    shareId(omg.section.id, "SONG");
+	    //} else if (omg.rearranger.sections.length == 1) {
+            // kind of lame song bro
+	    }
+	    else if (omg.rearranger.sections.length > 0) {
+		    postOMG("SONG", omg.rearranger, function (results) {
+			    shareId(results.id, "SONG");
+		    });
+	    }
+
+    };
+    
+    omg.rearranger.clearButton = document.getElementById("clear-rearranger");
+    omg.rearranger.clearButton.onclick = function () {
+    
+        if (omg.player.playing)
+            pause();
+    
+        omg.rearranger.sections.forEach(function (entry) {
+           omg.rearranger.area.removeChild(entry.div); 
+        });
+    
+        omg.rearranger.sections = [];
+        
+        omg.rearranger.emptyMessage.style.display = "block";
+        omg.rearranger.tools.style.display = "none";        
+        
+        omg.rearranger.nextSectionLetter = 0; // A
+    };
+
 }
 
 function showRemixer() {
@@ -952,6 +1054,9 @@ function showRemixer() {
 }
 
 function showRearranger() {
+
+    if (omg.player.playing)
+        pause();
 
     omg.hideRightPanels();
 	omg.rightPanel.style.display = "block";
@@ -1056,11 +1161,7 @@ function setupPlayer() {
         	
         }
         if (part.type == "MELODY" || part.type == "xBASSLINE") {
-            
-            part.setupOsc = function () {
-            	makeOsc(part);
-            };
-            
+                        
             if (omg.section.parts.length == 0)
                 iSubBeat = -1;
 
@@ -1078,8 +1179,10 @@ function setupPlayer() {
     p.play = function () {
         omg.rearranger.playingSection = 0;
 
+        p.prepareSections();
+
         if (p.source == "rearranger" && omg.rearranger.sections.length > 0) {
-            omg.rearranger.sections[0].div.style.backgroundColor = "#4fa5d5";
+            omg.rearranger.client.sections[0].div.style.backgroundColor = "#4fa5d5";
         }
     
         p.playing = true;
@@ -1108,14 +1211,14 @@ function setupPlayer() {
                     loopStarted = Date.now();
                 }
                 else if (p.source === "rearranger") {
-                    omg.rearranger.sections[omg.rearranger.playingSection].
+                    omg.rearranger.client.sections[omg.rearranger.playingSection].
                         div.style.backgroundColor = "white";
                     omg.rearranger.playingSection++;
                     if (omg.rearranger.playingSection >= omg.rearranger.sections.length) {
                         pause();
                     }
                     else {
-                        omg.rearranger.sections[omg.rearranger.playingSection].
+                        omg.rearranger.client.sections[omg.rearranger.playingSection].
                             div.style.backgroundColor = "#4fa5d5";
                         iSubBeat = 0;
                         loopStarted = Date.now();
@@ -1158,6 +1261,27 @@ function setupPlayer() {
     		p.play();
     	}
     };
+    
+    p.prepareSections = function () {
+        if (p.source == "rearranger") {
+            for (var isection = 0; isection < omg.rearranger.client.sections.length; isection++) {
+                p.prepareSection(omg.rearranger.client.sections[isection]);
+            }
+        }
+        else if (p.source == "remixer") {
+            p.prepareSection(omg.section);        
+        }
+    };
+    
+    p.prepareSection = function (section) {
+        for (var ipart = 0; ipart < section.parts.length; ipart++) {
+            console.log(section.parts[ipart].nextBeat);
+            //if (section.parts[ipart].nextBeat) {
+                section.parts[ipart].nextBeat = 0;
+                section.parts[ipart].currentI = -1;
+            //}
+        }
+    }
     
     if (!window.AudioContext)
         window.AudioContext = window.webkitAudioContext;
@@ -1253,49 +1377,50 @@ function playBeat(iSubBeat) {
         omg.onBeatPlayedListeners[il].call(null, iSubBeat);
     }
 
-    var section;
     if (omg.player.source === "remixer") {
-        section = omg.section;
+        for (var ip = 0; ip < omg.section.parts.length; ip++) {
+            playBeatForPart(iSubBeat, omg.section.parts[ip].data, omg.section.parts[ip]);
+        }
     }
     else if (omg.player.source === "rearranger") {
-        section = omg.rearranger.sections[omg.rearranger.playingSection];
+        var section = omg.rearranger.sections[omg.rearranger.playingSection];
+        for (var ip = 0; ip < section.parts.length; ip++) {
+            playBeatForPart(iSubBeat, section.parts[ip], 
+                omg.rearranger.client.sections[omg.rearranger.playingSection].parts[ip]);
+        }
+
     } 
 
-    for (var ip = 0; ip < section.parts.length; ip++) {
-        playBeatForPart(iSubBeat, section.parts[ip]);
-    }
+}
 
+function playBeatForPart(iSubBeat, data, client) {
+
+    if (data.type == "DRUMBEAT") {
+        playBeatForDrumPart(iSubBeat, data, client);        
+    }
+    if (data.type == "MELODY" || data.type == "BASSLINE") {
+        playBeatForMelody(iSubBeat, data, client);        
+    }
 
 }
 
-function playBeatForPart(iSubBeat, part) {
-
-    if (part.type == "DRUMBEAT") {
-        playBeatForDrumPart(iSubBeat, part);        
-    }
-    if (part.type == "MELODY" || part.type == "BASSLINE") {
-        playBeatForMelody(iSubBeat, part);        
-    }
-
-}
-var msgshown = false;
-function playBeatForDrumPart(iSubBeat, part) {
-    var tracks = part.data.data;
-
+function playBeatForDrumPart(iSubBeat, data, part) {
+    var tracks = data.data;
+    
 	if (part.muted)
 		return;
 
     for (var i = 0; i < tracks.length; i++) {
         if (tracks[i].data[iSubBeat]) {
-        	playSound(tracks[i].sound, part.data.volume);
+        	playSound(tracks[i].sound, data.volume);
         }
     }
 }
 
-function playBeatForMelody(iSubBeat, part) {
+function playBeatForMelody(iSubBeat, data, part) {
 	var beatToPlay = iSubBeat;
     if (iSubBeat == 0) {
-    	if (part.currentI == -1 || part.currentI == part.data.notes.length) {
+    	if (part.currentI === -1 || part.currentI === data.notes.length) {
     		part.currentI = 0;
     		part.nextBeat = 0;
     		part.loopedBeats = 0;
@@ -1305,14 +1430,14 @@ function playBeatForMelody(iSubBeat, part) {
 			part.loopedBeats += omg.beats * omg.subbeats;
     	}
     }
-    
+
     if (part.loopedBeats) {
     	beatToPlay += part.loopedBeats;
     }
-    
-    if (beatToPlay == part.nextBeat) {
 
-        var note = part.data.notes[part.currentI];
+    if (beatToPlay == part.nextBeat) {
+    
+        var note = data.notes[part.currentI];
         
         if (part.soundset) {
         	if (note && note.sound) {
@@ -1321,8 +1446,8 @@ function playBeatForMelody(iSubBeat, part) {
         		
         }
         else {
-            if (!part.osc && part.setupOsc) {
-            	part.setupOsc();
+            if (!part.osc) {
+            	makeOsc(part, data);
             }
 
             if (!note || note.rest)
@@ -1732,14 +1857,18 @@ function loadSection(searchResult) {
     searchResult.data = JSON.parse(searchResult.json);
 
     var parts = [];
-    var data = searchResult.data.data;
+    if (!searchResult.data.parts && searchResult.data.data) {
+        searchResult.data.parts = searchResult.data.data;
+        delete searchResult.data.data;
+    }
+    var partsData = searchResult.data.parts;
 
     omg.section = searchResult;
     omg.section.parts = [];
     var part;
-    for (var ip = 0; ip < data.length; ip++) {
-    	part = {type: data[ip].type,
-                data: data[ip],
+    for (var ip = 0; ip < partsData.length; ip++) {
+    	part = {type: partsData[ip].type,
+                data: partsData[ip],
                 div: document.createElement("div")
         };
         parts[ip] = part; 
@@ -1944,15 +2073,12 @@ function setRemixerWidth() {
     var width;
     if (isShrunk()) {
     	width = omg.topbar.clientWidth - 8;
-    	//omg.rightPanel.style.width = width + "px";
     	omg.viewButtons.style.display = "none";
-    	document.getElementById("getting-started-whitespace").style.display = "none";
     }
     else {
 
         omg.leftPanel.style.display = "block";    
         omg.leftPanel.style.height = height + "px";
-
     	width = omg.topbar.clientWidth - (350 + 8 + 12 + 20);
     	
     }
@@ -2150,27 +2276,6 @@ function setupRemixerForPlay() {
     omg.remixer.sectionButtonRow.style.display = "inline-block";
 }
 
-function share() {
-
-	if (omg.section.id && omg.section.id > 0) {
-		shareId(omg.section.id, "SECTION");
-	} else if (omg.section.parts.length == 1) {
-		var part = omg.section.parts[0];
-		if (part.id && part.id > 0) {
-			shareId(part.id, part.type);
-		}
-		else {
-			postOMG(part.type, part, function (results) {
-				shareId(results.id, part.type);
-			});
-		}
-	}
-	else if (omg.section.parts.length > 0) {
-		postOMG("SECTION", omg.section, function (results) {
-			shareId(results.id, "SECTION");
-		});
-	}
-}
 
 function shareId(id, type) {
 
@@ -2219,17 +2324,7 @@ function shareLink(url) {
 function postOMG(type, odata, callback) {
 
 	var outdata;
-	if (type == "SECTION") {
-	    outdata = odata.data;
-	    outdata.data = [];
-
-	    for (var ip = 0; ip < odata.parts.length; ip++) {
-	        outdata.data.push(odata.parts[ip].data);
-	    }
-	}
-	else {
-		outdata = odata.data;
-	}
+	outdata = odata.data;
 
 	var xhr = new XMLHttpRequest();
     xhr.open("POST", "/omg", true);
@@ -2664,7 +2759,8 @@ function showMelodyMaker(type, welcomeStyle) {
 	omg.mm.toolbar.style.visibility = visibility;
 	omg.mm.addRests.style.visibility = visibility;
 	omg.mm.subtoolbar.style.visibility = visibility;
-	
+
+	omg.mm.style.visibility = "visible";
 	
 	if (isShrunk()) {
 		omg.leftPanel.style.display = "none";
@@ -2674,7 +2770,7 @@ function showMelodyMaker(type, welcomeStyle) {
     omg.mm.showing = true;
     
     omg.mm.data.type = type;
-    makeOsc(omg.mm);
+    makeOsc(omg.mm, omg.mm.data);
 
     if (type == "BASSLINE") {
     	omg.mm.selectBottomNote.selectedIndex = 19;
@@ -2691,7 +2787,7 @@ function showMelodyMaker(type, welcomeStyle) {
     drawMelodyMakerCanvas();
 }
 
-function makeOsc(part) {
+function makeOsc(part, data) {
 	
 	var p = omg.player;
 
@@ -2706,7 +2802,7 @@ function makeOsc(part) {
 
 	part.osc = p.context.createOscillator();
 
-    if (part.data.type == "BASSLINE") {
+    if (data.type == "BASSLINE") {
         part.osc.type = part.osc.SAWTOOTH || "sawtooth";
     }
 
@@ -2997,31 +3093,46 @@ function onMelodyMakerDisplay() {
 	setupMelodyMakerFretBoard();
 }
 
-function save() {
-	
+function save(callback) {
+
 	var saveButton = omg.remixer.saveButton;
-	
-	if (saveButton.innerHTML !== "Save") {
-		return;
-	}
-	
+		
 	saveButton.innerHTML = "(Saving...)";
 	if (omg.section.id && omg.section.id > 0) {
-		// already saved?
+		saveButton.innerHTML = "(Saved)";
+		if (callback) {
+		    callback(omg.section.id, "SECTION");
+		}
 	} else if (omg.section.parts.length == 1) {
 		var part = omg.section.parts[0];
 		if (part.id && part.id > 0) {
-			// already saved?
+			saveButton.innerHTML = "(Saved)";
+		    if (callback) {
+		        callback(part.id, part.type);
+		    }
 		}
 		else {
 			postOMG(part.type, part, function (results) {
 				saveButton.innerHTML = "(Saved)";
+			    if (callback) {
+			        console.log(callback);
+		            callback(results.id, part.type);
+		        }
 			});
 		}
 	}
 	else if (omg.section.parts.length > 0) {
+	    omg.section.data = omg.remixer.getSectionData();
 		postOMG("SECTION", omg.section, function (results) {
-			saveButton.innerHTML = "(Saved)";
+		    if (results && results.result == "good") {
+			    saveButton.innerHTML = "(Saved)";
+		        if (callback) {
+		            callback(results.id, "SECTION");
+		        }
+		    }
+		    else {
+		        saveButton.innerHTML = "(Error)";
+		    }
 		});
 	}
 	

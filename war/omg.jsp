@@ -86,6 +86,10 @@ if (user.isLoggedIn()){
 			<img class="create-image2" src="img/browse.png">
 			Browse Sections
 		</div>
+		<div class="browse-button" id="browse-songs">
+			<img class="create-image2" src="img/browse.png">
+			Browse Songs
+		</div>
 
 		<hr class="left-panel-dividor"/>
 		<span class="main-controls-section">SAVED:</span>
@@ -112,6 +116,7 @@ if (user.isLoggedIn()){
 						<option>Drumbeats</option>
 						<option>Basslines</option>
 						<option>Sections</option>
+						<option>Songs</option>
 						</select>
 					</td>
 					<td>

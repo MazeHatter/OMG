@@ -3,6 +3,7 @@ package com.monadpad.omg;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 import javax.servlet.http.*;
@@ -47,7 +48,8 @@ public class OMGServlet extends HttpServlet {
 		String data = req.getParameter("data");
 
 		if (type == null || type.length() == 0) {
-			resp.getWriter().print("bad");
+			resp.getWriter().print("{\"result\": \"bad\"");
+			resp.getWriter().print(",\"reason\": \"no type\"}");
 			return;
 		}
 
@@ -55,18 +57,26 @@ public class OMGServlet extends HttpServlet {
 				!type.equals("BASSLINE") &&
 				!type.equals("MELODY") &&
 				!type.equals("CHORDPROGRESSION") &&
-				!type.equals("SECTION")) {
-			resp.getWriter().print("bad");
+				!type.equals("SECTION") &&
+				!type.equals("SONG")) {
+
+			resp.getWriter().print("{\"result\": \"bad\"");
+			resp.getWriter().print(",\"reason\": \"bad type\"}");
 			return;
 		}
 
 
-		if (data == null || data.length() == 0 ||
-				!isJSONValid(data)) {
-			resp.getWriter().print("bad");
+		if (data == null || data.length() == 0) {
+			resp.getWriter().print("{\"result\": \"bad\"");
+			resp.getWriter().print(",\"reason\": \"no json\"}");
 			return;
 		}
 
+		if (!isJSONValid(data)) {
+			resp.getWriter().print("{\"result\": \"bad\"");
+			resp.getWriter().print(",\"reason\": \"invalid json\"}");
+			return;
+		}
 
 		Entity counts = ds.prepare(new Query("Counts")).asSingleEntity();
 
@@ -133,8 +143,11 @@ public class OMGServlet extends HttpServlet {
 			resp.getWriter().print("}");
 
 		}
-		else
-			resp.getWriter().print("bad");
+		else {
+			resp.getWriter().print("{\"result\": \"bad\"");
+			resp.getWriter().print(",\"reason\": \"did not save\"}");
+		}
+
 
 		//		resp.getWriter().println(q.question);
 	}
@@ -236,9 +249,13 @@ public class OMGServlet extends HttpServlet {
 	public boolean isJSONValid(String test)
 	{
 		try {
-			new JSONObject(test);
+			Gson gson = new Gson();
+			HashMap map = gson.fromJson(test, HashMap.class);
+//			new JSONObject(test);
 			return true;
-		} catch(JSONException ex) { 
+		//} catch(JSONException ex) {
+		} catch(Exception ex) {
+			System.out.print(ex.getMessage());
 			return false;
 		}
 	}
