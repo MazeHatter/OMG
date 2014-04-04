@@ -317,6 +317,12 @@ Top note:
 <option>Bb7</option>
 <option>B7</option>
 <option>C8</option></select>
+<br>
+Filename Prefix:
+<input id="filename-prefix"></input>
+Filename Postfix:
+<input id="filename-postfix"></input>
+<br>
 <button id="make-button" type="button">Make</button>
 </div>
 

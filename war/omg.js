@@ -1159,8 +1159,9 @@ function setupRearranger() {
                     beats = 0;
                     for (var idata = 0; idata < part.notes.length; idata++) {       
                         if (!part.notes[idata].rest) {                     
+                            console.log(omg.rearranger.client.sections[i].parts[ip].highNote);
                             noteY = omg.rearranger.client.sections[i].parts[ip].highNote - part.notes[idata].note;
-                            
+
                             ctx.fillRect(spaceOffset + beats * subbeatWidth - timeOffset, 
                                 topOffset + noteY * 10, subbeatWidth * part.notes[idata].beats * 4 - 2, 10);
                         }
@@ -1250,19 +1251,6 @@ function setupPlayer() {
     p.iSubBeat = 0;
     p.loopStarted = 0;
 
-    p.loadParts = function (parts) {
-
-        for (var ip = 0; ip < parts.length; ip++) {
-            p.loadPart(parts[ip]);
-        }
-
-
-        if (!p.playing) {
-        	p.playWhenReady(parts);
-        }
-
-    };
-
     p.loadPart = function (part, data) {
 
         part.currentI = -1;
@@ -1270,8 +1258,8 @@ function setupPlayer() {
         part.soundsLoading = 0;
     	part.loaded = false;
         if (data.type == "DRUMBEAT") {
-            var tracks = data.data;
             var soundsAlreadyLoaded = 0;
+            var tracks = data.data;
             fixSound(tracks, data.kit);
             for (var i = 0; i < tracks.length; i++) {
             	if (!tracks[i].sound) {
@@ -1290,9 +1278,9 @@ function setupPlayer() {
             }
         }
         if (data.type == "BASSLINE") {
-        	
+        	var soundsToLoad = 0;
         	var id = window.location.href.indexOf("localhost:8888") > -1 ?
-        			132 : 1540004;
+        			5444781580746752 : 1540004;
         	getSoundSet(id, function (ss) {
         		//loadSoundSet(ss);
         		part.soundset = ss;
@@ -1320,11 +1308,19 @@ function setupPlayer() {
         			
                     if (p.loadedSounds[note.sound]) {
                         //sounds[isnd].audio = p.loadedSounds[note.sound];
+
                     }
                     else {
+                        soundsToLoad++;
                         loadSound(note.sound, part);
                     }
         		}
+        		
+	            if (soundsToLoad == 0) {
+                	part.loaded = true;
+            	}
+            
+
         	});
         	
         }
@@ -1620,10 +1616,10 @@ function playBeatForMelody(iSubBeat, data, part) {
     
         var note = data.notes[part.currentI];
         
-        if (part.soundset) {
+//        if (part.soundset) {
         	if (note && note.sound) {
-        		playNote(note, part);
-        	}
+        		playNote(note, part, data);
+  //      	}
         		
         }
         else {
@@ -1725,9 +1721,9 @@ function playSound(sound, volume) {
 
 }
 
-function playNote(note, part) {
+function playNote(note, part, data) {
 
-	var audio = playSound(note.sound, part.data.volume);
+	var audio = playSound(note.sound, data.volume);
 	var fromNow = 1000 * (note.beats/(omg.bpm/60));
 
 	setTimeout(function () {
@@ -3927,14 +3923,19 @@ omg.util.setCookie = function (c_name,value,exdays) {
 };
 
 omg.setNoteRange = function (part, clientPart) {
+    var firstNote = true;
     for (var inote = 0; inote < part.notes.length; inote++) {
-        if (inote == 0 || part.notes[inote].note < clientPart.lowNote) {
+        if (part.notes[inote].rest)
+            continue;
+        
+        if (firstNote || part.notes[inote].note < clientPart.lowNote) {
             clientPart.lowNote = part.notes[inote].note;
         }
-        if (inote == 0 || part.notes[inote].note > clientPart.highNote) {
+        if (firstNote || part.notes[inote].note > clientPart.highNote) {
             clientPart.highNote = part.notes[inote].note;
         }
+        firstNote = false;
     }
     clientPart.noteRange = clientPart.highNote - clientPart.lowNote + 1;
-
+    console.log("high note " + clientPart.highNote);
 };

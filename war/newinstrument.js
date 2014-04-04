@@ -81,16 +81,25 @@ document.getElementById("make-button").onclick= function () {
     
     console.log(bottomSelect.options);
     
+    var prefix = document.getElementById("filename-prefix").value;
+    var postfix = document.getElementById("filename-postfix").value;
+    var filename;
+    
     for (var i = bottom; i <= top; i++) {
     
-        createNewSound(bottomSelect.options[i].innerHTML);
+    	filename = prefix + bottomSelect.options[i].innerHTML + postfix;
+        createNewSound(bottomSelect.options[i].innerHTML, filename);
     
     } 
 
     bottomNote = bottom;
 };
 
-function createNewSound(caption) {
+function createNewSound(caption, url) {
+
+	if (!url) 
+		url = "";
+	
 
     if (!caption)
         caption = "<input type='text' class='sound-caption'>";
@@ -98,16 +107,17 @@ function createNewSound(caption) {
         caption = caption + 
             "<input type='hidden' class='sound-caption' value='" +
             caption + "'>";
+        
+        
     }
 
-
-
+    
     var newDiv = document.createElement("div");
     newDiv.className = "new-sound";
     newDiv.innerHTML = "<div class='field-caption'>Caption: </div> " +
         caption + "<br/>" +
         "<div class='field-caption'>URL: </div> " +
-        "<input type='text' class='sound-url'> " +
+        "<input type='text' class='sound-url' value='" + url + "'> " +
         "<button type='button'>Get</button>";
 
     document.getElementById("sound-list").appendChild(newDiv);   
