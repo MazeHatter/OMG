@@ -1011,3 +1011,7 @@ hr {
 	margin:4px;
 	font:14pt Helvetica, arial, freesans, clean, sans-serif;
 }
+
+#rearranger-canvas {
+	width:100%;	
+}

@@ -329,6 +329,8 @@ if (user.isLoggedIn()){
 		
 			</div>
 		
+			<canvas id="rearranger-canvas">
+			</canvas>
 		</div>
 
 		<div class="remixer-bottom-bar">
