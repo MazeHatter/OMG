@@ -1,4 +1,10 @@
-<!-- Indices written at Fri, 4 Apr 2014 01:08:21 PDT -->
+<!-- Indices written at Sat, 5 Apr 2014 01:19:37 PDT -->
 
-<datastore-indexes/>
+<datastore-indexes>
 
+    <!-- Used 2 times in query history -->
+    <datastore-index kind="MELODY" ancestor="true" source="auto">
+        <property name="time" direction="desc"/>
+    </datastore-index>
+
+</datastore-indexes>

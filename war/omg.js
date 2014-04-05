@@ -23,7 +23,8 @@ var omg = {type: "DRUMBEAT",
 	    			"C5", "C#5", "D5", "Eb5", "E5", "F5", "F#5", "G5", "G#5", "A5", "Bb5", "B5", 
 	    			"C6", "C#6", "D6", "Eb6", "E6", "F6", "F#6", "G6", "G#6", "A6", "Bb6", "B6", 
 	    			"C7", "C#7", "D7", "Eb7", "E7", "F7", "F#7", "G7", "G#7", "A7", "Bb7", "B7", 
-	    			"C8"]
+	    			"C8"],
+	    dev: window.location.href.indexOf("localhost:8888") > -1
 };
 
 window.onload = function () {
@@ -357,6 +358,7 @@ function loadSinglePart(searchResult) {
 
 
 function setupPartDiv(part) {
+    //todo separate partClient and partData
 
     var minButton = document.createElement("div");
     minButton.className = "remixer-part-command";
@@ -401,12 +403,23 @@ function setupPartDiv(part) {
     	var instrument = part.div.selectInstrument.value;
     	
     	if (instrument == "sine") {
-    		//todo osc thing
+
+			for (var ii = 0; ii < part.data.notes.length; ii++) {
+			    if (part.data.notes[ii].hasOwnProperty("sound")) {
+			        delete part.data.notes[ii].sound;
+			    }
+			}
+    		
+    		delete part.sound;
     		
     		return;
     	}
     	
     	getSoundSet(instrument, function (ss) {
+    	    
+    	    part.sound = ss;
+    	    console.log(part.sound);
+    	
     		loadSoundSetForPart(ss, part);
     		//loadSoundSet(ss);
     	});
@@ -1277,60 +1290,39 @@ function setupPlayer() {
             	part.loaded = true;
             }
         }
-        if (data.type == "BASSLINE") {
-        	var soundsToLoad = 0;
-        	var id = window.location.href.indexOf("localhost:8888") > -1 ?
-        			5444781580746752 : 1540004;
-        	getSoundSet(id, function (ss) {
-        		//loadSoundSet(ss);
-        		part.soundset = ss;
-        		var note;
-        		var noteIndex;
-
-        		for (var ii = 0; ii < data.notes.length; ii++) {
-        			note = data.notes[ii];
-        			
-        			if (note.rest)
-        				continue;
-
-        			noteIndex = note.scaledNote - ss.bottomNote;
-        			if (noteIndex < 0) {
-        				noteIndex = noteIndex % 12 + 12;
-        			}
-        			else if (noteIndex >= ss.data.data.length) {
-        				var moveOctaves = 1 + Math.floor((noteIndex - ss.data.data.length) / 12);
-        				noteIndex = noteIndex - moveOctaves * 12;
-        			}
-        			note.sound = ss.data.data[noteIndex].url;
-
-        			if (!note.sound)
-        				continue;
-        			
-                    if (p.loadedSounds[note.sound]) {
-                        //sounds[isnd].audio = p.loadedSounds[note.sound];
-
-                    }
-                    else {
-                        soundsToLoad++;
-                        loadSound(note.sound, part);
-                    }
-        		}
-        		
-	            if (soundsToLoad == 0) {
-                	part.loaded = true;
-            	}
-            
-
-        	});
+        if (data.type == "MELODY" || data.type == "BASSLINE") {
         	
-        }
-        if (data.type == "MELODY" || data.type == "xBASSLINE") {
-                        
+        	var soundsToLoad = 0;
+	
+		    for (var ii = 0; ii < data.notes.length; ii++) {
+			    note = data.notes[ii];
+			
+			    if (note.rest)
+				    continue;
+
+			    if (!note.sound)
+				    continue;
+			
+                if (p.loadedSounds[note.sound]) 
+				    continue;
+
+                soundsToLoad++;
+                loadSound(note.sound, part);
+    		}
+		
+            if (soundsToLoad == 0) {
+            	part.loaded = true;
+        	}
+    
+
+            // this starts the player over if there
+            // are no other sections in the remixer
+            // this shouldn't be here, and probalby will never
+            // work because the part is now added before this function
+            // instead of after it            
             if (omg.section.parts.length == 0)
                 p.iSubBeat = -1;
 
-            omg.loadingSounds = 0;
-            part.loaded = true;
         }
         
         if (data.volume == undefined) {
@@ -2306,10 +2298,16 @@ function createDrumbeat() {
 function createDrumbeatFromSoundSet(soundSet) {
 	var emptyBeat = {"type":"DRUMBEAT","bpm":120,"kit":soundSet.id,
 			    isNew: true, data: []};
+			    
+    var prefix = soundSet.data.prefix || "";
+    var postfix = soundSet.data.postfix || "";
+
+    console.log(soundSet);
+			    
 	var sound;
 	for (var i = 0; i < soundSet.data.data.length; i++) {
 		sound = soundSet.data.data[i];
-		emptyBeat.data.push({"name": sound.caption,"sound":sound.url,
+		emptyBeat.data.push({"name": sound.caption,"sound":prefix + sound.url + postfix,
 				"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 				        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]});
 	}
@@ -3720,10 +3718,22 @@ function startDrawCountDown() {
 
 function getSelectInstrument(type) {
 	var select = "<select class='remixer-part-instrument'>";
-	
-	//select += "<option value='sine'>Sine Wave</option>";
-	//select += "<option value='6303373460504576'>Cheese</option>";
-	//select += "<option value='6139672929501184'>Cheese2</option>";
+
+    select += "<option value='sine'>Sine Wave</option>";
+
+    if (omg.dev) {
+        if (omg.golinksi)
+    	    select += "<option value='6139672929501184'>Cheese2</option>";
+
+	    select += "<option value='5128122231947264'>Power Chords</option>";
+	    select += "<option value='5444781580746752'>Electric Bass</option>";
+    }	
+    else {
+        if (omg.golinksi)
+    	    select += "<option value='6303373460504576'>Cheese</option>";
+    	    
+	    select += "<option value='1540004'>Electric Bass</option>";
+    }
 		
 	return select + "</select>";
 	
@@ -3738,6 +3748,9 @@ function loadSoundSetForPart(ss, part) {
 	part.soundset = ss;
 	var note;
 	var noteIndex;
+	
+	var prefix = ss.data.prefix || "";
+	var postfix = ss.data.postfix || "";
 
 	for (var ii = 0; ii < part.data.notes.length; ii++) {
 		note = part.data.notes[ii];
@@ -3753,7 +3766,7 @@ function loadSoundSetForPart(ss, part) {
 			var moveOctaves = 1 + Math.floor((noteIndex - ss.data.data.length) / 12);
 			noteIndex = noteIndex - moveOctaves * 12;
 		}
-		note.sound = ss.data.data[noteIndex].url;
+		note.sound = prefix + ss.data.data[noteIndex].url + postfix;
 
 		if (!note.sound)
 			continue;
@@ -3939,3 +3952,52 @@ omg.setNoteRange = function (part, clientPart) {
     clientPart.noteRange = clientPart.highNote - clientPart.lowNote + 1;
     console.log("high note " + clientPart.highNote);
 };
+
+omg.applySoundSet = function (id, part, data) {
+	var soundsToLoad = 0;
+	
+	var id = omg.dev ? 5444781580746752 : 1540004;
+	getSoundSet(id, function (ss) {
+		//loadSoundSet(ss);
+		part.soundset = ss;
+		var note;
+		var noteIndex;
+
+		for (var ii = 0; ii < data.notes.length; ii++) {
+			note = data.notes[ii];
+			
+			if (note.rest)
+				continue;
+
+			/*noteIndex = note.scaledNote - ss.bottomNote;
+			if (noteIndex < 0) {
+				noteIndex = noteIndex % 12 + 12;
+			}
+			else if (noteIndex >= ss.data.data.length) {
+				var moveOctaves = 1 + Math.floor((noteIndex - ss.data.data.length) / 12);
+				noteIndex = noteIndex - moveOctaves * 12;
+			}
+			note.sound = ss.data.data[noteIndex].url;*/
+
+			if (!note.sound)
+				continue;
+			
+            if (p.loadedSounds[note.sound]) {
+                //sounds[isnd].audio = p.loadedSounds[note.sound];
+            }
+            else {
+                soundsToLoad++;
+                loadSound(note.sound, part);
+            }
+		}
+		
+        if (soundsToLoad == 0) {
+        	part.loaded = true;
+    	}
+    
+
+	});
+
+};
+
+

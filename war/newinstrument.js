@@ -15,7 +15,17 @@ document.getElementById("save-button").onclick = function () {
     }
 
     sounds = {name : name, 
-              data: []};
+              data: [], 
+    };
+    var fixvalue = document.getElementById("filename-prefix").value;
+    if (fixvalue.length > 0)
+    	sounds.prefix = fixvalue;
+    
+    
+    fixvalue = document.getElementById("filename-postfix").value;
+    if (fixvalue.length > 0)
+    	sounds.postfix = fixvalue;
+
 
     if (bottomNote > -100) {
     	sounds.bottomNote = bottomNote;
@@ -81,13 +91,13 @@ document.getElementById("make-button").onclick= function () {
     
     console.log(bottomSelect.options);
     
-    var prefix = document.getElementById("filename-prefix").value;
-    var postfix = document.getElementById("filename-postfix").value;
     var filename;
     
     for (var i = bottom; i <= top; i++) {
     
-    	filename = prefix + bottomSelect.options[i].innerHTML + postfix;
+    	//filename = prefix + bottomSelect.options[i].innerHTML + postfix;
+    	filename = bottomSelect.options[i].innerHTML.replace("#", "s").
+    					replace("b", "f").toLowerCase();
         createNewSound(bottomSelect.options[i].innerHTML, filename);
     
     } 
