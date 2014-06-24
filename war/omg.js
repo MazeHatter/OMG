@@ -336,8 +336,8 @@ function loadSinglePart(searchResult) {
 		if (omg.section.data.rootNote != searchResult.data.rootNote%12 ||
 				omg.section.data.scale != searchResult.data.scale) {
 			
-			rescale(searchResult, omg.section.data.rootNote, 
-					omg.section.data.ascale);
+//			rescale(searchResult, omg.section.data.rootNote, 
+//					omg.section.data.ascale);
 			
 			var keyDiv = searchResult.div.getElementsByClassName("part-key");
 			for (var idd = 0; idd < keyDiv.length; idd++) {
@@ -387,7 +387,7 @@ function setupPartDiv(part) {
     
     var barDiv = document.createElement("div");
     barDiv.className ='remixer-part-leftbar';
-    barDiv.innerHTML = getSelectInstrument();
+    barDiv.innerHTML = getSelectInstrument(type);
     part.div.appendChild(barDiv);
 
     part.div.rightBar = document.createElement("div");
@@ -402,7 +402,7 @@ function setupPartDiv(part) {
     part.div.selectInstrument.onchange = function () {
     	var instrument = part.div.selectInstrument.value;
     	
-    	if (instrument == "sine") {
+    	if (instrument == "DEFAULT") {
 
 			for (var ii = 0; ii < part.data.notes.length; ii++) {
 			    if (part.data.notes[ii].hasOwnProperty("sound")) {
@@ -459,8 +459,6 @@ function setupPartDiv(part) {
 }
 
 function setupDivForDrumbeat(part) {
-
-	
 	
     if (part.data.kit != undefined) {
         var kitName = part.data.kit == 0 ? "Hip" : 
@@ -1292,6 +1290,10 @@ function setupPlayer() {
         }
         if (data.type == "MELODY" || data.type == "BASSLINE") {
         	
+			rescale(part, omg.section.data.rootNote, 
+					omg.section.data.ascale);
+
+        	
         	var soundsToLoad = 0;
 	
 		    for (var ii = 0; ii < data.notes.length; ii++) {
@@ -1299,7 +1301,7 @@ function setupPlayer() {
 			
 			    if (note.rest)
 				    continue;
-
+			    
 			    if (!note.sound)
 				    continue;
 			
@@ -1323,6 +1325,9 @@ function setupPlayer() {
             if (omg.section.parts.length == 0)
                 p.iSubBeat = -1;
 
+        }
+        if (data.type == "CHORDPROGRESSION") {
+        	part.loaded = true;
         }
         
         if (data.volume == undefined) {
@@ -1609,10 +1614,10 @@ function playBeatForMelody(iSubBeat, data, part) {
         var note = data.notes[part.currentI];
         
 //        if (part.soundset) {
-        	if (note && note.sound) {
-        		playNote(note, part, data);
-  //      	}
-        		
+    	if (note && note.sound) {
+    	    if (!part.muted) {
+        		playNote(note, part, data);        		
+    		}
         }
         else {
             if (!part.osc) {
@@ -2892,7 +2897,7 @@ function setupMelodyMakerFretBoard() {
 	omg.mm.data.rootNote = rootNote;
 	omg.mm.data.topNote = topNote;
 	omg.mm.data.scale = omg.mm.selectScale.value;
-	omg.mm.data.octaveShift = octaveShift;
+	omg.mm.data.octave = octaveShift;
 	
 	var scale = makeScale(omg.mm.data.scale);
 
@@ -3564,7 +3569,9 @@ function getNoteImageUrl(i, j) {
 
 function rescale(part, rootNote, scale) {
 
-	var octaveShift = part.data.octaveShift;
+	console.log("rescale");
+	
+	var octaveShift = part.data.octave || part.data.octaveShift;
 	var octaves2;
 	if (isNaN(octaveShift)) 
 		octaveShift = part.data.type == "BASSLINE" ? 3 : 5;
@@ -3719,21 +3726,31 @@ function startDrawCountDown() {
 function getSelectInstrument(type) {
 	var select = "<select class='remixer-part-instrument'>";
 
-    select += "<option value='sine'>Sine Wave</option>";
+    if (type == "BASSLINE") {
+        select += "<option value='DEFAULT'>Saw Wave</option>";
 
-    if (omg.dev) {
-        if (omg.golinksi)
-    	    select += "<option value='6139672929501184'>Cheese2</option>";
+        if (omg.dev)
+    	    select += "<option value='5444781580746752'>Electric Bass</option>";
+    	else
+    	    select += "<option value='1540004'>Electric Bass</option>";
 
-	    select += "<option value='5128122231947264'>Power Chords</option>";
-	    select += "<option value='5444781580746752'>Electric Bass</option>";
-    }	
-    else {
-        if (omg.golinksi)
-    	    select += "<option value='6303373460504576'>Cheese</option>";
-    	    
-	    select += "<option value='1540004'>Electric Bass</option>";
     }
+    else if (type == "MELODY") {
+        select += "<option value='DEFAULT'>Sine Wave</option>";
+
+	    select += "<option value='" + (omg.dev ? "5128122231947264" : "5157655500816384") + "'>Power Chords</option>";
+
+        if (omg.golinski) {
+    	    select += "<option value='" + 
+    	            omg.dev ? "6139672929501184" : "6303373460504576" + 
+    	            "'>Cheese</option>";
+        }
+    }
+    else if (type == "DRUMBEAT") {
+        select += "<option value='PRESET_HIP'>Hip</option>";
+        select += "<option value='PRESET_ROCK'>Rock</option>";
+    }
+
 		
 	return select + "</select>";
 	
@@ -3745,7 +3762,7 @@ function debug(out) {
 }
 
 function loadSoundSetForPart(ss, part) {
-	part.soundset = ss;
+	//part.soundset = ss;
 	var note;
 	var noteIndex;
 	
@@ -3956,10 +3973,15 @@ omg.setNoteRange = function (part, clientPart) {
 omg.applySoundSet = function (id, part, data) {
 	var soundsToLoad = 0;
 	
+	console.log("apply sound set");
+	
 	var id = omg.dev ? 5444781580746752 : 1540004;
 	getSoundSet(id, function (ss) {
+		
+		console.log("get sound set callback");
+		
 		//loadSoundSet(ss);
-		part.soundset = ss;
+		//part.soundset = ss;
 		var note;
 		var noteIndex;
 
@@ -3969,15 +3991,19 @@ omg.applySoundSet = function (id, part, data) {
 			if (note.rest)
 				continue;
 
-			/*noteIndex = note.scaledNote - ss.bottomNote;
-			if (noteIndex < 0) {
-				noteIndex = noteIndex % 12 + 12;
+			if (!note.sound) {
+				noteIndex = note.scaledNote - ss.bottomNote;
+				if (noteIndex < 0) {
+					noteIndex = noteIndex % 12 + 12;
+				}
+				else if (noteIndex >= ss.data.data.length) {
+					var moveOctaves = 1 + Math.floor((noteIndex - ss.data.data.length) / 12);
+					noteIndex = noteIndex - moveOctaves * 12;
+				}
+				note.sound = ss.data.data[noteIndex].url;
+	
+				
 			}
-			else if (noteIndex >= ss.data.data.length) {
-				var moveOctaves = 1 + Math.floor((noteIndex - ss.data.data.length) / 12);
-				noteIndex = noteIndex - moveOctaves * 12;
-			}
-			note.sound = ss.data.data[noteIndex].url;*/
 
 			if (!note.sound)
 				continue;
@@ -4000,4 +4026,6 @@ omg.applySoundSet = function (id, part, data) {
 
 };
 
-
+document.getElementById("golinski").onclick = function () {
+    omg.golinski = true;
+};

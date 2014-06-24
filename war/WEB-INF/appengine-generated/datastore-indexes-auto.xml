@@ -1,9 +1,9 @@
-<!-- Indices written at Sat, 5 Apr 2014 01:19:37 PDT -->
+<!-- Indices written at Tue, 24 Jun 2014 02:23:10 PDT -->
 
 <datastore-indexes>
 
-    <!-- Used 2 times in query history -->
-    <datastore-index kind="MELODY" ancestor="true" source="auto">
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="SECTION" ancestor="true" source="auto">
         <property name="time" direction="desc"/>
     </datastore-index>
 

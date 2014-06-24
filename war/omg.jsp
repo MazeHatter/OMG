@@ -478,7 +478,7 @@ if (user.isLoggedIn()){
 			</div>
 			<br/>
 			<div class="getting-started-subtext">
-				OMG Logo by Wes Golinski
+				OMG Logo by Wes <span id="golinski">Golinski</span>
 			</div>
 		
 		</p>	
