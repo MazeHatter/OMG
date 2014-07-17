@@ -180,7 +180,7 @@ public class OMGServlet extends HttpServlet {
 			type = "SECTION";
 		}
 
-		final int resultsPerPage = 20; 
+		final int resultsPerPage = 10; 
 		resp.setContentType("text/plain");
 
 		String page = req.getParameter("page");

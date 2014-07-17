@@ -17,6 +17,10 @@ public class UserHelper {
 		return userService.isUserLoggedIn();
 	}
 	
+	public boolean isAdmin() {
+		return userService.isUserLoggedIn() && userService.isUserAdmin();
+	}
+	
 	public String getName() {
 		return userService.getCurrentUser().getNickname();
 	}

@@ -15,7 +15,8 @@ var omg = {type: "DRUMBEAT",
 	             "Pentatonic": "0,2,4,7,9",
 	             "Blues": "0,3,5,6,7,10",
 	             "Chromatic": "0,1,2,3,4,5,6,7,8,9,10,11"},
-	    noteNames: ["C0", "C#0", "D0", "Eb0", "E0", "F0", "F#0", "G0", "G#0", "A0", "Bb0", "B0", 
+	    noteNames: ["C-", "C#-", "D-", "Eb-", "E-", "F-", "F#-", "G-", "G#-", "A-", "Bb-", "B-", 
+	                "C0", "C#0", "D0", "Eb0", "E0", "F0", "F#0", "G0", "G#0", "A0", "Bb0", "B0", 
 	    	        "C1", "C#1", "D1", "Eb1", "E1", "F1", "F#1", "G1", "G#1", "A1", "Bb1", "B1", 
 	    			"C2", "C#2", "D2", "Eb2", "E2", "F2", "F#2", "G2", "G#2", "A2", "Bb2", "B2", 
 	    			"C3", "C#3", "D3", "Eb3", "E3", "F3", "F#3", "G3", "G#3", "A3", "Bb3", "B3", 
@@ -24,7 +25,7 @@ var omg = {type: "DRUMBEAT",
 	    			"C6", "C#6", "D6", "Eb6", "E6", "F6", "F#6", "G6", "G#6", "A6", "Bb6", "B6", 
 	    			"C7", "C#7", "D7", "Eb7", "E7", "F7", "F#7", "G7", "G#7", "A7", "Bb7", "B7", 
 	    			"C8"],
-	    dev: window.location.href.indexOf("localhost:8888") > -1
+	    dev: window.location.href.indexOf("localhost:8888") > -1 || window.location.href.indexOf("192.168.1") > -1
 };
 
 window.onload = function () {
@@ -418,10 +419,8 @@ function setupPartDiv(part) {
     	getSoundSet(instrument, function (ss) {
     	    
     	    part.sound = ss;
-    	    console.log(part.sound);
     	
-    		loadSoundSetForPart(ss, part);
-    		//loadSoundSet(ss);
+    		setupPartWithSoundSet(ss, part, true);
     	});
 
     };
@@ -1169,8 +1168,7 @@ function setupRearranger() {
                 if (part.type == "MELODY" || part.type == "BASSLINE") {
                     beats = 0;
                     for (var idata = 0; idata < part.notes.length; idata++) {       
-                        if (!part.notes[idata].rest) {                     
-                            console.log(omg.rearranger.client.sections[i].parts[ip].highNote);
+                        if (!part.notes[idata].rest) {
                             noteY = omg.rearranger.client.sections[i].parts[ip].highNote - part.notes[idata].note;
 
                             ctx.fillRect(spaceOffset + beats * subbeatWidth - timeOffset, 
@@ -1292,8 +1290,11 @@ function setupPlayer() {
         	
 			rescale(part, omg.section.data.rootNote, 
 					omg.section.data.ascale);
-
         	
+			if (typeof data.sound == "string" &&
+					data.sound.indexOf("PRESET_") == 0) {
+				setupPartWithSoundSet(getPresetSoundSet(data.sound), part);
+			}
         	var soundsToLoad = 0;
 	
 		    for (var ii = 0; ii < data.notes.length; ii++) {
@@ -1365,7 +1366,9 @@ function setupPlayer() {
     
     p.go =  function () {
 
-    	omg.subbeatLength = 60000 / omg.bpm / omg.subbeats; 
+    	//todo this bpm thing isn't consistent
+    	omg.subbeatLength = omg.section.data.subbeatMillis || 
+    						60000 / omg.bpm / omg.subbeats; 
     	omg.player.intervalHandle = setInterval(function() {
             playBeat(p.iSubBeat);
 
@@ -1627,6 +1630,7 @@ function playBeatForMelody(iSubBeat, data, part) {
             if (!note || note.rest)
                 part.osc.frequency.setValueAtTime(0, 0);
             else {
+            	var freq = makeFrequency(note.scaledNote);
             	part.osc.frequency.setValueAtTime(
             			makeFrequency(note.scaledNote), 0);
             	part.playingI = part.currentI;
@@ -1660,13 +1664,6 @@ function loadSound(sound, part) {
     var url = sound;
     if (sound.indexOf("PRESET_") == 0) {
         url = "audio/" + sound.substring(7).toLowerCase() + omg.fileext;
-    }
-    else {
-    	if (window.location.href.indexOf("localhost:8888") > -1) {
-    		url = sound.replace("https://dl.dropboxusercontent.com/u/24411900/omg/bass1/",
-    			"http://localhost/mp3/");
-    	}
-
     }
     
     omg.player.loadedSounds[key] = "loading";
@@ -2044,8 +2041,17 @@ function loadSection(searchResult) {
         delete searchResult.data.data;
     }
     var partsData = searchResult.data.parts;
+    
+    if (searchResult.data.ascale == undefined &&
+    		searchResult.data.scale != undefined) {
+    	searchResult.data.ascale = searchResult.data.scale.split(",")
+    	for (var iii = 0; iii < searchResult.data.ascale.length; iii++) {
+    		searchResult.data.ascale[iii] = parseInt(searchResult.data.ascale[iii]);
+    	}
+    }
 
     omg.section = searchResult;
+
     omg.section.parts = [];
     var part;
     for (var ip = 0; ip < partsData.length; ip++) {
@@ -2236,8 +2242,6 @@ function sectionModified() {
     omg.remixer.saveButton.innerHTML = saveCaption;
     omg.remixer.addToRearrangerButton.innerHTML = "+<i>re</i><b>arranger</b>";
 
-    if (omg.demo)
-    	omg.section.id = "demo";
 }
 
 function getOMG(data, callback) {
@@ -2307,8 +2311,6 @@ function createDrumbeatFromSoundSet(soundSet) {
     var prefix = soundSet.data.prefix || "";
     var postfix = soundSet.data.postfix || "";
 
-    console.log(soundSet);
-			    
 	var sound;
 	for (var i = 0; i < soundSet.data.data.length; i++) {
 		sound = soundSet.data.data[i];
@@ -2440,6 +2442,13 @@ function getSoundSet(id, callback) {
 	var dl = omg.downloadedSoundSets[id];
 	if (dl) {
 		callback(dl)
+		return;
+	}
+	
+	if (typeof id == "string" && id.indexOf("PRESET_") == 0) {
+		dl = getPresetSoundSet(id);
+		omg.downloadedSoundSets[id] = dl;
+		callback(dl);
 		return;
 	}
 	
@@ -2897,7 +2906,7 @@ function setupMelodyMakerFretBoard() {
 	omg.mm.data.rootNote = rootNote;
 	omg.mm.data.topNote = topNote;
 	omg.mm.data.scale = omg.mm.selectScale.value;
-	omg.mm.data.octave = octaveShift;
+	omg.mm.data.octaveShift = octaveShift;
 	
 	var scale = makeScale(omg.mm.data.scale);
 
@@ -2920,7 +2929,6 @@ function setupMelodyMakerFretBoard() {
 	for (var i = 0; i < notes.length; i++) {
 		notes[i].scaledNote = 
 			omg.mm.frets[notes[i].note % omg.mm.frets.length].note;
-		
 	}
 	
     drawMelodyMakerCanvas();
@@ -3408,129 +3416,6 @@ function drawMelodyCanvas(part, low, high) {
 	}
 }
 
-function demo() {
-	
-	var demo = document.getElementById("demo-mode");
-	var text = document.getElementById("demo-text");
-	var nextStep = 1;
-	text.innerHTML = "";
-	demo.style.display = "block";
-
-	demo.onclick = function () {
-		demo.style.display = "none";
-		demo = null;
-	};
-	
-	omg.demo = demo;
-	
-	var steps = [];
-	steps.push(function () {
-		if (!demo) return;
-		
-		text.innerHTML = "Let's Make Music!";
-		
-		if (nextStep < steps.length)
-			setTimeout(steps[nextStep++], 3000);
-	});
-	
-	steps.push(function (next) {
-		if (!demo) return;
-		
-		omg.type = "DRUMBEAT";
-		omg.order = "mostvotes";
-		
-		text.innerHTML = "Let's pick a drum beat from the gallery";
-		browseButtonClick();
-		
-		setTimeout(function () {
-
-
-			loadSinglePart({"id":226,"type":"DRUMBEAT",
-				"json":"{\"type\":\"DRUMBEAT\",\"bpm\":120,\"kit\":0,\"isNew\":false,\"data\":[{\"name\":\"kick\",\"sound\":\"PRESET_HH_KICK\",\"data\":[1,0,1,0,1,0,1,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],\"audio\":{\"numberOfChannels\":1,\"gain\":1,\"sampleRate\":44100,\"duration\":0.4575283446712018,\"length\":20177}},{\"name\":\"snare\",\"sound\":\"PRESET_HH_CLAP\",\"data\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0],\"audio\":{\"numberOfChannels\":1,\"gain\":1,\"sampleRate\":44100,\"duration\":0.17487528344671202,\"length\":7712}},{\"name\":\"closed hi-hat\",\"sound\":\"PRESET_ROCK_HIHAT_CLOSED\",\"data\":[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"audio\":{\"numberOfChannels\":2,\"gain\":1,\"sampleRate\":44100,\"duration\":0.1266893424036281,\"length\":5587}},{\"name\":\"open hi-hat\",\"sound\":\"PRESET_HH_HIHAT\",\"data\":[0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0],\"audio\":{\"numberOfChannels\":1,\"gain\":1,\"sampleRate\":44100,\"duration\":0.6252154195011338,\"length\":27572}},{\"name\":\"tambourine\",\"sound\":\"PRESET_HH_TAMB\",\"data\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,1,0,1],\"audio\":{\"numberOfChannels\":1,\"gain\":1,\"sampleRate\":44100,\"duration\":0.3399546485260771,\"length\":14992}},{\"name\":\"scratch\",\"sound\":\"PRESET_HH_SCRATCH\",\"data\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"audio\":{\"numberOfChannels\":1,\"gain\":1,\"sampleRate\":44100,\"duration\":0.28444444444444444,\"length\":12544}}]}"
-					});
-
-			setTimeout(steps[nextStep++], 10000);
-		}, 4000);
-
-	});
-	
-	steps.push(function () {
-		if (!demo) return;
-		
-		text.innerHTML = "Let's find a bass line";
-		
-		setTimeout(function () {
-			browseButtonClick();
-			omg.type = "BASSLINE";
-			getContributions();
-			
-			setTimeout(steps[nextStep++], 4000);
-		}, 2000);
-		
-	});
-
-	steps.push(function () {
-		if (!demo) return;
-
-		loadSinglePart({"id":227,"type":"BASSLINE","votes":0,
-			"json":"{\"type\":\"BASSLINE\",\"notes\":[{\"note\":0,\"scaledNote\":28,\"beats\":0.75},{\"note\":1,\"scaledNote\":30,\"beats\":0.25},{\"note\":2,\"scaledNote\":32,\"beats\":0.25},{\"note\":3,\"scaledNote\":33,\"beats\":0.75},{\"note\":2,\"scaledNote\":32,\"beats\":1},{\"note\":1,\"scaledNote\":30,\"beats\":1}],\"bottomNote\":19,\"rootNote\":19,\"topNote\":39,\"scale\":\"0,2,4,5,7,9,11\"}"
-			});
-		setTimeout(steps[nextStep++], 10000);
-
-	});
-	
-	steps.push(function () {
-		if (!demo) return;
-		
-		text.innerHTML = "Let's add a melody from the gallery";
-		
-		setTimeout(function () {
-
-			browseButtonClick();
-			omg.type = "MELODY";
-			getContributions();
-			
-			setTimeout(steps[nextStep++], 4000);
-		}, 2000);
-		
-	});
-
-	steps.push(function () {
-		if (!demo) return;
-		
-        
-		loadSinglePart({"id":232,"type":"MELODY","votes":0,
-			"json":"{\"notes\":[{\"note\":11,\"scaledNote\":71,\"beats\":0.25},{\"note\":12,\"scaledNote\":73,\"beats\":0.25},{\"note\":13,\"scaledNote\":75,\"beats\":0.25},{\"note\":14,\"scaledNote\":76,\"beats\":0.25},{\"note\":13,\"scaledNote\":75,\"beats\":0.25},{\"note\":12,\"scaledNote\":73,\"beats\":0.25},{\"note\":11,\"scaledNote\":71,\"beats\":0.25},{\"note\":12,\"scaledNote\":73,\"beats\":0.25},{\"note\":13,\"scaledNote\":75,\"beats\":0.5},{\"note\":12,\"scaledNote\":73,\"beats\":0.25},{\"note\":11,\"scaledNote\":71,\"beats\":0.25},{\"note\":12,\"scaledNote\":73,\"beats\":0.25},{\"note\":13,\"scaledNote\":75,\"beats\":0.25},{\"note\":14,\"scaledNote\":76,\"beats\":0.5},{\"note\":15,\"scaledNote\":78,\"beats\":0.5},{\"note\":14,\"scaledNote\":76,\"beats\":0.25},{\"note\":13,\"scaledNote\":75,\"beats\":0.25},{\"note\":12,\"scaledNote\":73,\"beats\":0.25},{\"note\":11,\"scaledNote\":71,\"beats\":0.25},{\"note\":10,\"scaledNote\":69,\"beats\":0.5}],\"type\":\"MELODY\",\"bottomNote\":43,\"rootNote\":43,\"topNote\":70,\"scale\":\"0,2,4,5,7,9,11\"}"
-			});
-		setTimeout(steps[nextStep++], 10000);
-
-	});
-	
-	steps.push(function () {
-		if (!demo) return;
-		
-		text.innerHTML = "Mix and Match different parts to find combinations you like";
-		setTimeout(steps[nextStep++], 7000);
-	})
-
-	steps.push(function () {
-		if (!demo) return;
-		
-		text.innerHTML = "Try creating your own melodies and beats";
-		createButtonClick();
-		setTimeout(steps[nextStep++], 7000);
-	})
-
-	steps.push(function () {
-		text.innerHTML = "Have fun!";
-		setTimeout(function () {
-			demo.style.display = "none";
-			omg.demo = null;
-		}, 3000);
-	});
-	steps[0].call();
-}
-
 function browseButtonClick(type, selectedIndex) {
 
 	if (selectedIndex != undefined)
@@ -3568,8 +3453,6 @@ function getNoteImageUrl(i, j) {
 }
 
 function rescale(part, rootNote, scale) {
-
-	console.log("rescale");
 	
 	var octaveShift = part.data.octave || part.data.octaveShift;
 	var octaves2;
@@ -3579,14 +3462,20 @@ function rescale(part, rootNote, scale) {
 	var onote;
 	var note;
 	for (var i = 0; i < part.data.notes.length; i++) {
+		octaves2 = 0;
+		
 		onote = part.data.notes[i];
-		note = onote.note % scale.length;
-		if (note < 0)
-			note = note + scale.length;
+		newNote = onote.note;
+		while (newNote >= scale.length) {
+			newNote = newNote - scale.length;
+			octaves2++;
+		}
+		while (newNote < 0) {
+			newNote = newNote + scale.length;
+			octaves2--;
+		}
 		
-		octaves2 = Math.floor(onote.note / scale.length);
-		
-		newNote = scale[note] + octaves2 * 12 + octaveShift * 12 + rootNote;
+		newNote = scale[newNote] + octaves2 * 12 + octaveShift * 12 + rootNote;
 
 		onote.scaledNote = newNote;
 	}
@@ -3737,7 +3626,8 @@ function getSelectInstrument(type) {
     }
     else if (type == "MELODY") {
         select += "<option value='DEFAULT'>Sine Wave</option>";
-
+        select += "<option value='PRESET_SYNTH1'>Keyboard</option>";
+        select += "<option value='PRESET_GUITAR1'>Electric Guitar</option>";
 	    select += "<option value='" + (omg.dev ? "5128122231947264" : "5157655500816384") + "'>Power Chords</option>";
 
         if (omg.golinski) {
@@ -3761,7 +3651,12 @@ function debug(out) {
 	console.log(out);
 }
 
-function loadSoundSetForPart(ss, part) {
+function setupPartWithSoundSet(ss, part, load) {
+	console.log("setup part with soundset");
+
+	if (!ss)
+		return;
+	
 	//part.soundset = ss;
 	var note;
 	var noteIndex;
@@ -3779,19 +3674,17 @@ function loadSoundSetForPart(ss, part) {
 		if (noteIndex < 0) {
 			noteIndex = noteIndex % 12 + 12;
 		}
-		else if (noteIndex >= ss.data.data.length) {
-			var moveOctaves = 1 + Math.floor((noteIndex - ss.data.data.length) / 12);
-			noteIndex = noteIndex - moveOctaves * 12;
+		else {
+			while (noteIndex >= ss.data.data.length) {
+				noteIndex = noteIndex - 12;
+			}
 		}
 		note.sound = prefix + ss.data.data[noteIndex].url + postfix;
 
 		if (!note.sound)
 			continue;
 		
-        if (omg.player.loadedSounds[note.sound]) {
-            //sounds[isnd].audio = p.loadedSounds[note.sound];
-        }
-        else {
+        if (load && !omg.player.loadedSounds[note.sound]) {
             loadSound(note.sound, part);
         }
 	}
@@ -3967,65 +3860,73 @@ omg.setNoteRange = function (part, clientPart) {
         firstNote = false;
     }
     clientPart.noteRange = clientPart.highNote - clientPart.lowNote + 1;
-    console.log("high note " + clientPart.highNote);
-};
-
-omg.applySoundSet = function (id, part, data) {
-	var soundsToLoad = 0;
-	
-	console.log("apply sound set");
-	
-	var id = omg.dev ? 5444781580746752 : 1540004;
-	getSoundSet(id, function (ss) {
-		
-		console.log("get sound set callback");
-		
-		//loadSoundSet(ss);
-		//part.soundset = ss;
-		var note;
-		var noteIndex;
-
-		for (var ii = 0; ii < data.notes.length; ii++) {
-			note = data.notes[ii];
-			
-			if (note.rest)
-				continue;
-
-			if (!note.sound) {
-				noteIndex = note.scaledNote - ss.bottomNote;
-				if (noteIndex < 0) {
-					noteIndex = noteIndex % 12 + 12;
-				}
-				else if (noteIndex >= ss.data.data.length) {
-					var moveOctaves = 1 + Math.floor((noteIndex - ss.data.data.length) / 12);
-					noteIndex = noteIndex - moveOctaves * 12;
-				}
-				note.sound = ss.data.data[noteIndex].url;
-	
-				
-			}
-
-			if (!note.sound)
-				continue;
-			
-            if (p.loadedSounds[note.sound]) {
-                //sounds[isnd].audio = p.loadedSounds[note.sound];
-            }
-            else {
-                soundsToLoad++;
-                loadSound(note.sound, part);
-            }
-		}
-		
-        if (soundsToLoad == 0) {
-        	part.loaded = true;
-    	}
-    
-
-	});
 
 };
 
 document.getElementById("golinski").onclick = function () {
     omg.golinski = true;
 };
+
+function getPresetSoundSet(preset) {
+	var oret;
+	if (preset == "PRESET_SYNTH1") {
+		oret = {"name" : "Keyboard", 
+				"id" : -101, "bottomNote" : 33, 
+				"data" : {"name":"PRESET_SYNTH1",
+				"data":[
+		        {"url":"a1","caption":"A1"},{"url":"bf1","caption":"Bb1"},{"url":"b1","caption":"B1"},{"url":"c2","caption":"C2"},{"url":"cs2","caption":"C#2"},{"url":"d2","caption":"D2"},
+		    	{"url":"ds2","caption":"D#2"},{"url":"e2","caption":"E3"},{"url":"f2","caption":"F2"},{"url":"fs2","caption":"F#2"},{"url":"g2","caption":"G2"},{"url":"gs2","caption":"G#2"},
+		        {"url":"a2","caption":"A2"},{"url":"bf2","caption":"Bb2"},{"url":"b2","caption":"B2"},{"url":"c3","caption":"C3"},{"url":"cs3","caption":"C#3"},{"url":"d3","caption":"D3"},
+		        {"url":"ds3","caption":"D#3"},{"url":"e3","caption":"E3"},{"url":"f3","caption":"F3"},{"url":"fs3","caption":"F#3"},{"url":"g3","caption":"G3"},{"url":"gs3","caption":"G#3"},
+		        {"url":"a3","caption":"A3"},{"url":"bf3","caption":"Bb3"},{"url":"b3","caption":"B3"},{"url":"c4","caption":"C4"},{"url":"cs4","caption":"C#4"},{"url":"d4","caption":"D4"},
+		        {"url":"ds4","caption":"D#4"},{"url":"e4","caption":"E4"},{"url":"f4","caption":"F4"},{"url":"fs4","caption":"F#4"},{"url":"g4","caption":"G4"},{"url":"gs4","caption":"G#4"},
+		        {"url":"a4","caption":"A4"},{"url":"bf4","caption":"Bb4"},{"url":"b4","caption":"B4"},{"url":"c5","caption":"C5"},{"url":"cs5","caption":"C#5"},{"url":"d5","caption":"D5"},
+	        	{"url":"ds5","caption":"D#5"},{"url":"e5","caption":"E5"},{"url":"f5","caption":"F5"},{"url":"fs5","caption":"F#5"},{"url":"g5","caption":"G5"},{"url":"gs5","caption":"G#5"},		
+		        {"url":"a5","caption":"A5"},{"url":"bf5","caption":"Bb5"},{"url":"b5","caption":"B5"},{"url":"c6","caption":"C6"},{"url":"cs6","caption":"C#6"},{"url":"d6","caption":"D6"},
+		        {"url":"ds6","caption":"D#6"},{"url":"e6","caption":"E6"},{"url":"f6","caption":"F6"},{"url":"fs6","caption":"F#6"},{"url":"g6","caption":"G6"},{"url":"gs6","caption":"G#6"},
+	        	{"url":"a6","caption":"A6"}
+		        ],
+		        "prefix":"https://dl.dropboxusercontent.com/u/24411900/omg/kb/kb1_",
+		        "postfix":".mp3","bottomNote":33} };
+		if (omg.dev) {
+			oret.data.prefix = "http://localhost/mp3/kb/kb1_";
+		}
+	}
+	if (preset == "PRESET_GUITAR1") {
+		oret = {"name" : "Electric Guitar", 
+			"id" : -201, "bottomNote" : 40, 
+			"data" : {"name":"PRESET_GUITAR1",
+			"data":[
+	        {"url":"e","caption":"E2"},{"url":"f","caption":"F2"},{"url":"fs","caption":"F#2"},{"url":"g","caption":"G2"},{"url":"gs","caption":"G#2"},{"url":"a","caption":"A2"},
+	    	{"url":"bf","caption":"Bb2"},{"url":"b","caption":"B2"},{"url":"c","caption":"C3"},{"url":"cs","caption":"C#3"},{"url":"d","caption":"D3"},{"url":"ds","caption":"D#3"},
+	        {"url":"e2","caption":"E3"},{"url":"f2","caption":"F3"},{"url":"fs2","caption":"F#2"},{"url":"g2","caption":"G2"},{"url":"gs2","caption":"G#2"},{"url":"a2","caption":"A3"},
+	    	{"url":"bf2","caption":"Bb3"},{"url":"b2","caption":"B3"},{"url":"c2","caption":"C4"},{"url":"cs2","caption":"C#4"},{"url":"d2","caption":"D4"},{"url":"ds2","caption":"D#4"},
+	        {"url":"e3","caption":"E4"},{"url":"f3","caption":"F4"},{"url":"fs3","caption":"F#4"},{"url":"g3","caption":"G4"},{"url":"gs3","caption":"G#4"},{"url":"a3","caption":"A4"},
+	    	{"url":"bf3","caption":"Bb4"},{"url":"b3","caption":"B4"},{"url":"c3","caption":"C5"},{"url":"cs3","caption":"C#5"},{"url":"d3","caption":"D5"},{"url":"ds3","caption":"D#5"},
+	        {"url":"e4","caption":"E5"},{"url":"f4","caption":"F5"},{"url":"fs4","caption":"F#5"},{"url":"g4","caption":"G5"},{"url":"gs4","caption":"G#5"},{"url":"a4","caption":"A5"},
+	    	{"url":"bf4","caption":"Bb5"},{"url":"b4","caption":"B5"},{"url":"C4","caption":"C6"},{"url":"cs4","caption":"C#6"}
+	        ],
+	        "prefix":"https://dl.dropboxusercontent.com/u/24411900/omg/electric/electric_",
+	        "postfix":".mp3","bottomNote":40} };
+		if (omg.dev) {
+//			oret.data.prefix = "http://localhost/mp3/kb/kb1_";
+		}
+	}
+	if (preset == "PRESET_BASS") {
+		oret = {"name" : "Bass1", "id" : 1540004, "bottomNote" : 28, 
+				"data" : {"name":"Bass1","data":[
+                 {"url":"e","caption":"E2"},{"url":"f","caption":"F2"},{"url":"fs","caption":"F#2"},{"url":"g","caption":"G2"},{"url":"gs","caption":"G#2"},{"url":"a","caption":"A2"},
+                 {"url":"bf","caption":"Bb2"},{"url":"b","caption":"B2"},{"url":"c","caption":"C3"},{"url":"cs","caption":"C#3"},{"url":"d","caption":"D3"},{"url":"ds","caption":"Eb3"},
+                 {"url":"e2","caption":"E3"},{"url":"f2","caption":"F3"},{"url":"fs2","caption":"F#3"},{"url":"g2","caption":"G3"},{"url":"gs2","caption":"G#3"},{"url":"a2","caption":"A3"},
+                 {"url":"bf2","caption":"Bb3"},{"url":"b2","caption":"B3"},{"url":"c2","caption":"C4"}
+                 ],"prefix": "https://dl.dropboxusercontent.com/u/24411900/omg/bass1/bass_",
+                 "postfix": ".mp3",
+                 "bottomNote":19} };
+		
+		if (omg.dev) {
+			oret.data.prefix = "http://localhost/mp3/bass_";
+		}
+	}
+
+	return oret;
+}

@@ -1,10 +1,4 @@
-<!-- Indices written at Tue, 24 Jun 2014 02:23:10 PDT -->
+<!-- Indices written at Wed, 16 Jul 2014 18:25:25 PDT -->
 
-<datastore-indexes>
+<datastore-indexes/>
 
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="SECTION" ancestor="true" source="auto">
-        <property name="time" direction="desc"/>
-    </datastore-index>
-
-</datastore-indexes>
