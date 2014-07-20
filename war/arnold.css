@@ -1,0 +1,249 @@
+
+#top-rail {top:20px;}
+#bottom-rail {bottom:112px;}
+
+#song-rail {bottom:40px;}
+
+.sliding-panel {
+	position:absolute;
+	width:200px;	
+	margin:4px auto 4px auto;
+
+	border-top:2px;
+	border-top-color:#808080;
+	border-top-style:solid;
+	border-bottom:2px;
+	border-bottom-color:#606060;
+	border-bottom-style:solid;
+	background-color:#D0D0D0;
+			
+}
+
+
+
+#bbody {position:absolute;
+		height:100%; width:100%;
+		min-height:710px; 
+		overflow-x:hidden;
+		margin:-8px;
+		padding:0px;
+		}
+
+
+.melody-view {
+	margin-top:20px;
+	margin-left:-4px;
+	width:308px;
+	height:100px;
+	background:white;
+}
+
+
+/* http://simurai.com/lab/2011/08/21/brushed-metal/ */
+.metal {
+  position: relative;
+  margin: 0px;
+   /*margin: 40px auto;*/
+  
+  /*font: bold 4em/2em "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;*/
+
+  color: hsla(0,0%,20%,1);
+  text-shadow: hsla(0,0%,40%,.5) 0 -1px 0, hsla(0,0%,100%,.6) 0 2px 1px;
+  
+  background-color: hsl(0,0%,90%);
+  box-shadow: inset hsla(0,0%,15%,  1) 0  0px 0px 2px, /* border */
+    inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
+    inset hsla(0,0%,0%, .25) 0 -1px 0px 7px, /* bottom SD */
+    inset hsla(0,0%,100%,.7) 0  2px 1px 7px, /* top HL */
+    
+    /*hsla(0,0%, 0%,.15) 0 -5px 6px 4px,  outer SD */
+    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */ 
+  
+  transition: color .2s;
+}
+
+.metal.linear.button {
+	display:inline-block;
+	margin:10px auto;
+  text-align: center;
+    width: 200px;
+  font-size: 0.75em;
+  height: 45px;
+  border-radius: .5em;
+  padding-top:20px;
+  background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0)   6%, hsla(0,0%,100%, .1) 7.5%),
+    -webkit-repeating-linear-gradient(left, hsla(0,0%,  0%,0) 0%, hsla(0,0%,  0%,0)   4%, hsla(0,0%,  0%,.03) 4.5%),
+    -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0) 1.2%, hsla(0,0%,100%,.15) 2.2%),
+    
+    linear-gradient(180deg, hsl(0,0%,78%)  0%, 
+    hsl(0,0%,90%) 47%, 
+    hsl(0,0%,78%) 53%,
+    hsl(0,0%,70%)100%);
+}
+
+.metal.linear.rod {
+	position:absolute;
+	 left:-10px;
+	
+  width: 105%;
+  font-size: 4em;
+  height: 30px;
+  background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0)   6%, hsla(0,0%,100%, .1) 7.5%),
+    -webkit-repeating-linear-gradient(left, hsla(0,0%,  0%,0) 0%, hsla(0,0%,  0%,0)   4%, hsla(0,0%,  0%,.03) 4.5%),
+    -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0) 1.2%, hsla(0,0%,100%,.15) 2.2%),
+    
+    linear-gradient(180deg, hsl(0,0%,78%)  0%, 
+    hsl(0,0%,90%) 47%, 
+    hsl(0,0%,78%) 53%,
+    hsl(0,0%,70%)100%);
+}
+
+
+.metal.panel {
+	position:absolute;
+	padding:12px;
+  top:8px;
+  left:1300px;
+  width: 500px;
+  font-size: 1.6em;
+  bottom:98px;
+  border-radius: .5em;
+  background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0)   6%, hsla(0,0%,100%, .1) 7.5%),
+    -webkit-repeating-linear-gradient(left, hsla(0,0%,  0%,0) 0%, hsla(0,0%,  0%,0)   4%, hsla(0,0%,  0%,.03) 4.5%),
+    -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0) 1.2%, hsla(0,0%,100%,.15) 2.2%),
+    
+    linear-gradient(180deg, hsl(0,0%,78%)  0%, 
+    hsl(0,0%,90%) 47%, 
+    hsl(0,0%,78%) 53%,
+    hsl(0,0%,70%)100%);
+}
+
+
+.metal.linear.oval {
+  width: 40px;
+  height: 40px;
+  line-height: 40px !important;
+  border-radius: 50%;
+  font: italic bold 1em/50px Georgia, "Times New Roman", Times, serif;
+}
+
+/* --- end http://simurai.com/lab/2011/08/21/brushed-metal/ */
+
+.panel-title {padding: 4px;
+  font: bold 1em "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+}
+
+#melody-play-button {
+	position:absolute;
+	right:15px;
+	top:15px;
+	padding:8px;
+}
+
+.overview-graphics {text-align:center; }
+
+.overview-section-graphics {visibility:hidden; text-align:center; border-radius:2px;
+	border:2px solid black; background-color:#0099FF;
+	width:78px;
+	margin:auto;
+	padding-top:6px;
+	margin-bottom:6px;
+	display:inline-block;}
+
+.overview-graphic {margin:-1px; background-color:#FFFF66; padding:5px; border-radius:2px;
+	border:2px solid black;}
+
+#overview-parts {opacity:0;}
+
+.overview-step {text-align:center; margin-bottom:0px; opacity:0;}
+#overview-step4 {display:none;}
+#overview-skip {position:absolute;  
+	bottom:20px; 
+	text-align:center;
+	left:160px;
+	}
+.timebar {
+	position:absolute;
+	width:11px;
+	background-color:black;
+	border:2px solid #808080;
+	border-radius:4px;
+	top:205px;
+	left:80px;
+	height:140px;
+}
+
+#melody-of-the-day {width:300px;}
+
+#omg-overview {left:-600px;}
+
+#overview-screen {background-color:black; height:400px; 
+	border-radius:2px;
+	border:2px solid black;
+	padding-top:12px;}
+	
+.overview-option,.overview-option-holder {
+	width:130px;
+	display:inline-block;
+	border-radius:3px;
+	border:1px solid #808080;
+	cursor:pointer;
+}
+
+.overview-option-holder {
+	visibility:hidden;
+}
+
+.overview-option-caption {
+	width:120px;
+	display:inline-block;
+	text-align:right;
+}
+
+
+/* parlist */
+.part {
+	position: relative;
+	background-color: #ffefd6;
+	border-width: 0px;
+	border-top: 1px solid #808080;
+	padding: 4px;
+	height: 30px;
+	cursor: pointer;
+}
+
+.part-votes {
+	position: absolute;
+	left: 0px;
+	top: -1px;
+	font-size: 20pt;
+	text-align:center;
+	width:70px;
+}
+
+.part-votes_caption {
+	position: absolute;
+	left: 17px;
+	top: 22px;
+	font-size: 11pt;
+}
+
+.part-caption {
+	position: absolute;
+	left: 100px;
+	top: 10px;
+}
+
+.part-type {
+	font-weight: bold;
+}
+
+.part-time {
+	position: absolute;
+	top: 12px;
+	right: 3px;
+	font-style: italic;
+	font-size: 10pt;
+	color: #404040;
+}
+/*  end part list  */
