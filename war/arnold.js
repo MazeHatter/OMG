@@ -11,7 +11,8 @@ arnold.panels.rightEdge = 0;
 arnold.makeBrowser = function (type) {
 	
 	var browser = new Panel("Browse " + type);
-
+	browser.div.style.width = "320px";
+	
 	var list = document.createElement("div");
 	browser.div.appendChild(list);
 	
@@ -80,7 +81,6 @@ arnold.displayResults = function (list, results, page) {
 
         partDetail = document.createElement("div");
         partDetail.className = "part-caption";
-        //partDetail.innerHTML = "<span class='part-type-caption'>Type:</span> " +
         partDetail.innerHTML = "<span class='part-type'>" + data.type + "</span>";
         part.appendChild(partDetail);
 
@@ -106,8 +106,6 @@ arnold.displayResults = function (list, results, page) {
                 else {
                     arnold.loadSinglePart(data3);
                 }
-
-                setupAsCurrentInList(data3, part);
 
             };
         })(part, data);
@@ -161,19 +159,46 @@ arnold.loadSinglePart = function (searchResult) {
 	// create a panel for the part
 	var type = searchResult.type;
 	var partPanel = new Panel(searchResult.type);
-
-	if (type === "MELODY") {
-		var melodyView = document.createElement("div");
+	
+	if (type === "MELODY" || type === "BASSLINE") {
+		partPanel.div.style.width = "300px";
+		
+		var melodyView = document.createElement("canvas");
 		melodyView.className = "melody-view";
 		partPanel.div.appendChild(melodyView);
+		
+		omg.ui.drawMelodyCanvas(searchResult.data, melodyView);
 	}
+	else if (type === "DRUMBEAT") {
+		partPanel.div.style.width = "350px";
+
+		var drumView = document.createElement("canvas");
+		drumView.className = "drum-view";
+		partPanel.div.appendChild(drumView);
+		
+		drumView.height = drumView.clientHeight;
+		
+		omg.ui.drawDrumCanvas(searchResult.data, drumView);
+	}
+	var playButton = omg.newDiv();
+	playButton.className = "metal linear button";
+	playButton.innerHTML = "<img class='part-play-button' src='img/play_button.png'/>";
+	partPanel.div.appendChild(playButton);
+	
+	playButton.onclick = function () {
+		omg.player.play({subbeatMillis: 125, sections: [
+                            {parts: [searchResult.data]}]});
+		
+	};
 
 	/* cut out code to put it in the right key	*/
 
 	partPanel.slideIn();
+
+	//omg.player.loadPart(searchResult, searchResult.data);
 	
-	if (!omg.player.playing)
-        omg.player.playWhenReady();
+	//if (!omg.player.playing)
+    //    omg.player.playWhenReady();
 };
 
 arnold.showMelodyOfTheDay = function () {
@@ -197,6 +222,8 @@ arnold.showMelodyOfTheDay = function () {
 
 
 function Panel(param) {
+	var thisPanel = this;
+	
 	//param could be a div 
 	if (typeof param === "object") {
 		this.div = param;
@@ -215,6 +242,17 @@ function Panel(param) {
 		this.div.appendChild(hr);
 
 	}
+
+	var closeButton = document.createElement("div");
+	closeButton.className = "metal linear oval close-button";
+	//closeButton.innerHTML = '<img src="img/play_button.png" height="24" width="24"' +
+	//						'style="margin-left:12px;"/>';
+	closeButton.innerHTML = "<div class='close-button-text'>&times;<div>";
+	this.div.appendChild(closeButton);
+	
+	closeButton.onclick = function () {
+		thisPanel.slideUp();
+	};
 }
 
 Panel.prototype.slideIn = function (params) {
@@ -227,7 +265,7 @@ Panel.prototype.slideIn = function (params) {
 		params = {};
 	}
 	if (params.finalX == undefined) {
-		params.finalX = arnold.width - width; 
+		params.finalX = Math.min(arnold.panels.rightEdge, arnold.width - width); 
 	}
 	params.div = this.div;
 
@@ -240,7 +278,7 @@ Panel.prototype.slideIn = function (params) {
 		otherPanel = arnold.panels[ip];
 		diff = lastPanelsLeftEdge - 
 			(otherPanel.div.clientWidth + otherPanel.div.offsetLeft);
-		console.log("Diff?? " + diff);
+
 		if (diff < 0) {
 			lastPanelsLeftEdge = otherPanel.div.offsetLeft + diff;
 			omg.util.slide({div:otherPanel.div, 
@@ -252,17 +290,57 @@ Panel.prototype.slideIn = function (params) {
 		 
 	}
 	
-
 	omg.util.slide(params);
 };
 
-Panel.prototype.slideOut = function (params) {
-
-	params.div = this.div;
-	params.finalX = window.innerWidth + 10;
-	omg.util.slide(params);
+Panel.prototype.slideUp = function (params) {
 	
-	arnold.panels.splice()
+	if (!params) {
+		params = {};
+	}
+	if (params.finalY == undefined) {
+		params.finalY = -1 * this.div.clientHeight; 
+	}
+	params.div = this.div;
+
+	var thisPanel = this;
+	params.callback = function () {
+		
+		var panelWidth = thisPanel.div.clientWidth;
+		var ip, ip2;
+		var moveLeft = 0;
+		var moveRight = 0;
+		for (ip = 0; ip < arnold.panels.length; ip++) {
+			if (arnold.panels[ip] === thisPanel) {
+
+				if (ip > 0) {
+					if (arnold.panels[0].div.offsetLeft + panelWidth > 0) {
+						moveLeft =  -1 * arnold.panels[0].div.offsetLeft;
+						moveRight = panelWidth - moveLeft;
+					}
+					else {
+						moveLeft = panelWidth;
+					}
+				}
+				if (moveLeft > 0) {
+					for (ip2 = 0; ip2 < ip; ip2++) {
+						omg.util.slide({div: arnold.panels[ip2].div, dX: moveLeft});
+					}					
+				}
+				if (moveRight > 0) {
+					for (ip2 = ip + 1; ip2 < arnold.panels.length; ip2++) {
+						omg.util.slide({div: arnold.panels[ip2].div, dX: -1 * moveRight});
+					}										
+				}
+				arnold.panels.splice(ip, 1);
+				
+				break;
+			}
+		}
+	};
+	
+	omg.util.slide(params);
+
 };
 
 
@@ -411,20 +489,37 @@ arnold.startOverview = function (callback) {
 	button.onclick = function () {
 
 		var browser = arnold.makeBrowser("Melodies");
-
-		var showBrowser = function () {
-			browser.slideIn({finalX: 600});
-		};
-		
-		if (arnold.motdShowing) {
-			arnold.slidePanel({div: arnold.motdPanel, 
-				finalX:window.innerWidth + 5, callback: showBrowser});
-			arnold.motdShowing = false;
-		}
-		else {
-			showBrowser();
-		}
+		browser.slideIn();
 	};
+
+	button = document.getElementById("overview-browse-basslines");
+	button.onclick = function () {
+
+		var browser = arnold.makeBrowser("Basslines");
+		browser.slideIn();
+	};
+
+	button = document.getElementById("overview-browse-drumbeats");
+	button.onclick = function () {
+
+		var browser = arnold.makeBrowser("Drumbeats");
+		browser.slideIn();
+	};
+	
+	button = document.getElementById("overview-browse-sections");
+	button.onclick = function () {
+
+		var browser = arnold.makeBrowser("Sections");
+		browser.slideIn();
+	};
+
+	button = document.getElementById("overview-browse-songs");
+	button.onclick = function () {
+
+		var browser = arnold.makeBrowser("Songs");
+		browser.slideIn();
+	};
+
 };
 
 

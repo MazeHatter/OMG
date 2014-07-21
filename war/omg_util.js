@@ -24,6 +24,10 @@ omg.newDiv = function () {
 	return document.createElement("div");
 }
 
+omg.util.d = function (something) {
+	console.log(something);
+};
+
 omg.util.httpGet = function (url, goodCallback) {
 
     var xhr = new XMLHttpRequest();
@@ -125,6 +129,13 @@ omg.util.slide = function (params) {
 	var now = 0;
 	if (params.startX == undefined) {
 		params.startX = params.div.offsetLeft;
+		
+		if (params.finalX == undefined && params.dX != undefined) {
+			params.finalX = params.startX + params.dX;
+		}
+	}
+	if (params.startY == undefined) {
+		params.startY = params.div.offsetTop;
 	}
 	if (params.startT == undefined) {
 		params.startT = Date.now();
@@ -133,8 +144,16 @@ omg.util.slide = function (params) {
 		now = Math.min(length, Date.now() - params.startT);
 	}
 	
-	params.div.style.left = params.startX - now / length * (params.startX - params.finalX) + "px";	
-
+	
+	if (params.finalX != undefined) {
+		params.div.style.left = params.startX - now / length * 
+						(params.startX - params.finalX) + "px";	
+	}
+	if (params.finalY != undefined) {
+		params.div.style.top = params.startY - now / length * 
+						(params.startY - params.finalY) + "px";	
+	}
+	
 	if (now == length) {
 		if (typeof params.callback == "function")
 			params.callback();

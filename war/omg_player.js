@@ -75,7 +75,7 @@ if (typeof omg != "object")
         if (data.type == "DRUMBEAT") {
             var soundsAlreadyLoaded = 0;
             var tracks = data.data;
-            fixSound(tracks, data.kit);
+            //fixSound(tracks, data.kit);
             for (var i = 0; i < tracks.length; i++) {
             	if (!tracks[i].sound) {
             		soundsAlreadyLoaded++;
@@ -85,17 +85,17 @@ if (typeof omg != "object")
                     soundsAlreadyLoaded++;
                 }
                 else {
-                    loadSound(tracks[i].sound, part);
+                    p.loadSound(tracks[i].sound, part);
                 }
             }
             if (soundsAlreadyLoaded == tracks.length) {
             	part.loaded = true;
             }
         }
-        if (data.type == "MELODY" || data.type == "BASSLINE") {
+        if (data.type == "fMELODY" || data.type == "fBASSLINE") {
         	
-			rescale(part, omg.section.data.rootNote, 
-					omg.section.data.ascale);
+			//todo rescale(part, omg.section.data.rootNote, 
+			//		omg.section.data.ascale);
         	
 			if (typeof data.sound == "string" &&
 					data.sound.indexOf("PRESET_") == 0) {
@@ -153,7 +153,6 @@ if (typeof omg != "object")
             	p.go();        		
         	}
 
-        	debug("set new bpm");
     	}
     };
     
@@ -170,7 +169,7 @@ if (typeof omg != "object")
         	for (var j = 0; j < sections[i].parts.length; j++) {
         		if (!sections[i].parts[j].loaded) {
         			allReady = false;
-        			debug("section " + i + " part " + j + " is not ready");
+        			omg.util.d("section " + i + " part " + j + " is not ready");
         		}
             }
     	}
@@ -203,6 +202,7 @@ if (typeof omg != "object")
             	part = {raw: rawPart, nextBeat: 0, currentI: -1};
             	section.parts.push(part);
 
+            	p.loadPart(part, rawPart);
             }
         	p.arrangement.sections.push(section);
         }
@@ -226,14 +226,14 @@ if (typeof omg != "object")
     }
 
     p.playBeatForDrumPart = function (iSubBeat, part) {
-        var tracks = part.data;
-        
+        var tracks = part.raw.data;
+
     	if (part.muted)
     		return;
 
         for (var i = 0; i < tracks.length; i++) {
             if (tracks[i].data[iSubBeat]) {
-            	playSound(tracks[i].sound, data.volume);
+            	p.playSound(tracks[i].sound, part.raw.volume);
             }
         }
     };
@@ -259,7 +259,6 @@ if (typeof omg != "object")
         }
 
         if (beatToPlay == part.nextBeat) {
-        	console.log("play 2");
             var note = data.notes[part.currentI];
             
 //            if (part.soundset) {
@@ -361,7 +360,75 @@ if (typeof omg != "object")
             osc.disconnect(p.context.destination);
 
         }, 500);
-    }
+    };
 
+    p.playSound = function (sound, volume) {
+        if (omg.player.loadedSounds[sound] && 
+        		omg.player.loadedSounds[sound] !== "loading") {
+        	    	
+            var source = omg.player.context.createBufferSource();
+            source.buffer = omg.player.loadedSounds[sound];                   
+            //source.connect(omg.player.context.destination);
+            if (source.start)
+                source.start(0);
+            else {
+            	source.noteOn(0);
+            	source.stop = function () {
+            		source.noteOff(0);
+            	};
+            } 
+
+            source.gain2 = omg.player.context.createGain();
+            source.connect(source.gain2);
+            source.gain2.connect(omg.player.context.destination);
+            
+            source.gain2.gain.value = volume; 
+
+            return source;
+        }
+
+    };
+
+    p.loadSound = function (sound, part) {
+
+        if (!sound || !omg.player.context) {
+            return;
+        }
+
+        var key = sound;
+        var url = sound;
+        if (sound.indexOf("PRESET_") == 0) {
+            url = "audio/" + sound.substring(7).toLowerCase() + ".mp3";
+        }
+        
+        omg.player.loadedSounds[key] = "loading";
+        
+        var request = new XMLHttpRequest();
+        request.open('GET', url, true);
+        request.responseType = 'arraybuffer';
+
+        part.soundsLoading++;
+
+        // Decode asynchronously
+        request.onload = function() {
+            omg.player.context.decodeAudioData(request.response, function(buffer) {
+                omg.player.loadedSounds[key] = buffer;
+                p.onSoundLoaded(true, part);
+            }, function () {
+                omg.util.d("error :(");
+                p.onSoundLoaded(false, part);
+            });
+        }
+        request.send();
+
+    };
+
+    p.onSoundLoaded = function (success, part) {
+
+        part.soundsLoading--;
+        if (part.soundsLoading < 1) {
+        	part.loaded = true;
+        }
+    }
 
 })();

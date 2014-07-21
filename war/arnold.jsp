@@ -82,7 +82,7 @@ if (user.isLoggedIn()){
 			</div>
 			<div>
 				<div class="overview-option-caption">Basslines</div>
-				<div class="overview-option">
+				<div class="overview-option" id="overview-browse-basslines">
 					<img src="img/browse3.png"/>Browse
 				</div>
 				<div class="overview-option">
@@ -91,7 +91,7 @@ if (user.isLoggedIn()){
 			</div>
 			<div>
 				<div class="overview-option-caption">Drumbeats</div>
-				<div class="overview-option">
+				<div class="overview-option" id="overview-browse-drumbeats">
 					<img src="img/browse3.png"/>Browse
 				</div>
 				<div class="overview-option">
@@ -100,7 +100,7 @@ if (user.isLoggedIn()){
 			</div>
 			<div>
 				<div class="overview-option-caption">Sections</div>
-				<div class="overview-option">
+				<div class="overview-option" id="overview-browse-sections">
 					<img src="img/browse3.png"/>Browse
 				</div>
 				<div class="overview-option-holder">
@@ -109,7 +109,7 @@ if (user.isLoggedIn()){
 				</div>
 			<div>
 				<div class="overview-option-caption">Songs</div>
-				<div class="overview-option">
+				<div class="overview-option" id="overview-browse-songs">
 					<img src="img/browse3.png"/>Browse
 				</div>
 				<div class="overview-option-holder">
@@ -195,7 +195,7 @@ if (user.isLoggedIn()){
 var motd = <%= motdJson%>;
 </script>
 <script src="omg_util.js"></script>
-<script src="omg_drawmelody.js"></script>
+<script src="omg_drawparts.js"></script>
 <script src="omg_player.js"></script>
 <script src="arnold.js"></script>
 

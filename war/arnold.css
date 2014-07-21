@@ -1,6 +1,6 @@
 
 #top-rail {top:20px;}
-#bottom-rail {bottom:112px;}
+#bottom-rail {top:568px;}
 
 #song-rail {bottom:40px;}
 
@@ -38,6 +38,15 @@
 	background:white;
 }
 
+.drum-view {
+	margin-top:20px;
+	margin-left:-4px;
+	width:358px;
+	height:200px;
+	
+}
+
+
 
 /* http://simurai.com/lab/2011/08/21/brushed-metal/ */
 .metal {
@@ -63,10 +72,10 @@
 }
 
 .metal.linear.button {
-	display:inline-block;
-	margin:10px auto;
+  display:inline-block;
+  margin:10px auto;
   text-align: center;
-    width: 200px;
+  width: 80px;
   font-size: 0.75em;
   height: 45px;
   border-radius: .5em;
@@ -106,7 +115,7 @@
   left:1300px;
   width: 500px;
   font-size: 1.6em;
-  bottom:98px;
+  height:575px;
   border-radius: .5em;
   background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0)   6%, hsla(0,0%,100%, .1) 7.5%),
     -webkit-repeating-linear-gradient(left, hsla(0,0%,  0%,0) 0%, hsla(0,0%,  0%,0)   4%, hsla(0,0%,  0%,.03) 4.5%),
@@ -120,8 +129,8 @@
 
 
 .metal.linear.oval {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   line-height: 40px !important;
   border-radius: 50%;
   font: italic bold 1em/50px Georgia, "Times New Roman", Times, serif;
@@ -133,12 +142,15 @@
   font: bold 1em "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
 }
 
-#melody-play-button {
+.metal.linear.oval.close-button {
 	position:absolute;
 	right:15px;
 	top:15px;
-	padding:8px;
+	padding:1px;
+	margin-left:14px;
 }
+
+.close-button-text {position:relative; margin-left:9px; top:-3px; display:inline-block;}
 
 .overview-graphics {text-align:center; }
 
@@ -200,6 +212,14 @@
 	text-align:right;
 }
 
+#overview-skip {
+	width:200px;
+}
+
+.part-play-button {
+	height:28px;
+	width:28px;
+}
 
 /* parlist */
 .part {
