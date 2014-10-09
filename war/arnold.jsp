@@ -39,7 +39,7 @@ if (user.isLoggedIn()){
 <link rel="apple-touch-icon" href="http://openmusicgallery.appspot.com/img/omg256.png" />
 
 <meta property="og:image" content="http://openmusicgallery.appspot.com/img/omg256.png"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<!--<meta name="viewport" content="width=320, height=800, initial-scale=1" />-->
 <title>OMG - Open Music Gallery</title>   
 <link rel="stylesheet" href="arnold.css" type="text/css" />
 </head>
@@ -188,6 +188,12 @@ if (user.isLoggedIn()){
 		Browse Songs With This Melody
 	</div>
 </div>
+
+<div id="omg-song" class="metal tile">
+	<img src="img/play_button.png"/>
+	<img class="song-share" src="img/share_black_48.png"/>
+</div>
+
 
 </div> <!--bbody-->
 

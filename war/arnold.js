@@ -1,5 +1,9 @@
+/* panels are the the top row
+ * tiles are the bottom row
+ */
+
 if (typeof omg != "object")
-	console.log("No OMG object!");
+	omg.util.d("No OMG object!");
 
 
 var arnold = {};
@@ -7,6 +11,8 @@ arnold.body = document.getElementById("bbody");
 arnold.width = window.innerWidth;
 arnold.panels = [];
 arnold.panels.rightEdge = 0;
+
+arnold.tiles = [];
 
 arnold.makeBrowser = function (type) {
 	
@@ -101,7 +107,7 @@ arnold.displayResults = function (list, results, page) {
                     omg.rearranger.loadSong(data3);
                 }
                 else if (data.type == "SECTION") {
-                    loadSection(data3);
+                    arnold.loadSection(data3);
                 }
                 else {
                     arnold.loadSinglePart(data3);
@@ -159,27 +165,7 @@ arnold.loadSinglePart = function (searchResult) {
 	// create a panel for the part
 	var type = searchResult.type;
 	var partPanel = new Panel(searchResult.type);
-	
-	if (type === "MELODY" || type === "BASSLINE") {
-		partPanel.div.style.width = "300px";
-		
-		var melodyView = document.createElement("canvas");
-		melodyView.className = "melody-view";
-		partPanel.div.appendChild(melodyView);
-		
-		omg.ui.drawMelodyCanvas(searchResult.data, melodyView);
-	}
-	else if (type === "DRUMBEAT") {
-		partPanel.div.style.width = "350px";
 
-		var drumView = document.createElement("canvas");
-		drumView.className = "drum-view";
-		partPanel.div.appendChild(drumView);
-		
-		drumView.height = drumView.clientHeight;
-		
-		omg.ui.drawDrumCanvas(searchResult.data, drumView);
-	}
 	var playButton = omg.newDiv();
 	playButton.className = "metal linear button";
 	playButton.innerHTML = "<img class='part-play-button' src='img/play_button.png'/>";
@@ -188,9 +174,38 @@ arnold.loadSinglePart = function (searchResult) {
 	playButton.onclick = function () {
 		omg.player.play({subbeatMillis: 125, sections: [
                             {parts: [searchResult.data]}]});
-		
+
+		var newTile = new Tile({parts: [searchResult.data]});
+		newTile.slideIn();
+
 	};
 
+	var detailView = document.createElement("canvas");
+	partPanel.div.appendChild(detailView);
+
+	if (type === "MELODY" || type === "BASSLINE") {
+		partPanel.div.style.width = "300px";
+		
+		detailView.className = "melody-view";
+				
+		omg.ui.drawMelodyCanvas(searchResult.data, detailView);
+	}
+	else if (type === "DRUMBEAT") {
+	    // backwards compat: track array was called data early on
+	    if (!searchResult.data.tracks && searchResult.data.data) {
+	        searchResult.data.tracks = searchResult.data.data;
+	        delete searchResult.data.data;
+	    }
+		
+		partPanel.div.style.width = "350px";
+		
+		detailView.className = "drum-view";
+		detailView.height = detailView.clientHeight;
+		
+		omg.ui.drawDrumCanvas({drumbeat:searchResult.data, canvas:detailView});
+	}
+	
+	
 	/* cut out code to put it in the right key	*/
 
 	partPanel.slideIn();
@@ -199,6 +214,96 @@ arnold.loadSinglePart = function (searchResult) {
 	
 	//if (!omg.player.playing)
     //    omg.player.playWhenReady();
+};
+
+arnold.loadSection = function (searchResult) {
+    searchResult.data = JSON.parse(searchResult.json);
+
+    var parts = [];
+    // backwards compat: parts array was called data early on
+    if (!searchResult.data.parts && searchResult.data.data) {
+        searchResult.data.parts = searchResult.data.data;
+        delete searchResult.data.data;
+    }
+    var partsData = searchResult.data.parts;
+    
+    // if we have a comma delimited scale instead of an int array 
+    if (searchResult.data.ascale == undefined &&
+    		searchResult.data.scale != undefined) {
+    	searchResult.data.ascale = searchResult.data.scale.split(",")
+    	for (var iii = 0; iii < searchResult.data.ascale.length; iii++) {
+    		searchResult.data.ascale[iii] = parseInt(searchResult.data.ascale[iii]);
+    	}
+    }
+    
+    var sectionPanel = new Panel("Section");
+    
+    var arrangement = {subbeatMillis: 125, sections: [searchResult.data]};
+    var preparedArrangement = omg.player.prepareArrangement(arrangement);
+    
+	var playButton = omg.newDiv();
+	playButton.className = "metal linear button";
+	playButton.innerHTML = "<img class='part-play-button' src='img/play_button.png'/>";
+	sectionPanel.div.appendChild(playButton);
+	playButton.onclick = function () {
+		omg.player.play(preparedArrangement);
+
+		var newTile = new Tile({parts: [searchResult.data]});
+		newTile.slideIn();
+	};
+
+	var shareButton = omg.newDiv();
+	shareButton.className = "metal linear button";
+	shareButton.innerHTML = "<img class='part-play-button' src='img/share_black_48.png'/>";
+	sectionPanel.div.appendChild(shareButton);
+	shareButton.onclick = function () {
+		omg.player.play({subbeatMillis: 125, sections: [
+                            searchResult.data]});
+		
+	};
+
+    var div;    
+    div = omg.newDiv();
+    div.className = "section-info";
+    div.innerHTML = "Scale";
+    sectionPanel.div.appendChild(div);
+    
+    div = omg.newEl("hr");
+    sectionPanel.div.appendChild(div);
+    
+    var partCount = partsData.length;
+    var partHeight;
+    if (partCount > 0) {
+    	partHeight = (sectionPanel.div.clientHeight - 
+    		(div.offsetTop + 30)) / partCount;
+    }
+
+    var part;
+	var detailView;
+    for (var ip = 0; ip < partCount; ip++) {
+    	part = partsData[ip];
+    	detailView = document.createElement("canvas");
+    	detailView.style.height = partHeight + "px";
+		detailView.style.width = sectionPanel.div.clientWidth - 20 + "px";
+
+    	detailView.height = partHeight;
+    	sectionPanel.div.appendChild(detailView);
+    	if (part.type === "MELODY" || part.type === "BASSLINE") {
+    		omg.ui.drawMelodyCanvas(part, detailView);		
+    	}
+    	else if (part.type === "DRUMBEAT") {
+    	    // backwards compat: track array was called data early on
+    	    if (!part.tracks && part.data) {
+    	        part.tracks = part.data;
+    	        delete part.data;
+    	    }
+
+    	    omg.ui.drawDrumCanvas({drumbeat: part, canvas: detailView,
+    	    						captionWidth:60});
+    	}
+    }
+    
+    sectionPanel.slideIn();
 };
 
 arnold.showMelodyOfTheDay = function () {
@@ -223,30 +328,67 @@ arnold.showMelodyOfTheDay = function () {
 
 function Panel(param) {
 	var thisPanel = this;
+
+	var caption;
 	
 	//param could be a div 
 	if (typeof param === "object") {
 		this.div = param;
+		caption = this.div.getElementsByClassName("panel-title")[0];
 	}
 	else if (typeof param === "string") {
 		this.div = document.createElement("div");
 		this.div.className = "metal panel";
 		bbody.appendChild(this.div);
 
-		var caption = document.createElement("div");
+		caption = document.createElement("div");
 		caption.className = "panel-title";
 		caption.innerHTML = param;
 		this.div.appendChild(caption);
 
 		var hr = document.createElement("hr");
 		this.div.appendChild(hr);
-
 	}
+	
+	var slideStarted = undefined;
+	this.div.ontouchstart = function (event) {
+		event.preventDefault();
+		slideStarted = event.targetTouches[0].pageX;
+	};
+	this.div.onmousedown = function (event) {
+		event.preventDefault();
+		slideStarted = event.clientX;
+	};
+	this.div.onmousemove = function (event) {
+		if (slideStarted != undefined) {
+			arnold.panels.forEach(function (panel) {
+				panel.div.style.left = panel.div.offsetLeft + 
+							(event.clientX - slideStarted) + "px";
+			});
+			slideStarted = event.clientX;
+		}
+	};
+	this.div.ontouchmove = function (event) {
+		if (slideStarted != undefined) {
+			var x = event.targetTouches[0].pageX;
+			
+			arnold.panels.forEach(function (panel) {
+				panel.div.style.left = panel.div.offsetLeft + 
+							(x - slideStarted) + "px";
+			});
+			
+			slideStarted = x;
+		}
+	};
+	this.div.onmouseup = function () {
+		slideStarted = undefined;
+	};
+	this.div.ontouchend = function () {
+		slideStarted = undefined;
+	};
 
 	var closeButton = document.createElement("div");
 	closeButton.className = "metal linear oval close-button";
-	//closeButton.innerHTML = '<img src="img/play_button.png" height="24" width="24"' +
-	//						'style="margin-left:12px;"/>';
 	closeButton.innerHTML = "<div class='close-button-text'>&times;<div>";
 	this.div.appendChild(closeButton);
 	
@@ -343,10 +485,167 @@ Panel.prototype.slideUp = function (params) {
 
 };
 
+function Tile(param) {
+	var thisTile = this;
+
+	var caption;
+	
+	if (param.tagName) {
+		this.div = param;
+	}
+	else {
+		this.div = document.createElement("div");
+		this.div.className = "metal tile";
+		bbody.appendChild(this.div);
+		
+		var canvas = document.createElement("canvas");
+		this.div.appendChild(canvas);
+		canvas.className = "tile-canvas";
+		
+	
+	}
+	
+	var slideStarted = undefined;
+	this.div.onmousedown = function (event) {
+		event.preventDefault();
+		slideStarted = event.x;
+	};
+	this.div.onmousemove = function (event) {
+		if (slideStarted != undefined) {
+			arnold.tiles.forEach(function (tile) {
+				tile.div.style.left = tile.div.offsetLeft + 
+							(event.x - slideStarted) + "px";
+			});
+			slideStarted = event.x;
+		}
+	};
+	this.div.onmouseup = function () {
+		slideStarted = undefined;
+	};
+	//this.div.onmouseout = function () {
+	//	slideStarted = undefined;
+	//};
+
+	/*var closeButton = document.createElement("div");
+	closeButton.className = "metal linear oval close-button";
+	closeButton.innerHTML = "<div class='close-button-text'>&times;<div>";
+	this.div.appendChild(closeButton);
+	*/
+	
+}
+
+Tile.prototype.slideIn = function (params) {
+
+	var slidingPlayButton = false;
+	if (!arnold.shownSongPlayButton) {
+		arnold.shownSongPlayButton = true;
+		(new Tile(document.getElementById("omg-song"))).slideIn({finalX:4});
+		
+		slidingPlayButton = true;
+	}
+	
+	arnold.tiles.push(this);
+
+	var width = this.div.clientWidth;
+
+	var lastTilesLeftEdge;
+	if (arnold.tiles.length == 1) {
+		lastTilesLeftEdge = 4;
+	}
+	else {
+		if (slidingPlayButton) {
+			lastTilesLeftEdge = arnold.tiles[0].div.clientWidth + 4;
+		}
+		else {
+			var ddiv = arnold.tiles[arnold.tiles.length - 2].div;
+			lastTilesLeftEdge = ddiv.clientWidth + ddiv.offsetLeft;			
+		}
+	}
+	
+	if (!params) {
+		params = {};
+	}
+	if (params.finalX == undefined) {
+		params.finalX = Math.min(lastTilesLeftEdge, arnold.width - width); 
+	}
+	params.div = this.div;
+
+
+	var otherPanel;
+	var diff;
+	for (var ip = arnold.tiles.length - 2; ip >= 0; ip--) {
+		otherPanel = arnold.tiles[ip];
+		diff = lastTilesLeftEdge - 
+			(otherPanel.div.clientWidth + otherPanel.div.offsetLeft);
+
+		if (diff < 0) {
+			lastTilesLeftEdge = otherPanel.div.offsetLeft + diff;
+			omg.util.slide({div:otherPanel.div, 
+					finalX: lastTilesLeftEdge});
+		}
+		else {
+			break;
+		}
+		 
+	}
+	
+	omg.util.slide(params);
+};
+
+Tile.prototype.slideDown = function (params) {
+	
+	if (!params) {
+		params = {};
+	}
+	if (params.finalY == undefined) {
+		params.finalY = this.div.parentElement.clientHeight; 
+	}
+	params.div = this.div;
+
+	var thisPanel = this;
+	params.callback = function () {
+		
+		var panelWidth = thisPanel.div.clientWidth;
+		var ip, ip2;
+		var moveLeft = 0;
+		var moveRight = 0;
+		for (ip = 0; ip < arnold.tiles.length; ip++) {
+			if (arnold.tiles[ip] === thisPanel) {
+
+				if (ip > 0) {
+					if (arnold.tiles[0].div.offsetLeft + panelWidth > 0) {
+						moveLeft =  -1 * arnold.tiles[0].div.offsetLeft;
+						moveRight = panelWidth - moveLeft;
+					}
+					else {
+						moveLeft = panelWidth;
+					}
+				}
+				if (moveLeft > 0) {
+					for (ip2 = 0; ip2 < ip; ip2++) {
+						omg.util.slide({div: arnold.tiles[ip2].div, dX: moveLeft});
+					}					
+				}
+				if (moveRight > 0) {
+					for (ip2 = ip + 1; ip2 < arnold.tiles.length; ip2++) {
+						omg.util.slide({div: arnold.tiles[ip2].div, dX: -1 * moveRight});
+					}										
+				}
+				arnold.tiles.splice(ip, 1);
+				
+				break;
+			}
+		}
+	};
+	
+	omg.util.slide(params);
+
+};
 
 
 window.onload  = function () {
-	arnold.startOverview(function () {});	
+	arnold.startOverview(function () {});
+	
 };
 
 
@@ -520,40 +819,4 @@ arnold.startOverview = function (callback) {
 		browser.slideIn();
 	};
 
-};
-
-
-
-
-
-arnold.makeRemixer = function () {
-	var remixer = document.createElement("div");
-	remixer.className = "metal panel";
-	bbody.appendChild(remixer);
-	
-	var button = document.createElement("div");
-	button.className = "metal linear button";
-	button.innerHTML = "Melody";
-	remixer.appendChild(button);
-	
-	button = document.createElement("div");
-	button.className = "metal linear button";
-	button.innerHTML = "Melody";
-	remixer.appendChild(button);
-	
-	button = document.createElement("div");
-	button.className = "metal linear button";
-	button.innerHTML = "Bass";
-	remixer.appendChild(button);
-	
-	button = document.createElement("div");
-	button.className = "metal linear button";
-	button.innerHTML = "Drums";
-	remixer.appendChild(button);
-	
-	button = document.createElement("div");
-	button.className = "metal linear button";
-	button.innerHTML = "Sampler";
-	remixer.appendChild(button);
-	return remixer;
 };

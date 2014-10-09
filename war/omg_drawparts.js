@@ -25,10 +25,10 @@ omg.ui.drawMelodyCanvas = function (melody, canvas) {
     for (var im = 0; im < melody.notes.length; im++) {
         note = melody.notes[im];
 
-        if (im == 0 || note.note < low) {
+        if (!note.rest && (low == undefined || note.note < low)) {
         	low = note.note;
         }
-        if (im == 0 || note.note > high) {
+        if (!note.rest && (high == undefined || note.note > high)) {
         	high = note.note;
         }
     }
@@ -41,7 +41,7 @@ omg.ui.drawMelodyCanvas = function (melody, canvas) {
 	canvas.width = canvas.parentElement.clientWidth - canvas.offsetLeft * 2;
 	
 	context.fillStyle = "white";
-	context.fillRect(0, 0, canvas.width, fretHeight);
+	context.fillRect(0, 0, canvas.width, canvas.height);
 	
 	var upsideDownNoteImage;
 	var noteImage = omg.ui.getImageForNote({beats: 1});
@@ -108,45 +108,62 @@ omg.ui.drawMelodyCanvas = function (melody, canvas) {
 };
 
 
-omg.ui.drawDrumCanvas = function (drumbeat, canvas, subbeat) {
+omg.ui.drawDrumCanvas = function (params) {
 	
-	if (drumbeat.data.length == 0)
+	var drumbeat = params.drumbeat;
+	var canvas = params.canvas;
+	var captionWidth = params.captionWidth;
+	var rowHeight = params.rowHeight;
+	var subbeat = params.subbeat;
+
+	if (drumbeat.tracks.length == 0)
 		return;
 
+	if (params.offsetTop == undefined) {
+		params.offsetTop = 0;
+	}
+	if (params.height == undefined) {
+		params.height = canvas.height - params.offsetTop;  
+	}
+
     var context = canvas.getContext("2d");
-
-    canvas.width = canvas.parentElement.clientWidth;
     
-    var rowHeight = 18;
-
-    var captionWidth = 0; 
-    var longestCaptionWidth = 0;
-    
-    for (var i = 0; i < drumbeat.data.length; i++) {
-    	context.fillText(drumbeat.data[i].name, 0, rowHeight * (i + 1) - 6);
-    	if (drumbeat.data[i].name.length > 0) {
-        	captionWidth = context.measureText(drumbeat.data[i].name).width;
-        	if (captionWidth > longestCaptionWidth)
-        		longestCaptionWidth = captionWidth;
-    	}
+    if (rowHeight === undefined) {
+    	rowHeight = params.height / drumbeat.tracks.length;
+    	params.rowHeight = rowHeight;
     }
     
-    captionWidth = Math.min(canvas.width * 0.2, 50, longestCaptionWidth + 4);
+    canvas.width = canvas.parentElement.clientWidth;
+
+    var longestCaptionWidth = 0;
+        
+    for (var i = 0; i < drumbeat.tracks.length; i++) {
+    	context.fillText(drumbeat.tracks[i].name, 0, rowHeight * (i + 1) - 2);
+    	if (captionWidth === undefined && drumbeat.tracks[i].name.length > 0) {
+        	longestCaptionWidth = Math.max(longestCaptionWidth, 
+        			context.measureText(drumbeat.tracks[i].name).width);
+    	}
+    }
+        
+    if (captionWidth === undefined) {
+        captionWidth = Math.min(canvas.width * 0.2, 50, longestCaptionWidth + 4);
+        params.captionWidth = captionWidth;    	
+    }
 
     context.fillStyle = "white";
     context.fillRect(captionWidth, 0, canvas.width, canvas.height);
 
-    var columnWidth = (canvas.width - captionWidth) / drumbeat.data[0].data.length;
+    var columnWidth = (canvas.width - captionWidth) / drumbeat.tracks[0].data.length;
     
     canvas.rowHeight = rowHeight;
     canvas.columnWidth = columnWidth;
     canvas.captionWidth = captionWidth;
     
     
-    for (var i = 0; i < drumbeat.data.length; i++) {
-    	for (var j = 0; j < drumbeat.data[i].data.length; j++) {
+    for (var i = 0; i < drumbeat.tracks.length; i++) {
+    	for (var j = 0; j < drumbeat.tracks[i].data.length; j++) {
     		
-    		context.fillStyle = drumbeat.data[i].data[j] ? "black" : 
+    		context.fillStyle = drumbeat.tracks[i].data[j] ? "black" : 
     				(j%4==0) ? "#C0C0C0" : "#E0E0E0";
     		
     		context.fillRect(captionWidth + columnWidth * j + 1, rowHeight * i + 1,
