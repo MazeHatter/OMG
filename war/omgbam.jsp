@@ -157,9 +157,8 @@ if (user.isLoggedIn()){
 	<div class="option-panel" id="remixer-option-panel">
 		<div class="panel-option" id="remixer-pause-button">pause</div>
 		<div class="panel-option" id="clear-remixer">Clear</div>
-	
 		<div class="panel-option" id="share-button">Share</div>
-		<div class="panel-option" id="add-to-rearranger">Next</div>				
+		<div class="panel-option" id="remixer-next">Next</div>				
 
 	</div>
 
@@ -190,6 +189,34 @@ if (user.isLoggedIn()){
 				+ Add Drumbeat
 			</div>			
 		</div>
+
+	</div>
+
+	<div id="song-option-panel">
+
+		<div class="horizontal-panel-option" id="play-song">Play</div>	
+		<div class="horizontal-panel-option" id="share-song">Share</div>
+		<div class="horizontal-panel-option" id="finish-song">Finish</div>				
+
+		<div class="horizontal-panel-option" id="clear-song">Clear</div>
+
+	</div>
+
+	<div id="rearranger">
+
+		<div class="remixer-caption">Song</div>
+		
+		<div class="remixer-area" id="rearranger-area">
+					
+			<div class="remixer-message" id="rearranger-is-empty">
+
+				<p class="nodata">The <em>re</em><b>arranger</b> combines <em>sections</em> into a <em>song</em>.</p> 
+
+			</div>
+	
+		</div>
+
+		<div class="section" id="add-section">+ Add Section</div>	
 
 	</div>
 
@@ -427,42 +454,6 @@ if (user.isLoggedIn()){
 
 
 <!--<div id="right-panel">-->
-
-
-	<div id="rearranger">
-
-		<div class="remixer-zone">
-			<div class="remixer-caption"><i>re</i><b>arranger</b></div>
-			<div class="remixer-caption-bar">
-				<div class="remixer-button-row" id="rearranger-tools">
-					<div class="remixer-button" id="rearranger-save-button">Save</div>
-					<div class="remixer-button" id="rearranger-share-button">Share</div>
-					
-					<div class="remixer-button" id="clear-rearranger">
-					Clear
-					</div>
-				</div>
-			</div>
-		
-			<div class="remixer-area" id="rearranger-area">
-						
-				<div class="remixer-message" id="rearranger-is-empty">
-
-					<p class="nodata">The <em>re</em><b>arranger</b> combines <em>sections</em> into a <em>song</em>.</p> 
-
-				</div>
-		
-			</div>
-		
-			<canvas id="rearranger-canvas">
-			</canvas>
-		</div>
-
-		<div class="remixer-bottom-bar">
-		</div>			
-
-	</div>
-
 
 	
 

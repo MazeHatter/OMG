@@ -9,10 +9,12 @@
  */
 
 
-var bam = {animLength:2000};
+var bam = {animLength:1700};
 bam.div = document.getElementById("master");
 
-bam.currentSection = bam.div.getElementsByClassName("song")[0];
+bam.currentSong = bam.div.getElementsByClassName("song")[0];
+bam.currentSection = bam.currentSong.getElementsByClassName("section")[0];
+bam.currentPart    = bam.currentSection.getElementsByClassName("part2")[0];
 
 bam.shrink = function (div, x, y, w, h, callback) {
 	var originalH = div.clientHeight;
@@ -87,9 +89,17 @@ bam.slideOutOptions = function (div, callback) {
 	}, 1000/60);	
 };
 
-bam.slideInOptions = function (div, callback) {
-	var targetLeft = 680;
-	var originalX = div.offsetLeft;
+bam.slideInOptions = function (div, callback, target) {
+
+	div.style.left = window.innerWidth + "px";
+	div.style.display = "block";
+
+	var targetLeft;
+	if (target != undefined)
+		targetLeft = target;
+	else
+		targetLeft = 680;
+	var originalX = window.innerWidth;
 	
 	var startedAt = Date.now();
 	
@@ -107,17 +117,25 @@ bam.slideInOptions = function (div, callback) {
 	}, 1000/60);	
 };
 
-bam.fadeOut = function (div, callback) {
+bam.fadeOut = function (divs, callback) {
 	
 	var startedAt = Date.now();
 	
 	var interval = setInterval(function () {
+
 		var now = Date.now() - startedAt;
 		now = Math.min(1, now / bam.animLength);
 
-		div.style.opacity = 1 - now;
+		for (var ii = 0; ii < divs.length; ii++) {
+			divs[ii].style.opacity = 1 - now;				
+		}
+		
 
 		if (now == 1) {
+			for (var ii = 0; ii < divs.length; ii++) {
+				divs[ii].style.display = "none";				
+			}
+
 			clearInterval(interval);
 			if (callback)
 				callback();
@@ -125,15 +143,23 @@ bam.fadeOut = function (div, callback) {
 	}, 1000/60);	
 };
 
-bam.fadeIn = function (div, callback) {
+bam.fadeIn = function (divs, callback) {
 	
 	var startedAt = Date.now();
+	var div;
+	for (var ii = 0; ii < divs.length; ii++) {
+		div = divs[ii];
+		div.style.opacity = 0
+		div.style.display = "block";
+	}
 	
 	var interval = setInterval(function () {
 		var now = Date.now() - startedAt;
 		now = Math.min(1, now / bam.animLength);
 
-		div.style.opacity = now;
+		for (var ii = 0; ii < divs.length; ii++) {
+			divs[ii].style.opacity = now;				
+		}
 
 		if (now == 1) {
 			clearInterval(interval);
@@ -420,8 +446,8 @@ function loadSinglePart(searchResult) {
 	for (var ic = 0; ic < omg.section.parts.length; ic++) {
 		oldPart = omg.section.parts[ic];
 		if (oldPart.type == searchResult.type) {
-			cancelPart(oldPart, true);
-            ic--;
+			//cancelPart(oldPart, true);
+            //ic--;
 		}
 		else if (!omg.player.playing) {
 			toggleMute(omg.section.parts[ic], true);
@@ -908,7 +934,7 @@ function setupClicks() {
 
     omg.remixer.clearButton.onclick = function () {
         for (ip = omg.section.parts.length - 1; ip > -1; ip--) {
-            cancelPart(omg.section.parts[ip]);
+            cancelPart(omg.section.parts[ip], true);
         }
     };
 
@@ -964,10 +990,52 @@ function setupClicks() {
     var addToRearranger = omg.remixer.addToRearrangerButton;
     addToRearranger.onclick = function () {
 
-        var letter = omg.rearranger.add(omg.remixer.getSectionData());
+        var sections = omg.rearranger.song.sections.length; 
         
-        addToRearranger.innerHTML = "Section " + letter;
+    	var otherSections = [];
+    	var otherSectionList = bam.currentSong.getElementsByClassName("section");
+    	for (var ii = 0; ii < otherSectionList.length; ii++) {
+    		if (otherSectionList.item(ii) != bam.currentSection)
+    			otherSections.push(otherSectionList.item(ii));
+    	}
+    	
+    	var sectionData = omg.remixer.getSectionData();
+        var letter = omg.rearranger.add(sectionData);
+        
+        //addToRearranger.innerHTML = "Section " + letter;
+        bam.slideOutOptions(omg.remixer.options);
+        bam.fadeOut([omg.remixer], function () {
+        	omg.remixer.style.display = "none";
+            
+            for (ip = omg.section.parts.length - 1; ip > -1; ip--) {
+                cancelPart(omg.section.parts[ip], true);
+            }
 
+        	pause();
+
+            bam.shrink(bam.currentSection, 100 + sections * 110, 100, 100, 300, function() {
+                omg.rearranger.addSectionButton.style.left = window.innerWidth + "px";
+                
+                bam.slideInOptions(omg.rearranger.addSectionButton, null, 
+                		5 + (sections + 1) * 110);
+                bam.slideInOptions(omg.rearranger.options, null, 
+                		0);
+            	bam.fadeIn([omg.rearranger]);
+            	bam.fadeIn(otherSections);
+            	
+            	var section = bam.currentSection;
+            	section.onclick = function () {
+            		loadSection({"data": sectionData});
+            		bam.slideOutOptions(omg.rearranger.options);
+            		bam.fadeOut([omg.rearranger], function () {
+                		bam.grow(section, function () {
+                			bam.fadeIn([omg.remixer]);
+                			bam.slideInOptions(omg.remixer.options);
+                		});            			
+            		});
+            	};
+            });
+        });
     };
 
     //omg.remixer.saveButton.onclick = function () {
@@ -1005,14 +1073,17 @@ function setupRemixer() {
 	omg.gettingStartedCountdown = document.getElementById("seconds-to-go");
 	omg.addToRemixerHint = document.getElementById("add-to-remixer-hint");
 	omg.about = document.getElementById("about");
-    omg.remixer.addToRearrangerButton = document.getElementById("add-to-rearranger");
+    omg.remixer.addToRearrangerButton = document.getElementById("remixer-next");
 
     omg.pauseButton = document.getElementById("remixer-pause-button");
     omg.pauseButton.onclick = function (e) {
     	if (omg.player.playing)
     		pause();
-    	else 
+    	else  {
+    		omg.player.source = "remixer";
     		omg.player.play();
+    	}
+    		
     	
         e.stopPropagation();
     };
@@ -1070,6 +1141,9 @@ function setupRemixer() {
     omg.remixer.addMelodyButton = document.getElementById("remixer-add-melody");
     // make a new part
     omg.remixer.addMelodyButton.onclick = function () {
+    	
+    	omg.mm.data.type = "MELODY";
+    	
     	var button = omg.remixer.addMelodyButton;
     	var offsets = omg.util.totalOffsets(button)
     	
@@ -1080,13 +1154,21 @@ function setupRemixer() {
     	newPart.style.width = button.clientWidth + "px";
     	newPart.style.height = button.clientHeight + "px";
     	
-    	bam.currentSection.appendChild(newPart);
+    	var otherParts = [];
+    	var otherPartsList = bam.currentSection.getElementsByClassName("part2");
+    	for (var ii = 0; ii < otherPartsList.length; ii++) {
+    		otherParts.push(otherPartsList.item(ii));
+    	}
+
+    	bam.fadeOut(otherParts);
     	
-    	bam.fadeOut(omg.remixer);
+    	bam.currentSection.appendChild(newPart);
+    	bam.currentPart = newPart;
+    	
+    	bam.fadeOut([omg.remixer]);
     	bam.slideOutOptions(omg.remixer.options, function () {
     		bam.grow(newPart, function () {
-    			bam.fadeIn(omg.mm);
-    			bam.fadeIn(omg.mm.canvas);
+    			bam.fadeIn([omg.mm, omg.mm.canvas]);
     			
     			omg.mm.style.display = "block";
     			
@@ -1101,10 +1183,18 @@ function setupRemixer() {
 
 function setupRearranger() {
     omg.rearranger = document.getElementById("rearranger");
+    omg.rearranger.options = document.getElementById("song-option-panel");
     omg.rearranger.area = document.getElementById("rearranger-area");
     omg.rearranger.emptyMessage = document.getElementById("rearranger-is-empty");
     omg.rearranger.tools = document.getElementById("rearranger-tools");
 
+    omg.rearranger.playButton = document.getElementById("play-song");
+    omg.rearranger.playButton.onclick = function () {
+    	omg.player.source = "rearranger";
+    	omg.player.play();
+    };
+    
+    
     omg.rearranger.playingSection = 0;
 
     omg.rearranger.newSong = function () {
@@ -1147,17 +1237,17 @@ function setupRearranger() {
 
         }
         
-        clientSection.div = document.createElement("div");
+        /*clientSection.div = document.createElement("div");
         clientSection.div.className = "rearranger-section";
         clientSection.div.innerHTML = String.fromCharCode(65 + section.letter);
 
-        omg.rearranger.area.appendChild(clientSection.div);
+        omg.rearranger.area.appendChild(clientSection.div);*/
 
-        return clientSection.div.innerHTML;
+        return String.fromCharCode(65 + section.letter);
     };
 
     omg.rearranger.saveButton = document.getElementById("rearranger-save-button");
-    omg.rearranger.saveButton.onclick = function () {
+    /*omg.rearranger.saveButton.onclick = function () {
     	var saveButton = omg.rearranger.saveButton;
 	
 	    if (saveButton.innerHTML !== "Save") {
@@ -1199,7 +1289,7 @@ function setupRearranger() {
         
         omg.rearranger.emptyMessage.style.display = "block";
         omg.rearranger.tools.style.display = "none";        
-    };
+    };*/
 
 
     omg.rearranger.loadSong = function (searchResult) {
@@ -1269,105 +1359,41 @@ function setupRearranger() {
         omg.rearranger.newSong();
     };
     
-    var canvas = document.getElementById("rearranger-canvas");
-    omg.rearranger.canvas = canvas;
-
-    var ctx = canvas.getContext("2d");
-    var subbeatWidth = 15;
     
-    omg.rearranger.draw = function () {
-        var song = omg.rearranger.song;
-        var section;
-        var part;
-        
-        var lastX = 0;
+    omg.rearranger.addSectionButton = document.getElementById("add-section");
+    omg.rearranger.addSectionButton.onclick = function () {
+    	
+    	
+    	var button = omg.rearranger.addSectionButton;
+    	var offsets = omg.util.totalOffsets(button)
+    	
+    	var newPart = document.createElement("div");
+    	newPart.className = "section";
+    	newPart.style.left = offsets.left + "px";
+    	newPart.style.top  = offsets.top  + "px";
+    	newPart.style.width = button.clientWidth + "px";
+    	newPart.style.height = button.clientHeight + "px";
+    	
+    	var otherParts = [];
+    	var otherPartsList = bam.currentSong.getElementsByClassName("section");
+    	for (var ii = 0; ii < otherPartsList.length; ii++) {
+    		otherParts.push(otherPartsList.item(ii));
+    	}
+    	bam.fadeOut(otherParts);
+    	
+    	bam.currentSong.appendChild(newPart);
+    	bam.currentSection = newPart;
+    	
+    	bam.fadeOut([omg.rearranger]);
+    	bam.slideOutOptions(omg.rearranger.options, function () {
+    		bam.grow(newPart, function () {
+    			bam.fadeIn([omg.remixer]);
+    			
+    			bam.slideInOptions(omg.remixer.options);
+    		});	
+    	});
 
-        var width = song.sections.length * omg.beats * omg.subbeats * subbeatWidth;
-        canvas.style.width = width + "px";
-        canvas.width = width;
-        
-        var iSubBeat = omg.player.iSubBeat;
-        var loopStarted = omg.player.loopStarted;
-        
-        var nowInLoop = Date.now() - loopStarted;
-
-        var startingSection = omg.rearranger.playingSection;
-        
-        var timeOffset = nowInLoop / omg.subbeatLength * subbeatWidth - (subbeatWidth * 2);
-        timeOffset = 0;
-        var spaceOffset;
-        var topOffset = 20;
-        
-        var beats;
-        
-        var noteY;
-
-        for (var i = 0; i < song.sections.length; i++) {
-            section = song.sections[i];
-            topOffset = 20;
-
-            spaceOffset = i * 32 * subbeatWidth;
-            ctx.fillStyle = "black";
-            ctx.fillText(String.fromCharCode(65 + section.letter), spaceOffset - timeOffset, topOffset);
-            
-            topOffset += 15;
-            for (var ip = 0; ip < section.parts.length; ip++) {
-                part = section.parts[ip];
-                ctx.fillStyle = "black";
-                ctx.fillText(part.type, spaceOffset - timeOffset, topOffset);
-                ctx.fillStyle = "#808080";
-                if (part.type == "DRUMBEAT") {
-                    for (var idata = 0; idata < part.data.length; idata++) {
-                        for (var ib = 0; ib < part.data[idata].data.length; ib++) {
-                            
-                            if (part.data[idata].data[ib])
-                                ctx.fillRect(spaceOffset + ib * subbeatWidth - timeOffset, 
-                                    topOffset + idata * 10, subbeatWidth - 2, 10);
-                        }
-                    }
-                    topOffset += 10 * part.data.length;
-                }
-
-                if (part.type == "MELODY" || part.type == "BASSLINE") {
-                    beats = 0;
-                    for (var idata = 0; idata < part.notes.length; idata++) {       
-                        if (!part.notes[idata].rest) {
-                            noteY = omg.rearranger.client.sections[i].parts[ip].highNote - part.notes[idata].note;
-
-                            ctx.fillRect(spaceOffset + beats * subbeatWidth - timeOffset, 
-                                topOffset + noteY * 10, subbeatWidth * part.notes[idata].beats * 4 - 2, 10);
-                        }
-                        beats += omg.subbeats * part.notes[idata].beats;
-                    }
-                    topOffset += 15 * omg.rearranger.client.sections[i].parts[ip].noteRange;
-                }
-
-            }            
-        }
-        
-        if (omg.player.playing) {
-            ctx.globalAlpha = 0.5;
-            ctx.fillStyle = "#4fa5d5";
-            ctx.fillRect(subbeatWidth, 0, subbeatWidth, canvas.height);
-        }
     };
-    
-    var animate = requestAnimationFrame || webkitAnimationFrame;
-    
-    omg.rearranger.animate = function () {
-        if (omg.player.playing) {
-
-            var nowInLoop = Date.now() - omg.player.songStarted;
-            
-            var timeOffset = nowInLoop / omg.subbeatLength * subbeatWidth;// - (subbeatWidth * 2);
-            omg.rearranger.canvas.style.marginLeft = -timeOffset + "px";
-        
-            animate(omg.rearranger.animate);
-        }
-        else {
-            omg.rearranger.canvas.style.marginLeft = "0px";        
-        }
-    }
 }
 
 function showRemixer() {
@@ -1517,11 +1543,11 @@ function setupPlayer() {
 
         if (p.source == "rearranger") {
             if (omg.rearranger.song.sections.length > 0) {
-                omg.rearranger.client.sections[0].div.style.backgroundColor = "#4fa5d5";
+                //omg.rearranger.client.sections[0].div.style.backgroundColor = "#4fa5d5";
             }
             
             p.songStarted = p.loopStarted;
-            omg.rearranger.animate();
+            //omg.rearranger.animate();
         }
 
             
@@ -1543,15 +1569,16 @@ function setupPlayer() {
                     p.loopStarted = Date.now();
                 }
                 else if (p.source === "rearranger") {
-                    omg.rearranger.client.sections[omg.rearranger.playingSection].
-                        div.style.backgroundColor = "white";
+                    //omg.rearranger.client.sections[omg.rearranger.playingSection].
+                    //    div.style.backgroundColor = "white";
                     omg.rearranger.playingSection++;
                     if (omg.rearranger.playingSection >= omg.rearranger.song.sections.length) {
+                    	console.log("Pause!");
                         pause();
                     }
                     else {
-                        omg.rearranger.client.sections[omg.rearranger.playingSection].
-                            div.style.backgroundColor = "#4fa5d5";
+                        //omg.rearranger.client.sections[omg.rearranger.playingSection].
+                        //    div.style.backgroundColor = "#4fa5d5";
                         p.iSubBeat = 0;
                         p.loopStarted = Date.now();
                     }
@@ -1646,9 +1673,9 @@ function pause() {
     }
     else if (omg.player.source == "rearranger") {
         section = omg.rearranger.song.sections[omg.rearranger.playingSection];
-        if (section)
-            omg.rearranger.client.sections[omg.rearranger.playingSection].
-                    div.style.backgroundColor = "white";
+       // if (section)
+       //     omg.rearranger.client.sections[omg.rearranger.playingSection].
+       //             div.style.backgroundColor = "white";
     }
 
     if (section) {    
@@ -1667,9 +1694,9 @@ function cancelPart(part, leaveEmpty) {
         omg.section.parts.splice(partInArray, 1);
 
         if (omg.section.parts.length == 0) {
-        	omg.section.data.ascale = null;
-        	omg.section.data.rootNote = null;
-        	omg.section.data.scale = null;
+        	//omg.section.data.ascale = null;
+        	//omg.section.data.rootNote = null;
+        	//omg.section.data.scale = null;
         	if (!leaveEmpty) {
         		
         		omg.pauseButton.style.display = "none";
@@ -1724,11 +1751,12 @@ function playBeat(iSubBeat) {
     }
     else if (omg.player.source === "rearranger") {
         var section = omg.rearranger.song.sections[omg.rearranger.playingSection];
+        
         for (var ip = 0; ip < section.parts.length; ip++) {
             playBeatForPart(iSubBeat, section.parts[ip], 
                 omg.rearranger.client.sections[omg.rearranger.playingSection].parts[ip]);
         }
-
+		
     } 
 
 }
@@ -2196,7 +2224,8 @@ function loadSection(searchResult) {
 
 	setupRemixerForPlay();
 	
-    searchResult.data = JSON.parse(searchResult.json);
+	if (!searchResult.data && searchResult.json)
+		searchResult.data = JSON.parse(searchResult.json);
 
     var parts = [];
     if (!searchResult.data.parts && searchResult.data.data) {
@@ -2238,8 +2267,6 @@ function loadSection(searchResult) {
 
     }
 
-    omg.remixer.saveButton.innerHTML = searchResult.id ? "(Saved)" : "Save";
-    omg.remixer.addToRearrangerButton.innerHTML = "+<i>re</i><b>arranger</b>";
 
     if (!omg.player.playing)
         omg.player.playWhenReady();
@@ -2403,7 +2430,7 @@ function sectionModified() {
     	saveCaption = "(Saved)";
     }
     //omg.remixer.saveButton.innerHTML = saveCaption;
-    omg.remixer.addToRearrangerButton.innerHTML = "+<i>re</i><b>arranger</b>";
+    //omg.remixer.addToRearrangerButton.innerHTML = "+<i>re</i><b>arranger</b>";
 
 }
 
@@ -2974,13 +3001,20 @@ function setupMelodyMaker() {
 	omg.mm.remixerButton = document.getElementById("next-mm");
 	omg.mm.remixerButton.onclick = function () {
 
-		// zoom out the part
-		var part2 = document.getElementById("part2");
+		parts = omg.section.parts.length;
 		
-		bam.fadeOut(omg.mm);
+		// zoom out the part		
+		bam.fadeOut([omg.mm], function () {
+			omg.mm.style.display = "none";
+		});
 		bam.slideOutOptions(document.getElementById("mm-options"), function () {
-			bam.shrink(document.getElementById("part2"), 97, 95, 648, 145, function () {
+			bam.shrink(bam.currentPart, 102, 88 + parts * 130, 650, 150, function () {
 
+				bam.fadeOut([bam.currentPart]);
+				
+				bam.slideInOptions(omg.remixer.options);
+				bam.fadeIn([omg.remixer]);
+				
 				if (omg.mm.omgid) {
 
 					loadSinglePart({type: omg.mm.data.type, id: omg.mm.omgid, data: omg.mm.data});
