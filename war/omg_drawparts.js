@@ -41,7 +41,7 @@ omg.ui.drawMelodyCanvas = function (melody, canvas) {
 	canvas.width = canvas.parentElement.clientWidth - canvas.offsetLeft * 2;
 	
 	context.fillStyle = "white";
-	context.fillRect(0, 0, canvas.width, canvas.height);
+	//context.fillRect(0, 0, canvas.width, canvas.height);
 	
 	var upsideDownNoteImage;
 	var noteImage = omg.ui.getImageForNote({beats: 1});
@@ -252,3 +252,7 @@ omg.ui.setupNoteImages = function () {
 	}
 }
 omg.ui.setupNoteImages();
+
+omg.ui.drawBigDrumCanvas = function (canvas, part) {
+	
+};

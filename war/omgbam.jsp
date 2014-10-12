@@ -155,7 +155,7 @@ if (user.isLoggedIn()){
 	</div>
 
 	<div class="option-panel" id="remixer-option-panel">
-		<div class="panel-option" id="remixer-pause-button">pause</div>
+		<div class="panel-option" id="play-section">Stop</div>
 		<div class="panel-option" id="clear-remixer">Clear</div>
 		<div class="panel-option" id="share-button">Share</div>
 		<div class="panel-option" id="remixer-next">Next</div>				
@@ -165,27 +165,21 @@ if (user.isLoggedIn()){
 	<div id="remixer" class="area">
 
 		<div class="remixer-caption" id="remixer-caption">Section</div>
-
-		<div class="remixer-area" id="remixer-current-section">
-	
 			
-			<div class="remixer-message" id="no-section-message">
+		<div class="remixer-message" id="no-section-message">
 
-				<p class="nodata">The <em>re</em><b>mixer</b> combines melodies, beats, basslines and more into <em>sections</em>.</p> 
-				<p class="nodata">Choose something from the gallery, or <a href="javascript:void(0)" id="create-drumbeat-hyperlink">create a drumbeat</a>.</p> 
-				
-			</div>
-	
+			<p class="nodata">(This Section is empty. Add some things to it!)</p> 
+			
 		</div>
-		
+			
 		<div class="remixer-area" id="remixer-add-buttons">
-			<div class="remixer-add-button">
+			<div class="remixer-add-button" id="remixer-add-bassline">
 				+ Add Bassline
 			</div>
 			<div class="remixer-add-button" id="remixer-add-melody">
 				+ Add Melody
 			</div>
-			<div class="remixer-add-button">
+			<div class="remixer-add-button" id="remixer-add-drumbeat">
 				+ Add Drumbeat
 			</div>			
 		</div>
@@ -210,13 +204,22 @@ if (user.isLoggedIn()){
 					
 			<div class="remixer-message" id="rearranger-is-empty">
 
-				<p class="nodata">The <em>re</em><b>arranger</b> combines <em>sections</em> into a <em>song</em>.</p> 
+				<!--<p class="nodata">The <em>re</em><b>arranger</b> combines <em>sections</em> into a <em>song</em>.</p>--> 
 
 			</div>
 	
 		</div>
 
 		<div class="section" id="add-section">+ Add Section</div>	
+
+	</div>
+
+	<div id="beatmaker" class="area">
+
+		<div class="remixer-caption">Drumbeat</div>
+		
+		<canvas id="beatmaker-canvas">
+		</canvas>
 
 	</div>
 
@@ -549,8 +552,9 @@ if (user.isLoggedIn()){
 <script src="omgbam.js"></script>
 
 <script src="omg_util.js"></script>
-
-<script src="omgdraw.js"></script>
+<script src="omg_drums.js"></script>
+<script src="omg_drawparts.js"></script>
+<script src="omg_player.js"></script>
 
 </body>
 </html>

@@ -12,6 +12,7 @@ body {
 	width:100%;
 	overflow-x:hidden;	
 	overflow-y:hidden;
+	min-height:590px;
 }
 
 .song {	
@@ -45,6 +46,7 @@ body {
 	overflow-y:hidden;
 	border-radius:8px;
 	border:2px solid black;
+	padding:4px;
 }
 
 
@@ -128,6 +130,7 @@ h1 {
 
 .panel-option:hover, .horizontal-panel-option:hover {
 	border-bottom:2px solid #60A060;
+	border-top:1px solid #808080;
 }
 
 .horizontal-panel-option {
@@ -137,7 +140,8 @@ h1 {
 
 
 #remixer-add-buttons {
-	padding-left:8px;
+	position:absolute;
+	left:9px;
 }
 .remixer-add-button {
 	background-color:#FFFF99;
@@ -906,6 +910,10 @@ div.vote-down {
     margin:0px 2% ;	
 }
 
+#beatmaker-canvas {
+	width:100%;
+}
+
 
 #melody-maker-button-row {
 	display:inline-block;
@@ -1034,6 +1042,10 @@ hr {
 }
 
 
+#beatmaker {
+	display:none;
+}
+
 #remixer {
 	display:none;
 }
@@ -1098,7 +1110,8 @@ hr {
 }
 
 .remixer-part-instrument {
-/*	display:none;*/
+	position:relative;
+	top:-4px;
 }
 
 .about {
@@ -1133,7 +1146,7 @@ hr {
 	display:none;
 }
 
-#remixer-pause-button, #play-mm, #play-song {
+#play-section, #play-mm, #play-song {
 	border-radius:120px;
 	padding:40px;
 	width:30px;
@@ -1152,7 +1165,7 @@ hr {
 	background-color:#33FF33;
 }
 #finish-song {
-	background-color:#44FF44;
+	background-color:#55FF55;
 }
 #finish-song:hover {
 	background-color:#00FF00;
@@ -1170,7 +1183,7 @@ hr {
 	display:none;
 	position:absolute;
 	left:0px;
-	top:450px;
+	top:435px;
 	width:1000px;
 }
 
@@ -1186,5 +1199,5 @@ hr {
 
 #clear-song {
 	position:relative;
-	left:200px;
+	left:120px;
 }

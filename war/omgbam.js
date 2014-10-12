@@ -2,180 +2,17 @@
  * bam is the user interface. 
  * Hopefully omg can be refactored into reusable components
  * the was started after arnold, arnold isn't complete, 
- * hopefully the comonents will all work togetehr  
+ * hopefully the components will all work together  
  * 
- *  the "section" stuff is still called "remixer", that may gradually chage
+ *  the "section" stuff is still called "remixer", that may gradually change
  *  
  */
-
-
-var bam = {animLength:1700};
-bam.div = document.getElementById("master");
-
-bam.currentSong = bam.div.getElementsByClassName("song")[0];
-bam.currentSection = bam.currentSong.getElementsByClassName("section")[0];
-bam.currentPart    = bam.currentSection.getElementsByClassName("part2")[0];
-
-bam.shrink = function (div, x, y, w, h, callback) {
-	var originalH = div.clientHeight;
-	var originalW = div.clientWidth;
-	var originalX = div.offsetLeft;
-	var originalY = div.offsetTop;
-	
-	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
-		var now = Date.now() - startedAt;
-		var now = Math.min(1, now / bam.animLength);
-
-		div.style.left = originalX + (x - originalX) * now + "px";
-		div.style.top  = originalY + (y - originalY) * now + "px";
-
-		div.style.width  = originalW + (w - originalW) * now + "px";
-		div.style.height = originalH + (h - originalH) * now + "px";
-
-		if (now == 1) {
-			clearInterval(interval);
-			if (callback)
-				callback();
-		}
-	}, 1000/60);
-};
-
-
-bam.grow = function (div, callback) {
-	var originalH = div.clientHeight;
-	var originalW = div.clientWidth;
-	var originalX = div.offsetLeft;
-	var originalY = div.offsetTop;
-	
-	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
-		var now = Date.now() - startedAt;
-		var now = Math.min(1, now / bam.animLength);
-
-		div.style.left = originalX + (-5 - originalX) * now + "px";
-		div.style.top  = originalY + (-5 - originalY) * now + "px";
-
-		div.style.width  = originalW + (window.innerWidth + 10 - originalW) * now + "px";
-		div.style.height = originalH + (window.innerHeight + 10 - originalH) * now + "px";
-
-		if (now == 1) {
-			clearInterval(interval);
-			if (callback)
-				callback();
-		}
-	}, 1000/60);
-};
-
-bam.slideOutOptions = function (div, callback) {
-	var windowW = window.innerWidth;
-	var originalX = div.offsetLeft;
-	
-	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
-		var now = Date.now() - startedAt;
-		now = Math.min(1, now / bam.animLength);
-
-		div.style.left = originalX + (windowW - originalX) * now + "px";
-
-		if (now == 1) {
-			clearInterval(interval);
-			if (callback)
-				callback();
-		}
-	}, 1000/60);	
-};
-
-bam.slideInOptions = function (div, callback, target) {
-
-	div.style.left = window.innerWidth + "px";
-	div.style.display = "block";
-
-	var targetLeft;
-	if (target != undefined)
-		targetLeft = target;
-	else
-		targetLeft = 680;
-	var originalX = window.innerWidth;
-	
-	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
-		var now = Date.now() - startedAt;
-		now = Math.min(1, now / bam.animLength);
-
-		div.style.left = originalX - (originalX - targetLeft) * now + "px";
-
-		if (now == 1) {
-			clearInterval(interval);
-			if (callback)
-				callback();
-		}
-	}, 1000/60);	
-};
-
-bam.fadeOut = function (divs, callback) {
-	
-	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
-
-		var now = Date.now() - startedAt;
-		now = Math.min(1, now / bam.animLength);
-
-		for (var ii = 0; ii < divs.length; ii++) {
-			divs[ii].style.opacity = 1 - now;				
-		}
-		
-
-		if (now == 1) {
-			for (var ii = 0; ii < divs.length; ii++) {
-				divs[ii].style.display = "none";				
-			}
-
-			clearInterval(interval);
-			if (callback)
-				callback();
-		}
-	}, 1000/60);	
-};
-
-bam.fadeIn = function (divs, callback) {
-	
-	var startedAt = Date.now();
-	var div;
-	for (var ii = 0; ii < divs.length; ii++) {
-		div = divs[ii];
-		div.style.opacity = 0
-		div.style.display = "block";
-	}
-	
-	var interval = setInterval(function () {
-		var now = Date.now() - startedAt;
-		now = Math.min(1, now / bam.animLength);
-
-		for (var ii = 0; ii < divs.length; ii++) {
-			divs[ii].style.opacity = now;				
-		}
-
-		if (now == 1) {
-			clearInterval(interval);
-			if (callback)
-				callback();
-		}
-	}, 1000/60);	
-};
-
-
+var bam = {animLength:700};
 var omg = {type: "DRUMBEAT",
         order: "newest", 
         remixerShowing: false, 
         bpm: 120, beats: 8, subbeats: 4, 
-        section: {type: "SECTION", data: {}, parts: []},
-        onBeatPlayedListeners: [], 
+        section: {type: "SECTION", data: {}, parts: []},         
         fileext: needsMP3() ? ".mp3" : ".ogg",
         soundsLoading: 0,
         currentPage: 1,
@@ -185,289 +22,35 @@ var omg = {type: "DRUMBEAT",
 };
 
 window.onload = function () {
+	bam.div = document.getElementById("master");
 
+	bam.song = new OMGSong(bam.div.getElementsByClassName("song")[0]);
+	bam.section = new OMGSection(bam.song.div.getElementsByClassName("section")[0]);
+	bam.part = new OMGPart(bam.section.div.getElementsByClassName("part2")[0]);
 
     setupRemixer();
     setupRearranger();
-
-    try {
-
-        setupPlayer();
-
-    }
-    catch (e) {
-        debug(e);
-    }
-
     setupMelodyMaker();
+    bam.setupBeatMaker();
     
     setupClicks();
 
-    
     //if we got a parameter to do something
-    doInitStuff();
+    //doInitStuff();
+    
+    omg.mm.setPart(bam.part, true);
 };
 
-window.onresize = function() {
-    if (omg.remixer)
-        setRemixerWidth();
-
-};
-
-function loadCounts() {
-    var ooo;
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/config", true);
-    xhr.onreadystatechange = function(){
-        if (xhr.readyState == 4){
-
-            ooo = JSON.parse(xhr.responseText);
-
-            document.getElementById("sections").innerHTML = ooo.sections;
-            document.getElementById("drumbeats").innerHTML = ooo.drumbeats;
-            document.getElementById("basslines").innerHTML = ooo.basslines;
-            document.getElementById("melodies").innerHTML = ooo.melodies;
-            document.getElementById("chords").innerHTML = ooo.chord_progressions;
-
-            omg.isloggedin = ooo.isloggedin;
-
-            if (!ooo.isloggedin) {
-                var logins = document.getElementsByClassName("login-area");
-                var il;
-                for (il = 0; il < logins.length; il++) {
-                    logins[il].style.display = "block";
-                }
-                logins = document.getElementsByClassName("signingoogle");
-                var loginFunc = function () {
-                    window.location = ooo.loginurl;
-                };
-                for (il = 0; il < logins.length; il++) {
-                    logins[il].onclick = loginFunc; 
-                }
-                document.getElementById("logout-area").style.display = "none";
-                var addButton = omg.remixer.btnAddToSection;
-                addButton.className = "remixer-button-disabled";
-                addButton.onmouseover = function () {
-                    var newWidth = addButton.clientWidth;
-                    addButton.innerHTML = "Sign in to save";
-                    addButton.style.width =  newWidth - 20 + "px";
-                };
-
-            }
-            else {
-                omg.collections = {list: []};
-                omg.remixer.collectionsDiv = document.getElementById("remixer-collections");
-                for (var ic = 0; ic < ooo.collections.length; ic++) {
-                    omg.collections.list.push(ooo.collections[ic]);
-                    addCollectionDiv(ooo.collections[ic]);
-                }
-
-                if (ooo.collections.length > 0) {
-                    document.getElementById("no-collections-message").
-                    style.display = "none";
-                }
-
-                document.getElementById("logout-link").href = ooo.logouturl;
-                document.getElementById("login-name").innerHTML = ooo.username;
-            }
-        }
-    }
-    xhr.send();
-}
-
-function getContributions() {
-    var ooo;
-
-    document.getElementById("parts-list").innerHTML = "<h2>Loading...</h2>";
 
 
-    var type = omg.type;
-    var order = omg.order;
 
-    if (!type) 
-        type = "SECTION";
-    else if (type.indexOf("Sections")===0) type = "SECTION";
-    else if (type.indexOf("Drumbeats")===0) type = "DRUMBEAT";
-    else if (type.indexOf("Melodies")===0) type = "MELODY";
-    else if (type.indexOf("Basslines")===0) type = "BASSLINE";
-    else if (type.indexOf("Chord Progressions")===0) type = "CHORDPROGRESSION";
-    else if (type.indexOf("Songs")===0) type = "SONG";
-
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/omg?type=" + type + "&order=" + order +
-    		"&page=" + omg.currentPage, true);
-    xhr.onreadystatechange = function(){
-        if (xhr.readyState == 4){
-
-            ooo = JSON.parse(xhr.responseText);
-
-            displayResults(ooo);
-
-        }
-    };
-    xhr.send();        
-}
-
-
-function parseDrums(newDiv, data) {
-
-    for (var dt = 0; dt < data.data.length; dt++) {
-        var newDiv2 = document.createElement("div");
-
-        newDiv2.innerHTML = data.data[dt].name;
-
-        newDiv.appendChild(newDiv2);
-    }
-
-}
-
-function displayResults(results) {
-
-    var partList = document.getElementById("parts-list");
-    
-    if (results.list.length > 0) {
-        partList.innerHTML = "";
-    }
-    else {
-    	partList.innerHTML = "<div class='result-range'>Nothing on page " +
-    	omg.currentPage + "</div>";
-    }
-
-    var part;
-    var partDetail;
-    var data;
-
-    for (var i = 0; i < results.list.length; i++) {
-
-        part = document.createElement("div");
-        part.className = "part";
-        data = results.list[i];
-//        data.divInList = part;
-
-        partDetail = document.createElement("div");
-        partDetail.className = "part-votes";
-        partDetail.innerHTML = data.votes;
-        part.appendChild(partDetail);
-
-        partDetail = document.createElement("div");
-        partDetail.className = "part-votes_caption";
-        partDetail.innerHTML = "votes";
-        part.appendChild(partDetail);
-
-        partDetail = document.createElement("div");
-        partDetail.className = "part-time";
-        partDetail.innerHTML = getTimeCaptionMS(data.time);
-        part.appendChild(partDetail);
-
-        partDetail = document.createElement("div");
-        partDetail.className = "part-caption";
-        //partDetail.innerHTML = "<span class='part-type-caption'>Type:</span> " +
-        partDetail.innerHTML = "<span class='part-type'>" + data.type + "</span>";
-        part.appendChild(partDetail);
-
-        partList.appendChild(part);        
-
-        part.onclick = (function (part, data2) {
-            return function () {        
-                // this is mostly for iPhones, requiring 
-                // audio to start in response to a click
-                if (!omg.playedSound && omg.player.context) {
-                    initSound();
-                }
-                
-            	omg.welcome.style.display = "none";
-
-                // make a copy
-                var data3 = JSON.parse(JSON.stringify(data2));
-
-                if (data.type == "SONG") {
-                    omg.rearranger.loadSong(data3);
-                }
-                else if (data.type == "SECTION") {
-                    loadSection(data3);
-                }
-                else {
-                    loadSinglePart(data3);
-                }
-
-                setupAsCurrentInList(data3, part);
-
-            };
-        })(part, data);
-
-    }
-    
-    var lastRow = document.createElement("div");
-    lastRow.className = "part-list-last-row";
-
-    lastRow.innerHTML = "<div class='result-range'>results " +
-		(omg.currentPage * 20 - 19) + " thru " + 
-		((omg.currentPage - 1) * 20 + results.list.length) +
-		"</div>";
-    
-    if (omg.currentPage > 1) {
-        var lessDiv = document.createElement("div");
-        lessDiv.className = "more-results-button";
-        lessDiv.innerHTML = "< Previous";
-        lessDiv.onclick = function () {
-        	omg.currentPage--;
-        	getContributions();
-            //window.scrollTo(0,0);
-        };
-        lastRow.appendChild(lessDiv);
-    }
-
-    if (results.list.length == 20) {
-        var moreDiv = document.createElement("div");
-        moreDiv.className = "more-results-button";
-        moreDiv.innerHTML = "More >";
-        moreDiv.onclick = function () {
-        	omg.currentPage++;
-        	getContributions();
-        	window.scrollTo(0,0);
-        };
-        lastRow.appendChild(moreDiv);
-        
-    }
-    partList.appendChild(lastRow);
-
-}
-
-function loadSinglePart(searchResult) {
-
-    if (isShrunk()) {
-    	omg.leftPanel.style.display = "none";
-    }
-    if (!omg.remixerShowing)  {
-        showRemixer();    
-    }
-
-
-	for (var ic = 0; ic < omg.section.parts.length; ic++) {
-		oldPart = omg.section.parts[ic];
-		if (oldPart.type == searchResult.type) {
-			//cancelPart(oldPart, true);
-            //ic--;
-		}
-		else if (!omg.player.playing) {
-			toggleMute(omg.section.parts[ic], true);
-		}
-	}
+function loadSinglePart (searchResult) {
 
 	if (!searchResult.data && searchResult.json) {
 		searchResult.data = JSON.parse(searchResult.json);
 	}
-
+	
 	setupRemixerForPlay();
-
-    searchResult.div = document.createElement("div");
-    searchResult.div.className = "remixer-part";
-
-    searchResult.holder = document.createElement("div");
-    searchResult.holder.className = "remixer-part-holder";
-
-    searchResult.holder.appendChild(searchResult.div);
-    omg.sectionDiv.appendChild(searchResult.holder);
 
     setupPartDiv(searchResult);
 
@@ -492,11 +75,11 @@ function loadSinglePart(searchResult) {
 	else if (hasSectionKey && hasPartKey) {
 		if (omg.section.data.rootNote != searchResult.data.rootNote%12 ||
 				omg.section.data.scale != searchResult.data.scale) {
-			
+//todo readd			
 //			rescale(searchResult, omg.section.data.rootNote, 
 //					omg.section.data.ascale);
 			
-			var keyDiv = searchResult.div.getElementsByClassName("part-key");
+			var keyDiv = searchResult.controls.getElementsByClassName("part-key");
 			for (var idd = 0; idd < keyDiv.length; idd++) {
 				keyDiv[idd].style.color = "#808080";
 				keyDiv[idd].style.textDecoration = "line-through";
@@ -504,20 +87,18 @@ function loadSinglePart(searchResult) {
 		}
 	}
 	
-    omg.section.parts.push(searchResult);
-    omg.player.loadPart(searchResult, searchResult.data);
     
+    omg.player.play({subbeatMillis: 125, sections: [
+                                    {parts: [searchResult.data]}]});
     sectionModified();
-    
-    if (!omg.player.playing)
-        omg.player.playWhenReady();
+
 }
 
 
 function setupPartDiv(part) {
     //todo separate partClient and partData
 
-    var minButton = document.createElement("div");
+    /*var minButton = document.createElement("div");
     minButton.className = "remixer-part-command";
     minButton.innerHTML = "&minus;";
     minButton.onclick = function (e) {
@@ -535,29 +116,29 @@ function setupPartDiv(part) {
     };
     maxButton.style.display = "none";
     part.div.appendChild(maxButton);
+	*/
+	
+    part.controls = document.createElement("div");		
+    part.div.appendChild(part.controls);
 
     var type = part.data.type;
     var typeDiv = document.createElement("div");
     typeDiv.className ='remixer-part-type';
     typeDiv.innerHTML = type;
-    part.div.appendChild(typeDiv);
+    part.controls.appendChild(typeDiv);
     
     var barDiv = document.createElement("div");
     barDiv.className ='remixer-part-leftbar';
     barDiv.innerHTML = getSelectInstrument(type);
-    part.div.appendChild(barDiv);
+    part.controls.appendChild(barDiv);
 
-    part.div.rightBar = document.createElement("div");
-    part.div.rightBar.className = "remixer-part-rightbar";
-    part.div.appendChild(part.div.rightBar);
+    part.controls.rightBar = document.createElement("div");
+    part.controls.rightBar.className = "remixer-part-rightbar";
+    part.controls.appendChild(part.controls.rightBar);
 
-	var hr = document.createElement("hr");
-	hr.className = 'part-hr';
-    part.div.appendChild(hr);
-
-    part.div.selectInstrument = part.div.getElementsByClassName("remixer-part-instrument")[0];
-    part.div.selectInstrument.onchange = function () {
-    	var instrument = part.div.selectInstrument.value;
+    part.controls.selectInstrument = part.controls.getElementsByClassName("remixer-part-instrument")[0];
+    part.controls.selectInstrument.onchange = function () {
+    	var instrument = part.controls.selectInstrument.value;
     	
     	if (instrument == "DEFAULT") {
 
@@ -584,7 +165,7 @@ function setupPartDiv(part) {
     if (type == "DRUMBEAT") {
         setupDivForDrumbeat(part);
     }
-    if (type == "MELODY" || part.type == "BASSLINE") {
+    if (type == "MELODY" || type == "BASSLINE") {
         setupMelodyDiv(part);
     }
 
@@ -596,19 +177,19 @@ function setupPartDiv(part) {
     		
     	e.stopPropagation();
     };
-    part.div.rightBar.appendChild(muteButton);
-    part.div.muteButton = muteButton;
+    part.controls.rightBar.appendChild(muteButton);
+    part.controls.muteButton = muteButton;
 
     var closePartButton = document.createElement("div");
     closePartButton.innerHTML = "&times;";
     closePartButton.className = "remixer-part-command";
     closePartButton.onclick = function () {
-        cancelPart(part);
+        cancelPart(part, true);
         
         sectionModified();
-
+        omg.remixer.refresh();
     };
-    part.div.rightBar.appendChild(closePartButton);
+    part.controls.rightBar.appendChild(closePartButton);
 
 
 }
@@ -621,7 +202,7 @@ function setupDivForDrumbeat(part) {
         var kitDiv = document.createElement("div");
         kitDiv.className = "part-drumkit";
         kitDiv.innerHTML = "Kit: " + kitName;
-        part.div.rightBar.appendChild(kitDiv);
+        part.controls.rightBar.appendChild(kitDiv);
 
         if (isShrunk())
         	kitDiv.style.display = "none";
@@ -630,17 +211,19 @@ function setupDivForDrumbeat(part) {
         var bpmDiv = document.createElement("div");
         bpmDiv.className = "part-bpm";
         bpmDiv.innerHTML = "BPM: " + part.data.bpm;
-        part.div.rightBar.appendChild(bpmDiv);
+        part.controls.rightBar.appendChild(bpmDiv);
         if (isShrunk())
         	bpmDiv.style.display = "none";
     }
     
     var canvas = document.createElement("canvas");
-    part.div.appendChild(canvas);
+    part.controls.appendChild(canvas);
 
     var rowHeight = 18;
-    canvas.height = part.data.data.length * rowHeight;
+    canvas.height = part.data.tracks.length * rowHeight;
     canvas.style.height = canvas.height + "px";
+    canvas.style.width = canvas.parentElement.clientWidth - 10 + "px";
+    canvas.width = canvas.clientWidth;
 
     part.canvas = canvas;
     
@@ -663,7 +246,7 @@ function setupDivForDrumbeat(part) {
     		var ybox = Math.floor((e.clientY - offsetTop) / 
     					canvas.rowHeight);
     		
-    		part.data.data[ybox].data[xbox] = part.data.data[ybox].data[xbox] ? 0 : 1;
+    		part.data.tracks[ybox].data[xbox] = part.data.tracks[ybox].data[xbox] ? 0 : 1;
     		drawDrumCanvas(part);
     	}
     	
@@ -676,12 +259,12 @@ function setupDivForDrumbeat(part) {
     part.div.onBeatPlayedListener = function (subbeat) {
         drawDrumCanvas(part, subbeat);
     };
-    omg.onBeatPlayedListeners.push(part.div.onBeatPlayedListener);
+    omg.player.onBeatPlayedListeners.push(part.div.onBeatPlayedListener);
 
 } 
 
 function setupMelodyDiv(part) {
-    var div = part.div;
+    var div = part.controls;
 
     var gaugeDiv;
     if (part.data.rootNote != undefined && part.data.scale) {
@@ -695,27 +278,17 @@ function setupMelodyDiv(part) {
     }
 
     part.canvas = document.createElement("canvas");
-    part.div.appendChild(part.canvas);
-    part.canvas.style.width = part.div.clientWidth + "px";
+    div.appendChild(part.canvas);
+
+    part.canvas.style.width = div.clientWidth + "px";
     part.canvas.style.height = "70px";
     part.canvas.height = 70;
-    
-    var highNote;
-    var lowNote;
-    var note;
-    for (var im = 0; im < part.data.notes.length; im++) {
-        note = part.data.notes[im];
 
-        if (im == 0 || note.note < lowNote) {
-        	lowNote = note.note;
-        }
-        if (im == 0 || note.note > highNote) {
-        	highNote = note.note;
-        }
-    }
+    part.canvas.style.width = part.canvas.parentElement.clientWidth - 10 + "px";
+    part.canvas.width = part.canvas.clientWidth;
+
+    omg.ui.drawMelodyCanvas(part.data, part.canvas);
         
-    drawMelodyCanvas(part, lowNote, highNote);
-    
     var beatMarker = document.createElement("div");
     var offsetLeft;
     var width;
@@ -726,7 +299,8 @@ function setupMelodyDiv(part) {
     div.appendChild(beatMarker);
 
     div.onBeatPlayedListener = function (subbeat) {
-    	if (part.size == "MINI") {
+		
+		if (part.size == "MINI") {
     		beatMarker.style.display = "none";
     	}
     	else if (part.currentI - 1 < part.data.notes.length && part.currentI >= 0) {
@@ -741,302 +315,14 @@ function setupMelodyDiv(part) {
         }
     };
     div.beatMarker = beatMarker;
-    omg.onBeatPlayedListeners.push(div.onBeatPlayedListener);
+    omg.player.onBeatPlayedListeners.push(div.onBeatPlayedListener);
 
 
 }
 
-function getTimeCaptionMS(oldTime) {
-	return getTimeCaption(oldTime / 1000, oldTime);
-}
-
-function getTimeCaption(oldTime, oldTimeMS) {
-    if (!oldTime) {
-        return "";
-    }
-
-    var seconds = Math.round((Date.now()/1000) - oldTime);
-    if (seconds < 60) {
-        return seconds + " sec ago";
-    }
-
-    var minutes = Math.floor(seconds / 60);
-    if (minutes < 60) {
-        return minutes + " min ago";    
-    }
-
-    var hours = Math.floor(minutes / 60);
-    if (hours < 24) {
-        return hours + " hr ago";    
-    }
-
-    var days = Math.floor(hours / 24);
-    if (days < 7) {
-        return days + " days ago";    
-    }
-
-    var date;
-    if (oldTimeMS != undefined) {
-    	date = new Date(oldTimeMS);
-    }
-    else {
-    	date = new Date(oldTime * 1000);	
-    }
-    var monthday = getMonthCaption(date.getMonth()) + " " + date.getDate();
-    if (days < 365) {
-    	return monthday;
-    }
-    return monthday + " " + date.getYear();
-
-}
-
-function getMonthCaption(month) {
-    if (!omg.months) {
-        omg.months = ["Jan", "Feb", "Mar", "Apr", "May",
-                      "Jun", "Jul", "Aug", "Sep", "Oct", 
-                      "Nov", "Dec"];
-    }
-    return omg.months[month];
-}
 
 function setupClicks() {
 
-    omg.hideRightPanels = function () {
-        omg.remixer.style.display = "none";
-        omg.welcome.style.display = "none";
-        omg.about.style.display = "none";
-        omg.mm.style.display = "none";
-        omg.rearranger.style.display = "none";
-        
-        omg.mm.showing = false;
-        omg.remixerShowing = false;  
-    };
-
-	omg.goBackToControls.onclick = function () {
-		showMainControls();
-	};
-	
-	var selectOrder = document.getElementById("select-browse-order");
-	selectOrder.onchange = function () {
-		omg.order = selectOrder.value;
-		omg.currentPage = 1;
-    	getContributions();
-    };
-        
-    var createDrumbeatButton = document.getElementById("create-drumbeat");
-    createDrumbeatButton.onclick = function () {
-
-    	var newBeats = createDrumbeat();
-
-    	loadSinglePart({
-    		type: "DRUMBEAT",
-    		data: newBeats
-    	});
-    };
-    
-    document.getElementById("create-drumbeat-hyperlink").onclick = function () {
-    	var newBeats = createDrumbeat();
-    	loadSinglePart({
-    		type: "DRUMBEAT",
-    		data: newBeats
-    	});
-        
-    };
-    
-    var createMelodyButton = document.getElementById("create-melody");
-    createMelodyButton.onclick = function () {
-
-    	showMelodyMaker("MELODY");
-    };
-
-    var createBasslineButton = document.getElementById("create-bassline");
-    createBasslineButton.onclick = function () {
-    	
-    	showMelodyMaker("BASSLINE");
-    };
-
-    var createInstrumentButton = document.getElementById("create-instrument");
-    createInstrumentButton.onclick = function () {
-    	window.location = "/newinstrument.jsp";
-    };
-    
-    omg.selectType.onchange = function () {
-    	omg.type = omg.selectType.value;
-    	omg.currentPage = 1;
-    	getContributions();
-    };
-
-    var button = document.getElementById("browse-basslines");
-    button.onclick = function () {
-    	browseButtonClick("BASSLINE", 2)
-    };
-    button = document.getElementById("browse-melodies");
-    button.onclick = function () {
-    	browseButtonClick("MELODY", 0)
-    };
-    button = document.getElementById("browse-drumbeats");
-    button.onclick = function () {
-    	browseButtonClick("DRUMBEAT", 1)
-    };
-    button = document.getElementById("browse-sections");
-    button.onclick = function () {
-    	browseButtonClick("SECTION", 3)
-    };
-    button = document.getElementById("browse-songs");
-    button.onclick = function () {
-    	browseButtonClick("SONG", 4)
-    };
-    
-    document.getElementById("my-saved").onclick = function () {
-    	
-    	hideMainControls();
-    	
-    	omg.leftPanel.style.display = "block";
-    	omg.listView.style.display = "none";
-    	omg.savedPanel.style.display = "block";
-
-    	if (isShrunk()) {
-    		omg.remixer.style.display = "none";
-    		omg.remixerShowing = false;
-    		omg.viewButtons.style.display = "none";
-    		omg.viewButton.className = "top-bar-view-button";
-    	}
-    	else {
-        	omg.createButton.className = "top-bar-button";
-        	omg.browseButton.className = "top-bar-button";
-        	omg.savedButton.className = "top-bar-button-selected";
-
-    	}
-
-    	var logins = document.getElementsByClassName("login-area");
-    	if (logins.length > 0) {
-    		document.getElementById("saved-toolbar").style.display = "none";
-    	}
-    	else 
-    		getCollections();
-    };
-    
-    var playerButton = document.getElementById("player-button");
-    playerButton.onclick = function () {
-    	omg.leftPanel.style.display = "none";
-    	omg.remixer.style.display = "block";
-    	omg.remixerShowing = true;
-    	
-    	if (isShrunk()) {
-    		omg.viewButtons.style.display = "none";
-    		omg.viewButton.className = "top-bar-view-button";
-    	}
-    };
-
-    if (!isShrunk()) {
-    	omg.browseButton.className = "top-bar-button-selected";
-    }
-
-    omg.remixer.clearButton.onclick = function () {
-        for (ip = omg.section.parts.length - 1; ip > -1; ip--) {
-            cancelPart(omg.section.parts[ip], true);
-        }
-    };
-
-    omg.viewButton = document.getElementById("top-bar-view-button");
-    omg.viewButton.onclick = function () {
-    	if (omg.viewButton.className == "top-bar-view-button-selected") {
-    		//omg.viewButtons.style.display = "none";
-    		//omg.viewButton.className = "top-bar-view-button";
-    	}
-    	else {
-    		
-
-            omg.hideRightPanels();    		
-    		omg.leftPanel.style.display = "block";
-    		
-    		//viewButtons.style.display = "block";
-    		//omg.viewButton.className = "top-bar-view-button-selected";
-    	}
-    };
-    
-    document.getElementById("show-remixer").onclick = function () {
-    
-        if (isShrunk())
-            omg.leftPanel.style.display = "none";
-
-        showRemixer();
-    };
-
-    document.getElementById("show-rearranger").onclick = function () {
-    
-        if (isShrunk())
-            omg.leftPanel.style.display = "none";
-
-        showRearranger();
-    };
-
-    
-    document.getElementById("about-hyperlink").onclick = function () {
-
-        if (isShrunk())
-            omg.leftPanel.style.display = "none";
-
-//        if (omg.displayedRightPanel) {
-//            omg.displayedRightPanel.style.display = "none";
-//        }
-
-        omg.hideRightPanels();
-            
-        omg.displayedRightPanel = omg.about;
-        omg.about.style.display = "block";
-    };
-
-    var addToRearranger = omg.remixer.addToRearrangerButton;
-    addToRearranger.onclick = function () {
-
-        var sections = omg.rearranger.song.sections.length; 
-        
-    	var otherSections = [];
-    	var otherSectionList = bam.currentSong.getElementsByClassName("section");
-    	for (var ii = 0; ii < otherSectionList.length; ii++) {
-    		if (otherSectionList.item(ii) != bam.currentSection)
-    			otherSections.push(otherSectionList.item(ii));
-    	}
-    	
-    	var sectionData = omg.remixer.getSectionData();
-        var letter = omg.rearranger.add(sectionData);
-        
-        //addToRearranger.innerHTML = "Section " + letter;
-        bam.slideOutOptions(omg.remixer.options);
-        bam.fadeOut([omg.remixer], function () {
-        	omg.remixer.style.display = "none";
-            
-            for (ip = omg.section.parts.length - 1; ip > -1; ip--) {
-                cancelPart(omg.section.parts[ip], true);
-            }
-
-        	pause();
-
-            bam.shrink(bam.currentSection, 100 + sections * 110, 100, 100, 300, function() {
-                omg.rearranger.addSectionButton.style.left = window.innerWidth + "px";
-                
-                bam.slideInOptions(omg.rearranger.addSectionButton, null, 
-                		5 + (sections + 1) * 110);
-                bam.slideInOptions(omg.rearranger.options, null, 
-                		0);
-            	bam.fadeIn([omg.rearranger]);
-            	bam.fadeIn(otherSections);
-            	
-            	var section = bam.currentSection;
-            	section.onclick = function () {
-            		loadSection({"data": sectionData});
-            		bam.slideOutOptions(omg.rearranger.options);
-            		bam.fadeOut([omg.rearranger], function () {
-                		bam.grow(section, function () {
-                			bam.fadeIn([omg.remixer]);
-                			bam.slideInOptions(omg.remixer.options);
-                		});            			
-            		});
-            	};
-            });
-        });
-    };
 
     //omg.remixer.saveButton.onclick = function () {
     //    save();
@@ -1050,18 +336,12 @@ function setupClicks() {
 
 function setupRemixer() {
 
-	omg.mainControls = document.getElementById("main-controls");
-	omg.mainControlsHeader = document.getElementById("left-panel-heading");
 	omg.remixerCaption = document.getElementById("remixer-caption");
-	omg.createPanel = document.getElementById("create-panel");
-	omg.listView = document.getElementById("browse-list-view");
-	omg.savedPanel = document.getElementById("saved-panel");
-	omg.sharePanel = document.getElementById("share-panel");
+
     omg.remixerButton = document.getElementById("show-remixer-button");
+
     omg.remixer = document.getElementById("remixer");
-    omg.topbar = document.getElementById("topbar");
-    omg.leftPanel = document.getElementById("left-panel");
-    omg.rightPanel = document.getElementById("right-panel");
+    
     omg.remixer.clearButton = document.getElementById("clear-remixer");
     omg.viewButtons = document.getElementById("top-bar-view-buttons");
     omg.createButton = document.getElementById("create-button");
@@ -1075,20 +355,26 @@ function setupRemixer() {
 	omg.about = document.getElementById("about");
     omg.remixer.addToRearrangerButton = document.getElementById("remixer-next");
 
-    omg.pauseButton = document.getElementById("remixer-pause-button");
+    omg.remixer.addButtons = document.getElementById("remixer-add-buttons");
+    
+    omg.pauseButton = document.getElementById("play-section");
     omg.pauseButton.onclick = function (e) {
-    	if (omg.player.playing)
-    		pause();
+    	if (omg.player.playing) {
+    		omg.pauseButton.innerHTML = "play";
+    		omg.player.stop();
+    	}
     	else  {
-    		omg.player.source = "remixer";
-    		omg.player.play();
+    		omg.pauseButton.innerHTML = "stop";
+    		omg.player.play({subbeatMillis: 125,
+    				loop: true,
+    				sections: [bam.section]});
     	}
     		
     	
         e.stopPropagation();
     };
     var pauseBlinked = false;
-    omg.onBeatPlayedListeners.push(function (isubbeat) {
+    omg.player.onBeatPlayedListeners.push(function (isubbeat) {
 
     	if (isubbeat%4 == 0) {
     		//if (!pauseBlinked)
@@ -1100,20 +386,10 @@ function setupRemixer() {
     	}
     });
 
-    setRemixerWidth();
-    
     omg.sectionDiv = document.getElementById("remixer-current-section");
 
     omg.remixer.nosection = document.getElementById("no-section-message");
     omg.remixer.sectionButtonRow = document.getElementById("section-button-row");
-
-    /*
-    omg.remixer.btnAddToSection = document.getElementById("add-section-to-collection");
-    omg.remixer.btnAddToSection.onclick = function () {
-        if (omg.isloggedin && !omg.section.isInCollection)
-            addCurrentSectionToDefaultCollection(omg.section);
-    };
-    */
     
     omg.shareDialog = document.getElementById("share-dialog");
     omg.dialogBorder = document.getElementById("dialog-border");
@@ -1141,36 +417,28 @@ function setupRemixer() {
     omg.remixer.addMelodyButton = document.getElementById("remixer-add-melody");
     // make a new part
     omg.remixer.addMelodyButton.onclick = function () {
+    
+    	var newdiv = bam.createElementOverElement("part2", 
+    			omg.remixer.addMelodyButton);
     	
-    	omg.mm.data.type = "MELODY";
-    	
-    	var button = omg.remixer.addMelodyButton;
-    	var offsets = omg.util.totalOffsets(button)
-    	
-    	var newPart = document.createElement("div");
-    	newPart.className = "part2";
-    	newPart.style.left = offsets.left + "px";
-    	newPart.style.top  = offsets.top  + "px";
-    	newPart.style.width = button.clientWidth + "px";
-    	newPart.style.height = button.clientHeight + "px";
-    	
+    	var newPart = new OMGPart(newdiv);
+
     	var otherParts = [];
-    	var otherPartsList = bam.currentSection.getElementsByClassName("part2");
+    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
     	for (var ii = 0; ii < otherPartsList.length; ii++) {
     		otherParts.push(otherPartsList.item(ii));
     	}
-
     	bam.fadeOut(otherParts);
     	
-    	bam.currentSection.appendChild(newPart);
-    	bam.currentPart = newPart;
+    	bam.section.div.appendChild(newdiv);
+    	bam.part = newPart;
     	
     	bam.fadeOut([omg.remixer]);
     	bam.slideOutOptions(omg.remixer.options, function () {
-    		bam.grow(newPart, function () {
+    		bam.grow(newPart.div, function () {
     			bam.fadeIn([omg.mm, omg.mm.canvas]);
     			
-    			omg.mm.style.display = "block";
+    			omg.mm.setPart(newPart);
     			
     			bam.slideInOptions(omg.mm.options);
     		});	
@@ -1178,7 +446,160 @@ function setupRemixer() {
     	
     	
     };
+
+    omg.remixer.addBasslineButton = document.getElementById("remixer-add-bassline");
+    // make a new part
+    omg.remixer.addBasslineButton.onclick = function () {
+    	    	
+    	var button = omg.remixer.addBasslineButton;
+    	var newdiv = bam.createElementOverElement("part2", 
+    			omg.remixer.addBasslineButton);
+    	
+    	var newPart = new OMGPart(newdiv)
+    	newPart.data.type = "BASSLINE";
+    	
+    	var otherParts = [];
+    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
+    	for (var ii = 0; ii < otherPartsList.length; ii++) {
+    		otherParts.push(otherPartsList.item(ii));
+    	}
+
+    	bam.fadeOut(otherParts);
+    	
+    	bam.section.div.appendChild(newdiv);
+    	bam.part = newPart;
+    	
+    	bam.fadeOut([omg.remixer]);
+    	bam.slideOutOptions(omg.remixer.options, function () {
+    		bam.grow(newPart.div, function () {
+    			bam.fadeIn([omg.mm, omg.mm.canvas]);
+    			
+    			omg.mm.setPart(newPart);
+    			
+    			bam.slideInOptions(omg.mm.options);
+    		});	
+    	});
+    	
+    	
+    };
+
+    omg.remixer.addDrumbeatButton = document.getElementById("remixer-add-drumbeat");
+    // make a new part
+    omg.remixer.addDrumbeatButton.onclick = function () {
+
+    	var newdiv = bam.createElementOverElement("part2", 
+    			omg.remixer.addDrumbeatButton);
+    	
+    	var newPart = new OMGDrumpart(newdiv)
+
+    	var otherParts = [];
+    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
+    	for (var ii = 0; ii < otherPartsList.length; ii++) {
+    		otherParts.push(otherPartsList.item(ii));
+    	}
+    	bam.fadeOut(otherParts);
+    	
+    	bam.section.div.appendChild(newPart.div);
+    	bam.part = newPart;
+    	
+    	bam.fadeOut([omg.remixer]);
+    	bam.slideOutOptions(omg.remixer.options, function () {
+    		bam.grow(newPart.div, function () {
+    			bam.fadeIn([bam.beatmaker]);
+    			bam.beatmaker.ui.setPart(newPart);
+    			bam.beatmaker.ui.drawLargeCanvas();
+    			
+    			bam.slideInOptions(omg.mm.options);
+    		});	
+    	});
+    	
+    	
+    };
+
+    omg.remixer.refresh = function () {
+    	if (bam.section.parts.length == 0) {
+    		omg.remixer.nosection.style.display = "block";
+    	}
+    	else {
+    		omg.remixer.nosection.style.display = "none";
+    	}
+    	bam.arrangeParts();
+    	//omg.remixer.addButtons.style.top = 75 + (parts - 1) * 130 + 115 + "px";
+    	
+    	omg.pauseButton.innerHTML = omg.player.playing ? "stop" : "play";
+    };
+
     
+	omg.remixer.clearButton.onclick = function () {
+        for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
+            cancelPart(bam.section.parts[ip], true);
+        }
+        sectionModified();
+        omg.remixer.refresh();
+
+    };
+
+    var addToRearranger = omg.remixer.addToRearrangerButton;
+    addToRearranger.onclick = function () {
+
+        var sections = bam.song.sections.length; 
+        
+    	var otherSections = [];
+    	var otherSectionList = bam.song.div.getElementsByClassName("section");
+    	for (var ii = 0; ii < otherSectionList.length; ii++) {
+    		if (otherSectionList.item(ii) != bam.section.div)
+    			otherSections.push(otherSectionList.item(ii));
+    	}
+
+    	var position;
+		if (typeof(bam.section.position) == "number" && bam.section.position > -1) {
+			position = bam.section.position;
+		}
+		else {
+			position = sections;
+			bam.section.position = position;
+	        bam.song.sections.push(bam.section);
+	        sections++;
+		}
+        
+        var fadeOutList = [omg.remixer];
+        for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
+        	fadeOutList.push(bam.section.parts[ip].controls);        	
+    	}
+        
+        bam.slideOutOptions(omg.remixer.options);
+        bam.fadeOut(fadeOutList, function () {
+        	
+        	// keep it rolling? maybe preference
+        	//omg.remixer.stop();
+
+
+            bam.shrink(bam.section.div, 100 + position * 110, 100, 100, 300, function() {
+                omg.rearranger.addSectionButton.style.left = window.innerWidth + "px";
+                
+                bam.slideInOptions(omg.rearranger.addSectionButton, null, 
+                		5 + sections * 110);
+                bam.slideUpOptions(omg.rearranger.options);
+            	bam.fadeIn([omg.rearranger]);
+            	bam.fadeIn(otherSections);
+            	
+            	var section = bam.section;
+
+            	section.div.onclick = function () {
+            		bam.slideDownOptions(omg.rearranger.options);
+            		bam.fadeOut([omg.rearranger], function () {
+                		bam.grow(section.div, function () {
+                			bam.section = section;
+                			bam.fadeIn(fadeOutList);
+                			bam.slideInOptions(omg.remixer.options);
+                		});            			
+            		});
+            		section.div.onclick = null;
+            	};
+            });
+        });
+    };
+
 }
 
 function setupRearranger() {
@@ -1190,8 +611,7 @@ function setupRearranger() {
 
     omg.rearranger.playButton = document.getElementById("play-song");
     omg.rearranger.playButton.onclick = function () {
-    	omg.player.source = "rearranger";
-    	omg.player.play();
+    	omg.player.play(bam.song);
     };
     
     
@@ -1208,65 +628,13 @@ function setupRearranger() {
     var lastSection;
     var clientSection;
     
-    omg.rearranger.add = function (section) {
-        omg.rearranger.emptyMessage.style.display = "none";
+    omg.rearranger.getletter = function (sectionnumber) {
 
-        if (JSON.stringify(section) === lastSection) {
-            omg.rearranger.nextSectionLetter--;            
-        }
-        lastSection = JSON.stringify(section);
-
-        section.letter = omg.rearranger.nextSectionLetter;
-        omg.rearranger.nextSectionLetter++;
-    
-        omg.rearranger.song.sections.push(section);    
-        clientSection = {parts: []};
-        omg.rearranger.client.sections.push(clientSection);
-
-        var clientPart;
-        var part;
-        
-        for (var ii = 0; ii < section.parts.length; ii++) {
-            clientPart = {};
-            clientSection.parts.push(clientPart);
-            
-            part = section.parts[ii];
-            if (part.type == "MELODY" || part.type == "BASSLINE") {                    
-                omg.setNoteRange(part, clientPart);
-            }
-
-        }
-        
-        /*clientSection.div = document.createElement("div");
-        clientSection.div.className = "rearranger-section";
-        clientSection.div.innerHTML = String.fromCharCode(65 + section.letter);
-
-        omg.rearranger.area.appendChild(clientSection.div);*/
-
-        return String.fromCharCode(65 + section.letter);
+        return String.fromCharCode(65 + sectionnumber);
     };
 
-    omg.rearranger.saveButton = document.getElementById("rearranger-save-button");
-    /*omg.rearranger.saveButton.onclick = function () {
-    	var saveButton = omg.rearranger.saveButton;
-	
-	    if (saveButton.innerHTML !== "Save") {
-		    return;
-	    }
-	
-	    saveButton.innerHTML = "(Saving...)";
-	    if (omg.rearranger.song.id && omg.rearranger.song.id > 0) {
-		    // already saved?
-        }
-	    else if (omg.section.parts.length > 0) {
-		    postOMG("SONG", omg.rearranger.song, function (results) {
-			    saveButton.innerHTML = "(Saved)";
-		    });
-	    }
-
-    };
     
-    omg.rearranger.shareButton = document.getElementById("rearranger-share-button");
+    omg.rearranger.shareButton = document.getElementById("share-song");
     omg.rearranger.shareButton.onclick = function () {
     	if (omg.rearranger.song.id && omg.rearranger.song.id > 0) {
 		    shareId(omg.rearranger.song.id, "SONG");
@@ -1279,26 +647,23 @@ function setupRearranger() {
 
     };
     
-    omg.rearranger.clearButton = document.getElementById("clear-rearranger");
+    omg.rearranger.clearButton = document.getElementById("clear-song");
     omg.rearranger.clearButton.onclick = function () {
     
         if (omg.player.playing)
-            pause();
+            omg.player.stop();
     
         omg.rearranger.unload();
-        
+        bam.slideInOptions(omg.rearranger.addSectionButton, null, 5);
+    
         omg.rearranger.emptyMessage.style.display = "block";
-        omg.rearranger.tools.style.display = "none";        
-    };*/
+    };
 
 
     omg.rearranger.loadSong = function (searchResult) {
 
         omg.rearranger.emptyMessage.style.display = "none";
 
-        if (isShrunk()) {
-        	omg.leftPanel.style.display = "none";
-        }
 
         omg.rearranger.unload();
         
@@ -1339,9 +704,7 @@ function setupRearranger() {
             omg.rearranger.area.appendChild(clientSection.div);
             
         }
-        
-        showRearranger();
-        
+                
         if (!omg.player.playing)
             omg.player.playWhenReady();
 
@@ -1350,10 +713,11 @@ function setupRearranger() {
     };
     
     omg.rearranger.unload = function () {
-        var sections = omg.rearranger.client.sections;
+        var sections = bam.song.sections;
         for (i = 0; i < sections.length; i++) {
-        
-            omg.rearranger.area.removeChild(sections[i].div);
+            bam.song.div.removeChild(sections[i].div);
+            bam.song.sections.splice(i, 1);
+            i--;
         }
     
         omg.rearranger.newSong();
@@ -1363,31 +727,24 @@ function setupRearranger() {
     omg.rearranger.addSectionButton = document.getElementById("add-section");
     omg.rearranger.addSectionButton.onclick = function () {
     	
-    	
-    	var button = omg.rearranger.addSectionButton;
-    	var offsets = omg.util.totalOffsets(button)
-    	
-    	var newPart = document.createElement("div");
-    	newPart.className = "section";
-    	newPart.style.left = offsets.left + "px";
-    	newPart.style.top  = offsets.top  + "px";
-    	newPart.style.width = button.clientWidth + "px";
-    	newPart.style.height = button.clientHeight + "px";
-    	
+    	var newDiv = bam.createElementOverElement("section", omg.rearranger.addSectionButton);
+    	bam.section = new OMGSection(newDiv);
+    		
     	var otherParts = [];
-    	var otherPartsList = bam.currentSong.getElementsByClassName("section");
+    	var otherPartsList = bam.song.div.getElementsByClassName("section");
     	for (var ii = 0; ii < otherPartsList.length; ii++) {
     		otherParts.push(otherPartsList.item(ii));
     	}
     	bam.fadeOut(otherParts);
     	
-    	bam.currentSong.appendChild(newPart);
-    	bam.currentSection = newPart;
+    	bam.song.div.appendChild(newDiv);
     	
     	bam.fadeOut([omg.rearranger]);
-    	bam.slideOutOptions(omg.rearranger.options, function () {
-    		bam.grow(newPart, function () {
-    			bam.fadeIn([omg.remixer]);
+    	bam.slideDownOptions(omg.rearranger.options, function () {
+    		bam.grow(bam.section.div, function () {
+    			
+       			bam.fadeIn([omg.remixer]);
+    			omg.remixer.refresh();
     			
     			bam.slideInOptions(omg.remixer.options);
     		});	
@@ -1396,330 +753,31 @@ function setupRearranger() {
     };
 }
 
-function showRemixer() {
 
-    omg.hideRightPanels();
-	//omg.rightPanel.style.display = "block";
-	
-	
-    if (!omg.collections) {
-        omg.collections = {};
-        //getCollections();
-    }
-    
-    //omg.remixerButton.className = "show-remixer-button-on";
-    omg.remixer.style.display = "block";
-    omg.remixerShowing = true;
 
-    omg.player.source = "remixer";
-}
-
-function showRearranger() {
-
-    if (omg.player.playing)
-        pause();
-
-    //omg.hideRightPanels();
-	//omg.rightPanel.style.display = "block";
-
-    if (!omg.collections) {
-        omg.collections = {};
-        //getCollections();
-    }
-
-    if (omg.rearranger.song.sections.length > 0)
-        omg.rearranger.tools.style.display = "block";
-        
-    omg.rearranger.style.display = "block";
-
-    omg.player.source = "rearranger";
-    
-    var height = window.innerHeight - omg.rearranger.canvas.offsetTop - omg.rearranger.offsetTop - 60;
-    omg.rearranger.canvas.style.height = height + "px";
-    omg.rearranger.canvas.height = height;
-    
-    omg.rearranger.draw();
-}
-
-function setupPlayer() {
-
-    var spotlightedPart;
-    var p = {playing: false, loadedSounds: {}};
-    omg.player = p;
-    p.iSubBeat = 0;
-    p.loopStarted = 0;
-
-    p.loadPart = function (part, data) {
-
-        part.currentI = -1;
-        part.nextBeat = 0;
-        part.soundsLoading = 0;
-    	part.loaded = false;
-        if (data.type == "DRUMBEAT") {
-            var soundsAlreadyLoaded = 0;
-            var tracks = data.data;
-            fixSound(tracks, data.kit);
-            for (var i = 0; i < tracks.length; i++) {
-            	if (!tracks[i].sound) {
-            		soundsAlreadyLoaded++;
-            	}
-            	else if (p.loadedSounds[tracks[i].sound]) {
-                    //tracks[i].audio = p.loadedSounds[tracks[i].sound];
-                    soundsAlreadyLoaded++;
-                }
-                else {
-                    loadSound(tracks[i].sound, part);
-                }
-            }
-            if (soundsAlreadyLoaded == tracks.length) {
-            	part.loaded = true;
-            }
-        }
-        if (data.type == "MELODY" || data.type == "BASSLINE") {
-        	
-			rescale(part, omg.section.data.rootNote, 
-					omg.section.data.ascale);
-        	
-			if (typeof data.sound == "string" &&
-					data.sound.indexOf("PRESET_") == 0) {
-				setupPartWithSoundSet(getPresetSoundSet(data.sound), part);
-			}
-        	var soundsToLoad = 0;
-	
-		    for (var ii = 0; ii < data.notes.length; ii++) {
-			    note = data.notes[ii];
-			
-			    if (note.rest)
-				    continue;
-			    
-			    if (!note.sound)
-				    continue;
-			
-                if (p.loadedSounds[note.sound]) 
-				    continue;
-
-                soundsToLoad++;
-                loadSound(note.sound, part);
-    		}
-		
-            if (soundsToLoad == 0) {
-            	part.loaded = true;
-        	}
-    
-
-            // this starts the player over if there
-            // are no other sections in the remixer
-            // this shouldn't be here, and probalby will never
-            // work because the part is now added before this function
-            // instead of after it            
-            if (omg.section.parts.length == 0)
-                p.iSubBeat = -1;
-
-        }
-        if (data.type == "CHORDPROGRESSION") {
-        	part.loaded = true;
-        }
-        
-        if (data.volume == undefined) {
-        	data.volume = 0.6;
-        }
-        
-    };
-
-    p.play = function () {
-        omg.rearranger.playingSection = 0;
-
-        p.prepareSections();
-
-    
-        p.playing = true;
-        p.loopStarted = Date.now();
-        p.iSubBeat = 0;
-
-        omg.pauseButton.style.display = "inline-block";
-        omg.pauseButton.innerHTML = "pause";
-
-        p.go();
-
-        if (p.source == "rearranger") {
-            if (omg.rearranger.song.sections.length > 0) {
-                //omg.rearranger.client.sections[0].div.style.backgroundColor = "#4fa5d5";
-            }
-            
-            p.songStarted = p.loopStarted;
-            //omg.rearranger.animate();
-        }
-
-            
-    };
-    
-    p.go =  function () {
-
-    	//todo this bpm thing isn't consistent
-    	omg.subbeatLength = omg.section.data.subbeatMillis || 
-    						60000 / omg.bpm / omg.subbeats; 
-    	omg.player.intervalHandle = setInterval(function() {
-            playBeat(p.iSubBeat);
-
-            p.iSubBeat++;
-            if (p.iSubBeat == omg.beats * omg.subbeats) {
-            
-                if (p.source === "remixer") {
-                    p.iSubBeat = 0;
-                    p.loopStarted = Date.now();
-                }
-                else if (p.source === "rearranger") {
-                    //omg.rearranger.client.sections[omg.rearranger.playingSection].
-                    //    div.style.backgroundColor = "white";
-                    omg.rearranger.playingSection++;
-                    if (omg.rearranger.playingSection >= omg.rearranger.song.sections.length) {
-                    	console.log("Pause!");
-                        pause();
-                    }
-                    else {
-                        //omg.rearranger.client.sections[omg.rearranger.playingSection].
-                        //    div.style.backgroundColor = "#4fa5d5";
-                        p.iSubBeat = 0;
-                        p.loopStarted = Date.now();
-                    }
-                }                
-            }
-    		
-    	}, omg.subbeatLength);
-    }
-
-        
-    p.setNewBpm =  function (bpm) {
-    	if (bpm > 40 && bpm < 300) {
-    		omg.bpm = bpm;
-
-        	if (p.intervalHandle && p.playing) {
-        		clearInterval(p.intervalHandle);
-            	p.go();        		
-        	}
-
-        	debug("set new bpm");
-    	}
-    };
-    
-    p.playWhenReady = function (parts) {
-    	var allReady = true;
-        var sections;
-        if (p.source == "remixer") {
-            sections = [omg.section];
-        }
-        else if (p.source == "rearranger") {
-            sections = omg.rearranger.client.sections;
-        }
-    	for (var i = 0; i < sections.length; i++) {
-        	for (var j = 0; j < sections[i].parts.length; j++) {
-        		if (!sections[i].parts[j].loaded) {
-        			allReady = false;
-        			debug("section " + i + " part " + j + " is not ready");
-        		}
-            }
-    	}
-    	if (!allReady) {
-    		setTimeout(function () {
-    			p.playWhenReady(parts);
-    		}, 600);
-    	}
-    	else {
-    		p.play();
-    	}
-    };
-    
-    p.prepareSections = function () {
-        if (p.source == "rearranger") {
-            for (var isection = 0; isection < omg.rearranger.client.sections.length; isection++) {
-                p.prepareSection(omg.rearranger.client.sections[isection]);
-            }
-        }
-        else if (p.source == "remixer") {
-            p.prepareSection(omg.section);        
-        }
-    };
-    
-    p.prepareSection = function (section) {
-        for (var ipart = 0; ipart < section.parts.length; ipart++) {
-            section.parts[ipart].nextBeat = 0;
-            section.parts[ipart].currentI = -1;
-        }
-    }
-    
-    if (!window.AudioContext)
-        window.AudioContext = window.webkitAudioContext;
-
-    try {
-        p.context = new AudioContext();
-        if (!p.context.createGain) 
-            p.context.createGain = p.context.createGainNode;
-
-    }
-    catch (e) {
-        document.getElementById("no-web-audio").style.display = "block";
-    }
-
-}
-
-function pause() {
-    clearInterval(omg.player.intervalHandle);
-    omg.player.playing = false;
-    omg.pauseButton.innerHTML = "play";
-
-    var section;
-    if (omg.player.source == "remixer") {
-        section = omg.section;
-    }
-    else if (omg.player.source == "rearranger") {
-        section = omg.rearranger.song.sections[omg.rearranger.playingSection];
-       // if (section)
-       //     omg.rearranger.client.sections[omg.rearranger.playingSection].
-       //             div.style.backgroundColor = "white";
-    }
-
-    if (section) {    
-        for (var ip = 0; ip < section.parts.length; ip++) {
-            pausePart(section.parts[ip]);
-        }
-    }
-    
-}
-
-function cancelPart(part, leaveEmpty) {
+function cancelPart(part) {
 	pausePart(part);
 	
-    var partInArray = omg.section.parts.indexOf(part);
+    var partInArray = bam.section.parts.indexOf(part);
     if (partInArray > -1) {
-        omg.section.parts.splice(partInArray, 1);
+        bam.section.parts.splice(partInArray, 1);
 
-        if (omg.section.parts.length == 0) {
-        	//omg.section.data.ascale = null;
-        	//omg.section.data.rootNote = null;
-        	//omg.section.data.scale = null;
-        	if (!leaveEmpty) {
-        		
-        		omg.pauseButton.style.display = "none";
-        		
-	            //omg.remixer.sectionButtonRow.style.display = "none";
-	            pause();
-	            welcomeMessage();
-
-        		omg.remixer.nosection.style.display = "block";
-
-        	}
+        if (bam.section.parts.length == 0) {
+            omg.player.stop();
+    		omg.remixer.nosection.style.display = "block";
         }
     }
     
-    omg.sectionDiv.removeChild(part.holder);
+    bam.section.div.removeChild(part.div);
 
     if (part.div.onBeatPlayedListener) {
-        var index = omg.onBeatPlayedListeners.indexOf(part.div.onBeatPlayedListener);
+        var index = omg.player.onBeatPlayedListeners.indexOf(part.div.onBeatPlayedListener);
         if (index > -1) {
-            omg.onBeatPlayedListeners.splice(index, 1);
+            omg.player.onBeatPlayedListeners.splice(index, 1);
         }
         part.div.onBeatPlayedListener = undefined;
     }
+    
 }
 
 function pausePart(part) {
@@ -1773,7 +831,7 @@ function playBeatForPart(iSubBeat, data, client) {
 }
 
 function playBeatForDrumPart(iSubBeat, data, part) {
-    var tracks = data.data;
+    var tracks = data.tracks;
     
 	if (part.muted)
 		return;
@@ -2040,71 +1098,6 @@ function onSoundLoaded(success, part) {
     }
 }
 
-function addCurrentSectionToDefaultCollection(section) {
-
-    var outSection = section.data;
-    outSection.data = [];
-
-    for (var ip = 0; ip < section.parts.length; ip++) {
-
-        outSection.data.push(section.parts[ip].data);
-
-    }
-    section.isInCollection = true;
-
-    // do it on the server
-
-    // is this an existing section?
-
-    // for a new section, we upload
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/omg", true);
-    xhr.onreadystatechange = function(){
-        if (xhr.readyState == 4){
-
-            var results = JSON.parse(xhr.responseText);
-            if (results.result == "good") {
-                var favcount = document.getElementById("Favorites_section_count");
-                if (favcount != null) {
-                	favcount.innerHTML = 1 + parseInt(favcount.innerHTML); 
-                }
-                else {
-                	addCollectionDiv({name: "Favorites", section_count:1,
-                		part_count: 0});
-                    document.getElementById("no-collections-message").
-                    style.display = "none";
-
-                	
-                }
-                var btn = omg.remixer.btnAddToSection;
-                btn.innerHTML = "(Saved to Collection)";
-                btn.className = "remixer-button-disabled";
-            }
-
-        }
-    }
-    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-    xhr.send("collection=Favorites&type=SECTION&tags=&data=" + encodeURIComponent(JSON.stringify(outSection)));
-
-
-}
-
-function addCollectionDiv(collection) {
-
-    var newDiv = document.createElement("div");
-    newDiv.className = "remixer-collection";
-    newDiv.innerHTML = collection.name + " <span class='collection-stats'> Sections (" +
-    "<span id='" + collection.name + "_section_count'>" +
-    collection.section_count + "</span>) - Parts (<span class='" +
-    "<span id='" + collection.name + "_part_count'>" +
-    collection.part_count + "</span>)</span>";
-    omg.remixer.collectionsDiv.appendChild(newDiv);
-    
-    newDiv.onclick = function () {
-    	getCollections();
-    };
-
-}
 
 function initSound() {
     omg.playedSound = true;
@@ -2207,14 +1200,6 @@ function getImageForNote(note, upsideDown) {
 }
 
 function loadSection(searchResult) {
-
-    if (isShrunk()) {
-    	omg.leftPanel.style.display = "none";
-    }
-    if (!omg.remixerShowing)  {
-        showRemixer();    
-    }
-
 
     if (omg.section) {
         for (ip = omg.section.parts.length - 1; ip > -1; ip--) {
@@ -2325,102 +1310,6 @@ function resizePart(part, resize) {
     part.size = resize;
 }
 
-function getCollections() {
-    var ooo;
-
-    document.getElementById("saved-list").innerHTML = "<h2>Loading...</h2>";
-
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/collection?name=Saved", true);
-    xhr.onreadystatechange = function(){
-        if (xhr.readyState == 4){
-
-            ooo = JSON.parse(xhr.responseText);
-
-            displayCollections(ooo);
-
-        }
-    }
-    xhr.send();        
-}
-
-function displayCollections(collections) {
-    omg.collections = collections;
-
-    var partList = document.getElementById("saved-list");
-    partList.innerHTML = "";
-
-    var part;
-    var partDetail;
-    var adata;
-    var data;
-    
-    var coll = collections.list[0];
-    
-    for (var i = coll.detail.length - 1; i > -1; i--) {
-
-        part = document.createElement("div");
-        part.className = "part";
-        adata = coll.detail[i].split(" ");
-        data = {
-        	type: adata[0],
-        	id: adata[1],
-        	time: parseInt(adata[2]),
-        	divInList: part
-        };
-
-        partDetail = document.createElement("div");
-        partDetail.className = "part-time";
-        partDetail.innerHTML = getTimeCaption(data.time);
-        part.appendChild(partDetail);
-
-        partDetail = document.createElement("div");
-        partDetail.className = "part-caption";
-        partDetail.innerHTML = "<span class='part-type-caption'>Type:</span>" +
-        " <span class='part-type'>" + data.type + "</span>";
-        part.appendChild(partDetail);
-
-        partList.appendChild(part);        
-
-        part.onclick = (function (part, data) {
-            return function () {        
-                // this is mostly for iPhones, requiring 
-                // audio to start in response to a click
-                if (!omg.playedSound && omg.player.context) 
-                    initSound();
-
-
-                var callback = function (result) {
-                    if (result.type == "SONG") {
-                        omg.rearranger.loadSong(result)
-                    }
-                    else if (result.type == "SECTION") {
-                        loadSection(result)
-                    }
-                    else {
-                        loadSinglePart(result);
-                    }
-
-                    setupAsCurrentInList(result, part)
-                	
-                };
-                
-                if (!data.data) {
-                	getOMG(data, callback);
-                }
-                else {
-                	callback(data)
-                }
-                
-
-            };
-        })(part, data);
-
-    }
-
-}
-
-
 
 function sectionModified() {
 
@@ -2448,52 +1337,7 @@ function getOMG(data, callback) {
     xhr.send();
 }
 
-function setRemixerWidth() {
 
-    /*var height = window.innerHeight - 50; 
-    var listView = omg.listView;
-    var width;
-    if (isShrunk()) {
-    	width = omg.topbar.clientWidth - 8;
-    	omg.viewButtons.style.display = "none";
-    }
-    else {
-    	console.log("setremixerwidth turn on left paenl");
-        omg.leftPanel.style.display = "block";    
-        omg.leftPanel.style.height = height + "px";
-    	width = omg.topbar.clientWidth - (350 + 8 + 12 + 20);
-    	
-    }
-    */
-    	    
-}
-
-function createDrumbeat() {
-	var emptyBeat = {"type":"DRUMBEAT","bpm":120,"kit":0,
-			    isNew: true,
-				"data":[{"name":"kick","sound":"PRESET_HH_KICK",
-				"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-				        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-		        {"name":"snare","sound":"PRESET_HH_CLAP",
-	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-    	        {"name":"closed hi-hat","sound":"PRESET_ROCK_HIHAT_CLOSED",
-	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-    	        {"name":"open hi-hat","sound":"PRESET_HH_HIHAT",
-	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-    	        {"name":"tambourine","sound":"PRESET_HH_TAMB",
-	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-    	        {"name":"scratch","sound":"PRESET_HH_SCRATCH",
-	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
-    	      ]};
-
-	
-	return emptyBeat;
-}
 
 function createDrumbeatFromSoundSet(soundSet) {
 	var emptyBeat = {"type":"DRUMBEAT","bpm":120,"kit":soundSet.id,
@@ -2518,9 +1362,7 @@ function doInitStuff() {
 	var id;
 	var func;
 	var soundset;
-	
-	var doGetContributions = true;
-	
+		
 	// see if there's somethign to do here
 	var params = document.location.search;
 	var nvp;
@@ -2564,11 +1406,7 @@ function doInitStuff() {
 		}
 	}
 	
-	//if (func === "createmelody") {
-	//if (!isShrunk()) {
-		showMelodyMaker("MELODY", true);
-		doGetContributions = false;
-	//}
+	showMelodyMaker("MELODY", true);
 
 	if (func && func.toLowerCase() === "share" && type) {
 		var newPart = {id: id, type: type}; 
@@ -2589,17 +1427,6 @@ function doInitStuff() {
 		//omg.listViewShowing = false;
 		//omg.sharePanelShowing = true;
 	}
-	//else {
-
-		try {
-			if (doGetContributions) {
-		        getContributions();
-			}
-	    }
-	    catch (e) {
-	        debug(e);
-	    }
-	//}
 	
 }
 
@@ -2665,7 +1492,6 @@ function getSoundSet(id, callback) {
 
 function setupRemixerForPlay() {
     omg.remixer.nosection.style.display = "none";
-    //omg.remixer.sectionButtonRow.style.display = "inline-block";
 }
 
 
@@ -2685,7 +1511,7 @@ function shareId(id, type) {
 	dialogBorder.style.display = "block";
 	shareDialog.style.display = "block";
 
-	var left = omg.topbar.clientWidth / 2 - shareDialog.clientWidth / 2;
+	var left = window.innerWidth / 2 - shareDialog.clientWidth / 2;
 	var top = window.innerHeight /2 - shareDialog.clientHeight / 2;
 	shareDialog.style.left = left + "px";
 	shareDialog.style.top = top + "px";
@@ -2926,7 +1752,7 @@ function setupMelodyMaker() {
 	omg.mm.subtoolbar = document.getElementById("melody-maker-button-row");
 
     omg.mm.canvas = document.getElementById("melody-maker-canvas");
-    omg.mm.data = {type:"MELODY", notes: []};
+    omg.mm.data = bam.part.data;
 
     setupNoteImages();
 	
@@ -3000,40 +1826,59 @@ function setupMelodyMaker() {
 
 	omg.mm.remixerButton = document.getElementById("next-mm");
 	omg.mm.remixerButton.onclick = function () {
-
-		parts = omg.section.parts.length;
+		setupRemixerForPlay();
 		
-		// zoom out the part		
-		bam.fadeOut([omg.mm], function () {
-			omg.mm.style.display = "none";
-		});
-		bam.slideOutOptions(document.getElementById("mm-options"), function () {
-			bam.shrink(bam.currentPart, 102, 88 + parts * 130, 650, 150, function () {
+		parts = bam.section.parts.length;
+		
+		var part = bam.part; 
+		console.log(bam.part);
+		
+		var type = bam.part.data.type;
+		
+		if (type == "MELODY" || type == "BASSLINE") {
+			bam.fadeOut([omg.mm]);			
+		}
+		else if (type == "DRUMBEAT") {
+			bam.fadeOut([bam.beatmaker]);
+		}
 
-				bam.fadeOut([bam.currentPart]);
+		bam.section.parts.push(part);
+		
+		bam.slideOutOptions(document.getElementById("mm-options"), function () {
+			bam.shrink(bam.part.div, 100, 88 + parts * 126, 640, 105, function () {
+
+				setupPartDiv(part);
 				
 				bam.slideInOptions(omg.remixer.options);
-				bam.fadeIn([omg.remixer]);
+				//omg.remixer.addButtons.style.top = 75 + parts * 130 + 115 + "px";
 				
-				if (omg.mm.omgid) {
+		    	var otherParts = [];
+		    	var otherPart;
+		    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
+		    	for (var ii = 0; ii < otherPartsList.length; ii++) {
+		    		otherPart = otherPartsList.item(ii)
+		    		if (bam.part.div != otherPart)
+		    			otherParts.push(otherPart);
+		    	}
 
-					loadSinglePart({type: omg.mm.data.type, id: omg.mm.omgid, data: omg.mm.data});
-					omg.mm.data = {notes: []};
-					return;
+		    	otherParts.push(omg.remixer);
+				bam.fadeIn(otherParts);
+				omg.remixer.refresh();
+				
+				omg.player.play({loop: true, subbeatMillis: 125, sections: [bam.section]});
+				
+				if (typeof(part.id) != "number" || part.id <= 0) {
+					postOMG(type, omg.mm, function (response) {
+						if (response && response.result ==  "good") {
+							part.id = response.id; 
+						}
+					});
 				}
-				
-				postOMG(omg.mm.data.type, omg.mm, function (response) {
-					if (response && response.result ==  "good") {
-
-						loadSinglePart({type: omg.mm.data.type, id: response.id, data: omg.mm.data});
-						omg.mm.data = {notes: []};
-					}
-				});
-
 			});	
 		});
 		
-		
+		bam.mode = "SECTION";
+	
 	};
 
 	omg.mm.addRests = document.getElementById("add-rests-mm");
@@ -3046,7 +1891,7 @@ function setupMelodyMaker() {
 		
 		restImage = document.createElement("img");
 		restImage.className = "add-rest-image";
-		restImage.src = getNoteImageUrl(iimg, 2);
+		restImage.src = omg.ui.getNoteImageUrl(iimg, 2);
 		restImage.onclick = (function (beats) {
 			return function () {
 				omg.mm.data.notes.push({rest:true, beats: beats});
@@ -3093,6 +1938,50 @@ function setupMelodyMaker() {
         };
     };
 
+    omg.mm.setPart = function (part, welcomeStyle) {
+
+    	omg.mm.part = part;
+    	omg.mm.data = part.data;
+
+    	var visibility;
+    	omg.mm.welcomeStyle = welcomeStyle;
+    	if (welcomeStyle) {
+            omg.mm.drawnOnce = false;
+    		visibility = "hidden";
+    		omg.welcome.style.display = "block";
+    		//omg.mm.canvas.style.opacity = 0.33;
+    	}
+    	else {
+    		visibility = "visible";
+    	}
+    	omg.mm.caption.style.visibility = visibility;
+
+    	omg.mm.addRests.style.visibility = visibility;
+    	omg.mm.subtoolbar.style.visibility = visibility;
+
+    	omg.mm.style.visibility = "visible";
+    		
+        omg.mm.style.display = "block";
+        
+        makeOsc(omg.mm, omg.mm.data);
+
+        var type = part.data.type;
+        
+        if (type == "BASSLINE") {
+        	omg.mm.selectBottomNote.selectedIndex = 19;
+        	omg.mm.selectTopNote.selectedIndex = 39;
+        	omg.mm.caption.innerHTML = "Bassline";
+        }
+        else {
+        	omg.mm.selectBottomNote.selectedIndex = 39;
+        	omg.mm.selectTopNote.selectedIndex = 70;
+        	omg.mm.caption.innerHTML = "Melody";
+        }
+        
+        onMelodyMakerDisplay();
+        drawMelodyMakerCanvas();
+    };
+
 }
 
 function setupMelodyMakerFretBoard() {
@@ -3118,8 +2007,9 @@ function setupMelodyMakerFretBoard() {
 	omg.mm.data.bottomNote = bottomNote;
 	omg.mm.data.rootNote = rootNote;
 	omg.mm.data.topNote = topNote;
-	omg.mm.data.scale = omg.mm.selectScale.value;
 	omg.mm.data.octaveShift = octaveShift;
+	omg.mm.data.scale = omg.mm.selectScale.value;
+	omg.mm.data.ascale = omg.util.splitInts(omg.mm.data.scale); 
 	
 	var scale = makeScale(omg.mm.data.scale);
 
@@ -3147,50 +2037,14 @@ function setupMelodyMakerFretBoard() {
     drawMelodyMakerCanvas();
 }
 
-function showMelodyMaker(type, welcomeStyle) {
-
-    omg.mm.data.notes = [];
-
-	var visibility;
-	omg.mm.welcomeStyle = welcomeStyle;
-	if (welcomeStyle) {
-        omg.mm.drawnOnce = false;
-		visibility = "hidden";
-		omg.welcome.style.display = "block";
-		//omg.mm.canvas.style.opacity = 0.33;
-	}
-	else {
-		visibility = "visible";
-	}
-	omg.mm.caption.style.visibility = visibility;
-
-	omg.mm.addRests.style.visibility = visibility;
-	omg.mm.subtoolbar.style.visibility = visibility;
-
-	omg.mm.style.visibility = "visible";
-		
-    omg.mm.style.display = "block";
-    omg.mm.showing = true;
-    
-    omg.mm.data.type = type;
-    makeOsc(omg.mm, omg.mm.data);
-
-    if (type == "BASSLINE") {
-    	omg.mm.selectBottomNote.selectedIndex = 19;
-    	omg.mm.selectTopNote.selectedIndex = 39;
-    	//omg.mm.caption.innerHTML = "Bassline Maker";
-    }
-    else {
-    	omg.mm.selectBottomNote.selectedIndex = 39;
-    	omg.mm.selectTopNote.selectedIndex = 70;
-    	//omg.mm.caption.innerHTML = "Melody Maker";
-    }
-    
-    onMelodyMakerDisplay();
-    drawMelodyMakerCanvas();
-}
 
 function makeOsc(part, data) {
+	
+	if (!omg.player || !omg.player.context) {
+		part.osc = {frequency: {setValueAtTime: function () {}}};
+		part.gain = {gain:{}};
+		return;
+	}
 	
 	var p = omg.player;
 
@@ -3270,12 +2124,12 @@ function setupNoteImages() {
 
 		
 		var noteImage = new Image();
-	    noteImage.src = getNoteImageUrl(i, 1);
+	    noteImage.src = omg.ui.getNoteImageUrl(i, 1);
 	    var restImage = new Image();
-	    restImage.src = getNoteImageUrl(i, 2);
+	    restImage.src = omg.ui.getNoteImageUrl(i, 2);
 	    
 	    var imageBundle = [noteImage, restImage];
-	    var upsideDown = getNoteImageUrl(i, 3); 
+	    var upsideDown = omg.ui.getNoteImageUrl(i, 3); 
 	    if (upsideDown){
 	    	var upsideImage = new Image();
 	    	upsideImage.src = upsideDown;
@@ -3540,118 +2394,7 @@ function save(callback) {
 	
 }
 
-function drawMelodyCanvas(part, low, high) {
 
-	var canvas = part.canvas;
-	var context = canvas.getContext("2d");
-
-	var frets = high - low + 1;
-	var fretHeight = canvas.height / frets;
-
-	canvas.width = canvas.parentElement.clientWidth - canvas.offsetLeft * 2;
-	
-	//context.fillStyle = "white";
-	//context.fillRect(0, 0, canvas.width, fretHeight);
-	
-	var upsideDownNoteImage;
-	var noteImage = getImageForNote({beats: 1});
-	var noteHeight = noteImage.height;
-	var noteWidth = noteImage.width;
-	if (noteWidth * (part.data.notes.length + 2) > canvas.width) {
-		noteWidth = canvas.width / (part.data.notes.length + 2);
-	}
-	canvas.noteWidth = noteWidth;
-	var restHeight = canvas.height / 2 - noteImage.height / 2;
-
-	/*if (part.playingI > -1 && 
-			part.playingI < part.data.notes.length) {
-		context.fillStyle = "#4fa5d5";
-		context.fillRect(part.playingI * noteWidth + noteWidth + 
-				(noteImage.width / 2 - noteWidth / 2),
-				(frets - (part.data.notes[part.playingI].note - low)) * 
-				fretHeight + fretHeight * 0.5 -
-				noteImage.height * 0.75, noteWidth, noteHeight);
-	}*/
-	
-	var iy;
-	var ii;
-	var note;
-	for (var i = 0; i <part.data.notes.length; i++) {
-		note = part.data.notes[i];
-		noteImage = getImageForNote(note);
-		fretNumber = part.data.notes[i].note;
-		if (note.rest) {
-			iy = restHeight;
-		}
-		else {
-			iy = ((frets -1) - (fretNumber - low)) * 
-				fretHeight + fretHeight * 0.5 -
-				noteImage.height * 0.75;
-		}
-		
-		if (iy < 0) {
-			upsideDownNoteImage = getImageForNote(note, true);
-
-			if (upsideDownNoteImage != noteImage) {
-				iy = ((frets -1) - (fretNumber - low)) * 
-					fretHeight + fretHeight * 0.5 -
-					noteImage.height * 0.25;
-				context.drawImage(upsideDownNoteImage, i * noteWidth + noteWidth, iy );
-			}
-			else {
-				iy2 = ( (fretNumber - low)) * 
-				fretHeight + fretHeight * 0.5 -
-					noteImage.height * 0.75;
-				
-				context.save();
-				context.scale(1, -1);
-				context.drawImage(noteImage, i * noteWidth + noteWidth, iy2 - canvas.height);
-				context.restore();
-			}
-			
-		}
-		else {
-			context.drawImage(noteImage, i * noteWidth + noteWidth, iy);
-		}
-		
-	}
-}
-
-function browseButtonClick(type, selectedIndex) {
-
-	if (selectedIndex != undefined)
-		omg.selectType.selectedIndex = selectedIndex;
-	
-	omg.leftPanel.style.display = "block";
-	omg.savedPanel.style.display = "none";
-	omg.createPanel.style.display = "none";
-	hideMainControls();
-	omg.listView.style.display = "block";
-	
-	omg.type = type;
-	omg.currentPage = 1;
-	getContributions();
-
-	
-	if (isShrunk()) {
-		omg.remixer.style.display = "none";
-		omg.remixerShowing = false;
-		omg.viewButtons.style.display = "none";
-		omg.viewButton.className = "top-bar-view-button";
-	}
-	else {
-//		omg.createButton.className = "top-bar-button";
-//		omg.browseButton.className = "top-bar-button-selected";
-//		omg.savedButton.className = "top-bar-button";
-	} 
-}
-
-function getNoteImageUrl(i, j) {
-	var fileName = omg.noteImageUrls[i][j];
-	if (fileName) {
-		return "img/notes/" + fileName + ".png";	
-	}	
-}
 
 function rescale(part, rootNote, scale) {
 	
@@ -3693,7 +2436,7 @@ function makeScale(string) {
 
 function drawDrumCanvas(part, subbeat) {
 	
-	if (part.data.data.length == 0)
+	if (part.data.tracks.length == 0)
 		return;
 
 	var canvas = part.canvas;
@@ -3705,28 +2448,29 @@ function drawDrumCanvas(part, subbeat) {
 
     var captionWidth = 0; 
     var maxCaptionWidth = 0;
-    
-    for (var i = 0; i < part.data.data.length; i++) {
-    	context.fillText(part.data.data[i].name, 0, rowHeight * (i + 1) - 6);
-    	if (part.data.data[i].name.length > 0) {
-        	captionWidth = context.measureText(part.data.data[i].name).width;
+    var caption;
+    for (var i = 0; i < part.data.tracks.length; i++) {
+    	caption = part.data.tracks[i].name;
+    	context.fillText(caption, 0, rowHeight * (i + 1) - 6);
+    	if (caption.length > 0) {
+        	captionWidth = context.measureText(caption).width;
         	if (captionWidth > maxCaptionWidth)
         		maxCaptionWidth = captionWidth;
     	}
     }
     
     captionWidth = Math.min(canvas.width * 0.2, 80, maxCaptionWidth + 4);
-    var columnWidth = (canvas.width - captionWidth) / part.data.data[0].data.length;
+    var columnWidth = (canvas.width - captionWidth) / part.data.tracks[0].data.length;
     
     canvas.rowHeight = rowHeight;
     canvas.columnWidth = columnWidth;
     canvas.captionWidth = captionWidth;
     
     
-    for (var i = 0; i < part.data.data.length; i++) {
-    	for (var j = 0; j < part.data.data[i].data.length; j++) {
+    for (var i = 0; i < part.data.tracks.length; i++) {
+    	for (var j = 0; j < part.data.tracks[i].data.length; j++) {
     		
-    		context.fillStyle = part.data.data[i].data[j] ? "black" : 
+    		context.fillStyle = part.data.tracks[i].data[j] ? "black" : 
     				(j%4==0) ? "#C0C0C0" : "#E0E0E0";
     		
     		context.fillRect(captionWidth + columnWidth * j + 1, rowHeight * i + 1,
@@ -3995,7 +2739,7 @@ function animateDrawing() {
 			omg.mm.play();
 			
 			if (!omg.util.getCookie("remixer-got-it")) {
-			    omg.mm.showRemixerHint();
+			    //omg.mm.showRemixerHint();
 			}
 	
         }
@@ -4054,23 +2798,7 @@ omg.util.setCookie = function (c_name,value,exdays) {
     document.cookie=c_name + "=" + c_value;
 };
 
-omg.setNoteRange = function (part, clientPart) {
-    var firstNote = true;
-    for (var inote = 0; inote < part.notes.length; inote++) {
-        if (part.notes[inote].rest)
-            continue;
-        
-        if (firstNote || part.notes[inote].note < clientPart.lowNote) {
-            clientPart.lowNote = part.notes[inote].note;
-        }
-        if (firstNote || part.notes[inote].note > clientPart.highNote) {
-            clientPart.highNote = part.notes[inote].note;
-        }
-        firstNote = false;
-    }
-    clientPart.noteRange = clientPart.highNote - clientPart.lowNote + 1;
 
-};
 
 document.getElementById("golinski").onclick = function () {
     omg.golinski = true;
@@ -4139,3 +2867,374 @@ function getPresetSoundSet(preset) {
 
 	return oret;
 }
+
+
+/*bam components*/
+bam.setupBeatMaker = function () {
+
+	bam.beatmaker = document.getElementById("beatmaker");
+
+	var canvas = document.getElementById("beatmaker-canvas"); 
+	bam.beatmaker.canvas = canvas; 
+
+	bam.beatmaker.ui = new OMGDrums(canvas);
+
+	var width = canvas.clientWidth;
+	var offsets = omg.util.totalOffsets(canvas);
+	
+    var canvasHeight = window.innerHeight - 150;
+    canvas.height = canvasHeight;
+    canvas.width = width;
+    canvas.style.height =  canvasHeight + "px";    
+
+};
+
+
+/* bam ui stuff */
+bam.shrink = function (div, x, y, w, h, callback) {
+	var originalH = div.clientHeight;
+	var originalW = div.clientWidth;
+	var originalX = div.offsetLeft;
+	var originalY = div.offsetTop;
+	
+	var startedAt = Date.now();
+	
+	var children;
+	var child;
+	if (div.className === "section") {
+		children = [];
+		var parts = div.getElementsByClassName("part2");
+		for (var ip = 0; ip < parts.length; ip++) {
+			child = {div: parts.item(ip)};
+			child.originalH = child.div.clientHeight;
+			child.originalW = child.div.clientWidth;
+			child.originalX = child.div.offsetLeft;
+			child.originalY = child.div.offsetTop;
+			
+			child.targetX = 15;
+			child.targetY = 15 + ip * h / parts.length;
+			child.targetW = w - 40;
+			child.targetH = h / parts.length - 40;
+			
+			children.push(child);
+		}
+	}
+	console.log(div.className);
+	console.log(children)
+	
+	var interval = setInterval(function () {
+		var now = Date.now() - startedAt;
+		var now = Math.min(1, now / bam.animLength);
+
+		div.style.left = originalX + (x - originalX) * now + "px";
+		div.style.top  = originalY + (y - originalY) * now + "px";
+
+		div.style.width  = originalW + (w - originalW) * now + "px";
+		div.style.height = originalH + (h - originalH) * now + "px";
+
+		if (children) {
+			for (ip = 0; ip < children.length; ip++) {
+				child = children[ip];
+				child.div.style.left   = child.originalX + (child.targetX - child.originalX) * now + "px";
+				child.div.style.top    = child.originalY + (child.targetY - child.originalY) * now + "px";
+				child.div.style.width  = child.originalW + (child.targetW - child.originalW) * now + "px";
+				child.div.style.height = child.originalH + (child.targetH - child.originalH) * now + "px";
+				
+			}
+		}
+		
+		if (now == 1) {
+			clearInterval(interval);
+			if (callback)
+				callback();
+		}
+	}, 1000/60);
+};
+
+
+bam.grow = function (div, callback) {
+	var originalH = div.clientHeight;
+	var originalW = div.clientWidth;
+	var originalX = div.offsetLeft;
+	var originalY = div.offsetTop;
+
+	var children;
+	var child;
+
+	if (div.className === "section") {
+		children = [];
+		var parts = div.getElementsByClassName("part2");
+		for (var ip = 0; ip < parts.length; ip++) {
+			child = {div: parts.item(ip)};
+			child.originalH = child.div.clientHeight;
+			child.originalW = child.div.clientWidth;
+			child.originalX = child.div.offsetLeft;
+			child.originalY = child.div.offsetTop;
+
+			//110, 88 + parts * 126, 640, 105
+			child.targetX = 100;
+			child.targetY = 88 + ip * 126;
+			child.targetW = 640;
+			child.targetH = 105;
+			
+			children.push(child);
+		}
+	}
+
+	var startedAt = Date.now();
+	
+	var interval = setInterval(function () {
+		var now = Date.now() - startedAt;
+		var now = Math.min(1, now / bam.animLength);
+
+		div.style.left = originalX + (-5 - originalX) * now + "px";
+		div.style.top  = originalY + (-5 - originalY) * now + "px";
+
+		div.style.width  = originalW + (window.innerWidth + 10 - originalW) * now + "px";
+		div.style.height = originalH + (window.innerHeight + 10 - originalH) * now + "px";
+
+		if (children) {
+			for (ip = 0; ip < children.length; ip++) {
+				child = children[ip];
+				child.div.style.left   = child.originalX + (child.targetX - child.originalX) * now + "px";
+				child.div.style.top    = child.originalY + (child.targetY - child.originalY) * now + "px";
+				child.div.style.width  = child.originalW + (child.targetW - child.originalW) * now + "px";
+				child.div.style.height = child.originalH + (child.targetH - child.originalH) * now + "px";
+				
+			}
+		}
+		
+		if (now == 1) {
+			clearInterval(interval);
+			if (callback)
+				callback();
+		}
+	}, 1000/60);
+};
+
+bam.arrangeParts = function (callback) {
+	
+	var div = bam.section.div;
+
+	var children;
+	var child;
+
+	if (div.className === "section") {
+		children = [];
+		var parts = div.getElementsByClassName("part2");
+		for (var ip = 0; ip < parts.length; ip++) {
+			child = {div: parts.item(ip)};
+			child.originalH = child.div.clientHeight;
+			child.originalW = child.div.clientWidth;
+			child.originalX = child.div.offsetLeft;
+			child.originalY = child.div.offsetTop;
+
+			//110, 88 + parts * 126, 640, 105
+			child.targetX = 100;
+			child.targetY = 88 + ip * 126;
+			child.targetW = 640;
+			child.targetH = 105;
+			
+			children.push(child);
+		}
+		
+		child = {div: omg.remixer.addButtons};
+		child.originalH = child.div.clientHeight;
+		child.originalW = 640;
+		child.originalX = 4;
+		child.originalY = child.div.offsetTop;
+		child.targetX = 4;
+		child.targetY = 64 + Math.max(0.6, parts.length) * 126;
+		child.targetW = 640;
+		child.targetH = 105;
+		children.push(child);
+	}
+
+	var startedAt = Date.now();
+	
+	var interval = setInterval(function () {
+		var now = Date.now() - startedAt;
+		var now = Math.min(1, now / bam.animLength);
+
+		if (children) {
+			for (ip = 0; ip < children.length; ip++) {
+				child = children[ip];
+				child.div.style.left   = child.originalX + (child.targetX - child.originalX) * now + "px";
+				child.div.style.top    = child.originalY + (child.targetY - child.originalY) * now + "px";
+				child.div.style.width  = child.originalW + (child.targetW - child.originalW) * now + "px";
+				child.div.style.height = child.originalH + (child.targetH - child.originalH) * now + "px";
+				
+			}
+		}
+		
+		if (now == 1) {
+			clearInterval(interval);
+			if (callback)
+				callback();
+		}
+	}, 1000/60);
+};
+
+
+bam.slideOutOptions = function (div, callback) {
+	var windowW = window.innerWidth;
+	var originalX = div.offsetLeft;
+	
+	var startedAt = Date.now();
+	
+	var interval = setInterval(function () {
+		var now = Date.now() - startedAt;
+		now = Math.min(1, now / bam.animLength);
+
+		div.style.left = originalX + (windowW - originalX) * now + "px";
+
+		if (now == 1) {
+			clearInterval(interval);
+			if (callback)
+				callback();
+		}
+	}, 1000/60);	
+};
+
+bam.slideInOptions = function (div, callback, target) {
+
+	div.style.left = window.innerWidth + "px";
+	div.style.display = "block";
+
+	var targetLeft;
+	if (target != undefined)
+		targetLeft = target;
+	else
+		targetLeft = 680;
+	var originalX = window.innerWidth;
+	
+	var startedAt = Date.now();
+	
+	var interval = setInterval(function () {
+		var now = Date.now() - startedAt;
+		now = Math.min(1, now / bam.animLength);
+
+		div.style.left = originalX - (originalX - targetLeft) * now + "px";
+
+		if (now == 1) {
+			clearInterval(interval);
+			if (callback)
+				callback();
+		}
+	}, 1000/60);	
+};
+
+bam.slideDownOptions = function (div, callback) {
+	var windowH = window.innerHeight;
+	var originalY = div.offsetTop;
+	
+	var startedAt = Date.now();
+	
+	var interval = setInterval(function () {
+		var now = Date.now() - startedAt;
+		now = Math.min(1, now / bam.animLength);
+
+		div.style.top = originalY + (windowH - originalY) * now + "px";
+
+		if (now == 1) {
+			clearInterval(interval);
+			if (callback)
+				callback();
+		}
+	}, 1000/60);	
+};
+
+bam.slideUpOptions = function (div, callback, target) {
+
+	div.style.left = window.innerWidth + "px";
+	div.style.display = "block";
+
+	var targetY
+	if (target != undefined)
+		targetY = target;
+	else
+		targetY = 400;
+	var originalY = window.innerHeight;
+	
+	var startedAt = Date.now();
+	
+	var interval = setInterval(function () {
+		var now = Date.now() - startedAt;
+		now = Math.min(1, now / bam.animLength);
+
+		div.style.top = originalY - (originalY - targetY) * now + "px";
+
+		if (now == 1) {
+			clearInterval(interval);
+			if (callback)
+				callback();
+		}
+	}, 1000/60);	
+};
+
+bam.fadeOut = function (divs, callback) {
+	
+	var startedAt = Date.now();
+	
+	var interval = setInterval(function () {
+
+		var now = Date.now() - startedAt;
+		now = Math.min(1, now / bam.animLength);
+
+		for (var ii = 0; ii < divs.length; ii++) {
+			divs[ii].style.opacity = 1 - now;				
+		}
+		
+
+		if (now == 1) {
+			for (var ii = 0; ii < divs.length; ii++) {
+				divs[ii].style.display = "none";				
+			}
+
+			clearInterval(interval);
+			if (callback)
+				callback();
+		}
+	}, 1000/60);	
+};
+
+bam.fadeIn = function (divs, callback) {
+	
+	var startedAt = Date.now();
+	var div;
+	for (var ii = 0; ii < divs.length; ii++) {
+		div = divs[ii];
+		div.style.opacity = 0
+		div.style.display = "block";
+	}
+	
+	var interval = setInterval(function () {
+		var now = Date.now() - startedAt;
+		now = Math.min(1, now / bam.animLength);
+
+		for (var ii = 0; ii < divs.length; ii++) {
+			divs[ii].style.opacity = now;				
+		}
+
+		if (now == 1) {
+			clearInterval(interval);
+			if (callback)
+				callback();
+		}
+	}, 1000/60);	
+};
+
+
+
+bam.createElementOverElement = function (classname, button) {
+	var offsets = omg.util.totalOffsets(button)
+
+	var newPartDiv = document.createElement("div");
+	newPartDiv.className = classname;
+	newPartDiv.style.left = offsets.left + "px";
+	newPartDiv.style.top  = offsets.top + "px";
+	newPartDiv.style.width = button.clientWidth + "px";
+	newPartDiv.style.height = button.clientHeight + "px";
+
+	return newPartDiv;
+};

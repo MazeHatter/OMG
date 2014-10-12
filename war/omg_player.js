@@ -4,6 +4,7 @@ if (typeof omg != "object")
 (function setupPlayer() {
 
     var p = {playing: false, loadedSounds: {}};
+    omg.player = p;
 
     if (!window.AudioContext)
         window.AudioContext = window.webkitAudioContext;
@@ -19,34 +20,47 @@ if (typeof omg != "object")
         return;
     }
 
+    p.onBeatPlayedListeners = [];
 
-    omg.player = p;
     p.iSubBeat = 0;
     p.loopStarted = 0;
 
     p.beats = 8;
     p.subbeats = 4;
     
-    p.play = function (arrangement) {
-
-    	if (arrangement.prepared) {
-    		p.arrangement = arrangement;
-    	}
-    	else {
-    		p.arrangement = p.prepareArrangement(arrangement);
-    	}
-        p.arrangement.playingSection = 0;
+    p.nextUp = null;
     
+    p.play = function (song) {
+
+    	p.prepareSong(song);
+    	
+    	console.log("play button 1");
+    	
+    	if (p.playing) {
+    		p.nextUp = song;
+    		return p.playingIntervalHandle;
+    	}
+		p.song= song;
+
+		console.log(p.playing);
+		
+        p.song.playingSection = 0;
+    
+        if (!p.song.sections || !p.song.sections.length){
+        	console.log("no sections to play()");
+        	return -1;
+    	}
+        
         p.playing = true;
         p.loopStarted = Date.now();
         p.iSubBeat = 0;
 
     	//todo this bpm thing isn't consistent
         var beatsPerSection = p.beats * p.subbeats;
-    	p.subbeatLength = arrangement.subbeatMillis || 125; 
-
-    	var intervalHandle = setInterval(function() {
-            p.playBeat(p.arrangement.sections[p.arrangement.playingSection], 
+    	p.subbeatLength = song.subbeatMillis || 125; 
+    	
+    	p.playingIntervalHandle = setInterval(function() {
+            p.playBeat(p.song.sections[p.song.playingSection], 
             		p.iSubBeat);
 
             p.iSubBeat++;
@@ -54,10 +68,21 @@ if (typeof omg != "object")
             
                 p.iSubBeat = 0;
                 p.loopStarted = Date.now();
-                p.arrangement.playingSection++;
+                p.song.playingSection++;
                 
-                if (p.arrangement.playingSection >= arrangement.sections.length) {
-                	clearInterval(intervalHandle);
+                if (p.nextUp) {
+                	p.song = p.nextUp;
+                	p.song.playingSection = 0;
+                	p.nextUp = null;
+                }
+                
+                if (p.song.playingSection >= p.song.sections.length) {
+                	if (p.song.loop) {
+                		p.song.playingSection = 0;
+                	}
+                	else {
+                		p.stop();
+                	}
                 }
             }
     		
@@ -66,9 +91,14 @@ if (typeof omg != "object")
         // ??
         p.songStarted = p.loopStarted;
         
-        return intervalHandle;
+        return p.playingIntervalHandle;
     };
 
+    p.stop = function () {
+    	clearInterval(p.playingIntervalHandle);
+    	p.playing = false;
+    };
+    
     p.loadPart = function (part, data) {
 
         part.currentI = -1;
@@ -104,8 +134,8 @@ if (typeof omg != "object")
 
         	var rootNote;
         	var ascale;
-        	//if (p.arrangement.raw.rootNote != undefined) {
-        	//	rootNote = p.arrangement.raw.rootNote;
+        	//if (p.arrangement.data.rootNote != undefined) {
+        	//	rootNote = p.arrangement.data.rootNote;
         	//}
         	//else {
         		//backwards compat, rootNote was misspelled rooteNote
@@ -116,8 +146,8 @@ if (typeof omg != "object")
         		rootNote = data.rootNote % 12;
         	//}
 
-        	//if (p.arrangement.raw.ascale != undefined) {
-        	//	ascale = p.arrangement.raw.ascale;
+        	//if (p.arrangement.data.ascale != undefined) {
+        	//	ascale = p.arrangement.data.ascale;
         	//}
         	//else {
         		if (!data.ascale && data.scale) {
@@ -176,15 +206,9 @@ if (typeof omg != "object")
     	}
     };
     
-    p.playWhenReady = function (parts) {
+    p.playWhenReady = function (sections) {
     	var allReady = true;
-        var sections;
-        if (p.source == "remixer") {
-            sections = [omg.section];
-        }
-        else if (p.source == "rearranger") {
-            sections = omg.rearranger.client.sections;
-        }
+
     	for (var i = 0; i < sections.length; i++) {
         	for (var j = 0; j < sections[i].parts.length; j++) {
         		if (!sections[i].parts[j].loaded) {
@@ -195,15 +219,30 @@ if (typeof omg != "object")
     	}
     	if (!allReady) {
     		setTimeout(function () {
-    			p.playWhenReady(parts);
+    			p.playWhenReady(sections);
     		}, 600);
     	}
     	else {
-    		p.play();
+    		p.play(sections);
     	}
     };
-    
-    p.prepareArrangement = function (arrangement) {
+
+    p.prepareSong = function (song) {
+    	
+    	var section;
+    	var part;
+
+        for (var isection = 0; isection < song.sections.length; isection++) {
+        	
+        	section = song.sections[isection];
+            for (var ipart = 0; ipart < section.parts.length; ipart++) {
+            	part = section.parts[ipart];
+            	p.loadPart(part, part.data);
+            }
+        }
+    };
+
+    /*p.prepareArrangementData = function (arrangement) {
     	var rawSection;
     	var section;
     	var rawPart;
@@ -227,39 +266,44 @@ if (typeof omg != "object")
         }
         parrangement.prepared = true;
         return parrangement;
-    };
+    };*/
         
     p.playBeat = function (section, iSubBeat) {
         for (var ip = 0; ip < section.parts.length; ip++) {
             p.playBeatForPart(iSubBeat, section.parts[ip]);
         }
+        
+        for (var il = 0; il < p.onBeatPlayedListeners.length; il++) {
+            p.onBeatPlayedListeners[il].call(null, iSubBeat);
+        }
+
     };
 
     p.playBeatForPart = function (iSubBeat, part) {
-        if (part.raw.type == "DRUMBEAT") {
+        if (part.data.type == "DRUMBEAT") {
             p.playBeatForDrumPart(iSubBeat, part);        
         }
-        if (part.raw.type == "MELODY" || part.raw.type == "BASSLINE") {
+        if (part.data.type == "MELODY" || part.data.type == "BASSLINE") {
             p.playBeatForMelody(iSubBeat, part);        
         }
     };
 
     p.playBeatForDrumPart = function (iSubBeat, part) {
-        var tracks = part.raw.tracks;
+        var tracks = part.data.tracks;
 
     	if (part.muted)
     		return;
 
         for (var i = 0; i < tracks.length; i++) {
             if (tracks[i].data[iSubBeat]) {
-            	p.playSound(tracks[i].sound, part.raw.volume);
+            	p.playSound(tracks[i].sound, part.data.volume);
             }
         }
     };
 
     p.playBeatForMelody = function (iSubBeat, part) {
 
-    	var data = part.raw;
+    	var data = part.data;
     	var beatToPlay = iSubBeat;
         if (iSubBeat == 0) {
         	if (part.currentI === -1 || part.currentI === data.notes.length) {
@@ -327,7 +371,7 @@ if (typeof omg != "object")
 
 		part.osc = p.context.createOscillator();
 
-	    if (part.raw.type == "BASSLINE") {
+	    if (part.data.type == "BASSLINE") {
 	        part.osc.type = part.osc.SAWTOOTH || "sawtooth";
 	    }
 
@@ -491,8 +535,8 @@ if (typeof omg != "object")
     	var postfix = ss.data.postfix || "";
 
     	console.log(ss);
-    	for (var ii = 0; ii < part.raw.notes.length; ii++) {
-    		note = part.raw.notes[ii];
+    	for (var ii = 0; ii < part.data.notes.length; ii++) {
+    		note = part.data.notes[ii];
     		
     		if (note.rest)
     			continue;
@@ -628,3 +672,55 @@ if (typeof omg != "object")
     };
 
 })();
+
+function OMGSong(div) {
+	this.div = div;
+	this.data = {type: "SONG"};
+	this.sections = [];
+	
+	// key? tempo? yes, we need that shit
+};
+
+function OMGSection(div) {
+	this.div = div;
+	this.data = {type: "SECTION"};
+	this.parts = [];
+	
+	// key? tempo? we need it here too, I guess
+};
+
+function OMGDrumpart(div) {
+	this.div = div;
+	this.data = {"type":"DRUMBEAT","bpm":120,"kit":0,
+		    isNew: true,
+			"tracks":[{"name":"kick","sound":"PRESET_HH_KICK",
+			"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+			        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+	        {"name":"snare","sound":"PRESET_HH_CLAP",
+        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+	        {"name":"closed hi-hat","sound":"PRESET_ROCK_HIHAT_CLOSED",
+        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+	        {"name":"open hi-hat","sound":"PRESET_HH_HIHAT",
+        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+	        {"name":"tambourine","sound":"PRESET_HH_TAMB",
+        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+	        {"name":"scratch","sound":"PRESET_HH_SCRATCH",
+        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+	      ]}
+	
+	// key? tempo? we need it here too, I guess
+	
+};
+
+function OMGPart(div) {
+	this.div = div;
+	this.data = {type: "MELODY", notes: []};
+		
+	// key? tempo? we need it here too, I guess
+	
+};

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="drum-canvas"></canvas>
+
+<script>
+omg = {beats: 8, subbeats: 4};
+</script>
+
+<script src="omg_drums.js"></script>
+<script src="omg_util.js"></script>
+
+<script>
+omg.drums = new OMGDrums(document.getElementById("drum-canvas"));
+omg.drums.setPart(createDrumbeat());
+omg.drums.drawLargeCanvas();
+</script>
+
+</body>
+</html>
