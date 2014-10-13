@@ -206,3 +206,23 @@ omg.noteNames = ["C-", "C#-", "D-", "Eb-", "E-", "F-", "F#-", "G-", "G#-", "A-",
 		"C8"];
 
 omg.dev = window.location.href.indexOf("localhost:8888") > -1 || window.location.href.indexOf("192.168.1") > -1;
+
+omg.util.getCookie = function (c_name) {
+    var i,x,y, cookies=document.cookie.split(";");
+    for (i=0; i < cookies.length; i++) {
+        x = cookies[i].substr(0, cookies[i].indexOf("="));
+        y = cookies[i].substr(cookies[i].indexOf("=") + 1);
+        x = x.replace(/^\s+|\s+$/g, "");
+        if (x == c_name) {
+            return unescape(y);
+        }
+    }
+};
+
+omg.util.setCookie = function (c_name,value,exdays) {
+    var exdate=new Date();
+    exdate.setDate(exdate.getDate() + exdays);
+    var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+    document.cookie=c_name + "=" + c_value;
+};
+

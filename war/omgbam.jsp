@@ -69,16 +69,17 @@ if (user.isLoggedIn()){
 <div id="bbody">
 
 	<div id="mm-initial-options" class="option-panel">
-		<div class="panel-option">Show Me How</div>
+		<!--<div class="panel-option">Show Me How</div>
 		<div class="panel-option">Melody of the Day</div>
-		<div class="panel-option">Browse Gallery</div>
+		<div class="panel-option">Browse Gallery</div>-->
 	</div>
 	
 	<div id="mm-options" class="option-panel">		
 		<div class="panel-option" id="play-mm">Play</div>
-		<div class="panel-option" id="clear-mm">Clear</div>
+		<div class="panel-option" id="share-mm">Share</div>
 		<!--<div class="melody-maker-option" id="save-mm">Save</div>-->
 		<div class="panel-option" id="next-mm">Next</div>
+		<div class="panel-option" id="clear-mm">Clear</div>
 	</div>
 
 	<div id="melody-maker" class="area">
@@ -89,7 +90,10 @@ if (user.isLoggedIn()){
 		<div id="welcome" class="remixer-zone">
 	
 			<p class="getting-started">
+			
 			<br/><br/><br/><br/><br/>
+			<span class="getting-started-subtext">You Can Make Music!</span>
+			<br/>
 				Draw Here
 			</p>	
 			
@@ -156,9 +160,9 @@ if (user.isLoggedIn()){
 
 	<div class="option-panel" id="remixer-option-panel">
 		<div class="panel-option" id="play-section">Stop</div>
-		<div class="panel-option" id="clear-remixer">Clear</div>
 		<div class="panel-option" id="share-button">Share</div>
 		<div class="panel-option" id="remixer-next">Next</div>				
+		<div class="panel-option" id="clear-remixer">Clear</div>
 
 	</div>
 

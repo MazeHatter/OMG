@@ -34,15 +34,12 @@ if (typeof omg != "object")
 
     	p.prepareSong(song);
     	
-    	console.log("play button 1");
-    	
     	if (p.playing) {
     		p.nextUp = song;
     		return p.playingIntervalHandle;
     	}
 		p.song= song;
 
-		console.log(p.playing);
 		
         p.song.playingSection = 0;
     
@@ -91,12 +88,21 @@ if (typeof omg != "object")
         // ??
         p.songStarted = p.loopStarted;
         
+        if (typeof(p.onPlay) == "function") {
+        	p.onPlay();
+        }
+        
         return p.playingIntervalHandle;
     };
 
     p.stop = function () {
     	clearInterval(p.playingIntervalHandle);
     	p.playing = false;
+    	
+        if (typeof(p.onStop) == "function") {
+        	p.onStop();
+        }
+
     };
     
     p.loadPart = function (part, data) {
@@ -550,14 +556,14 @@ if (typeof omg != "object")
     				noteIndex = noteIndex - 12;
     			}
     		}
-    		console.log(noteIndex);
+
     		note.sound = prefix + ss.data.data[noteIndex].url + postfix;
 
     		if (!note.sound)
     			continue;
     		
             if (load && !p.loadedSounds[note.sound]) {
-                loadSound(note.sound, part);
+                p.loadSound(note.sound, part);
             }
     	}
 
@@ -637,8 +643,9 @@ if (typeof omg != "object")
     	//		audio.stop(0);
     	//	});
     	//}, fromNow - 100);
-    	
-    	audio.stop(p.context.currentTime + fromNow * 0.92);
+
+    	if (audio)
+    		audio.stop(p.context.currentTime + fromNow * 0.98);
     	
         if (part)
         	part.currentAudio = audio;
@@ -687,10 +694,11 @@ function OMGSection(div) {
 	this.parts = [];
 	
 	// key? tempo? we need it here too, I guess
-};
+}
 
 function OMGDrumpart(div) {
-	this.div = div;
+	this.div = div;	
+	
 	this.data = {"type":"DRUMBEAT","bpm":120,"kit":0,
 		    isNew: true,
 			"tracks":[{"name":"kick","sound":"PRESET_HH_KICK",
@@ -715,7 +723,7 @@ function OMGDrumpart(div) {
 	
 	// key? tempo? we need it here too, I guess
 	
-};
+}
 
 function OMGPart(div) {
 	this.div = div;
@@ -723,4 +731,26 @@ function OMGPart(div) {
 		
 	// key? tempo? we need it here too, I guess
 	
+}
+
+
+//this is cuz a way early bug in OMG Drums not using the right sound names
+// but its not being called (as of press time)
+omg.player.fixSound  = function (tracks, kit) {	
+    if (tracks.length == 8 && tracks[0].sound == "PRESET_HH_KICK"
+        && tracks[1].sound == "PRESET_HH_KICK"
+            && tracks[2].sound == "PRESET_HH_KICK") {
+
+        tracks[0].sound = kit == 0 ? "PRESET_HH_KICK" : "PRESET_ROCK_KICK"; 
+        tracks[1].sound = kit == 0 ? "PRESET_HH_CLAP" : "PRESET_ROCK_SNARE";
+        tracks[2].sound = "PRESET_ROCK_HIHAT_CLOSED" ;
+        tracks[3].sound = kit == 0 ? "PRESET_HH_HIHAT" : "PRESET_ROCK_HIHAT_MED";
+        tracks[4].sound = kit == 0 ? "PRESET_HH_TAMB" : "PRESET_ROCK_HIHAT_OPEN";
+        tracks[5].sound = kit == 0 ? "PRESET_HH_SCRATCH" : "PRESET_ROCK_CRASH";
+        tracks[6].sound = "";
+        tracks[7].sound = "";
+    }
+    else if (tracks.length > 0 && tracks[0].sound == "PRESET_ROCK_KIT") {
+        tracks[0].sound = "PRESET_ROCK_KICK";        
+    }
 };

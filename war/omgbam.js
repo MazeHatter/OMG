@@ -32,8 +32,18 @@ window.onload = function () {
     setupRearranger();
     setupMelodyMaker();
     bam.setupBeatMaker();
-    
-    setupClicks();
+
+    omg.player.onPlay = function () {
+    	omg.rearranger.playButton.innerHTML = "Stop";
+    	omg.mm.playButton.innerHTML = "Stop";
+    	omg.pauseButton.innerHTML = "Stop";
+    };
+    omg.player.onStop = function () {
+    	omg.rearranger.playButton.innerHTML = "Play";
+    	omg.mm.playButton.innerHTML = "Play";
+    	omg.pauseButton.innerHTML = "Play";
+		bam.showingPlayButton.className = bam.showingPlayButton.className.replace("-blink", "");
+    };
 
     //if we got a parameter to do something
     //doInitStuff();
@@ -118,7 +128,8 @@ function setupPartDiv(part) {
     part.div.appendChild(maxButton);
 	*/
 	
-    part.controls = document.createElement("div");		
+    part.controls = document.createElement("div");
+    part.controls.style.height = part.div.clientHeight - 6 + "px";
     part.div.appendChild(part.controls);
 
     var type = part.data.type;
@@ -157,7 +168,7 @@ function setupPartDiv(part) {
     	    
     	    part.sound = ss;
     	
-    		setupPartWithSoundSet(ss, part, true);
+    		omg.player.setupPartWithSoundSet(ss, part, true);
     	});
 
     };
@@ -218,19 +229,18 @@ function setupDivForDrumbeat(part) {
     
     var canvas = document.createElement("canvas");
     part.controls.appendChild(canvas);
-
-    var rowHeight = 18;
-    canvas.height = part.data.tracks.length * rowHeight;
+    
+    canvas.height = canvas.parentElement.clientHeight - canvas.offsetTop - 4;
+    var rowHeight = canvas.height / part.data.tracks.length;
     canvas.style.height = canvas.height + "px";
-    canvas.style.width = canvas.parentElement.clientWidth - 10 + "px";
+    canvas.style.width = canvas.parentElement.clientWidth - 8 + "px";
     canvas.width = canvas.clientWidth;
 
     part.canvas = canvas;
     
     drawDrumCanvas(part);
-            
     
-    canvas.onclick = function (e) {
+    /*canvas.onclick = function (e) {
 		var el = canvas;
 		var offsetLeft = 0;
 		var offsetTop = 0;
@@ -252,7 +262,7 @@ function setupDivForDrumbeat(part) {
     	
     	part.id = 0;
     	sectionModified();
-	};
+	};*/
 
     part.isNew = false;
 
@@ -261,6 +271,30 @@ function setupDivForDrumbeat(part) {
     };
     omg.player.onBeatPlayedListeners.push(part.div.onBeatPlayedListener);
 
+    part.controls.onclick = function () {
+    	bam.part = part;
+    	
+    	var fadeList = [omg.remixer, part.controls];
+    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
+    	for (var ii = 0; ii < otherPartsList.length; ii++) {
+    		if (otherPartsList.item(ii) != part.div)
+    			fadeList.push(otherPartsList.item(ii));
+    		else
+    			part.position = ii;
+    	}
+        	
+    	bam.fadeOut(fadeList);
+    	bam.slideOutOptions(omg.remixer.options, function () {
+    		bam.grow(part.div, function () {
+    			bam.fadeIn([bam.beatmaker]);
+    			bam.beatmaker.ui.setPart(part);
+    			bam.beatmaker.ui.drawLargeCanvas();
+    			
+    			bam.slideInOptions(omg.mm.options);
+    		});	
+    	});
+
+    };
 } 
 
 function setupMelodyDiv(part) {
@@ -321,66 +355,42 @@ function setupMelodyDiv(part) {
 }
 
 
-function setupClicks() {
-
-
-    //omg.remixer.saveButton.onclick = function () {
-    //    save();
-    //};
-
-    omg.remixer.shareButton.onclick = function () {
-        save(shareId);
-    };
-
-}
 
 function setupRemixer() {
 
-	omg.remixerCaption = document.getElementById("remixer-caption");
-
-    omg.remixerButton = document.getElementById("show-remixer-button");
-
     omg.remixer = document.getElementById("remixer");
-    
-    omg.remixer.clearButton = document.getElementById("clear-remixer");
-    omg.viewButtons = document.getElementById("top-bar-view-buttons");
-    omg.createButton = document.getElementById("create-button");
-    omg.browseButton = document.getElementById("browse-button");
-    omg.savedButton = document.getElementById("my-saved-button");
-    omg.goBackToControls = document.getElementById("left-panel-go-back");
-    omg.welcome = document.getElementById("welcome");
-    omg.selectType = document.getElementById("select-part-type"); 
-	omg.gettingStartedCountdown = document.getElementById("seconds-to-go");
-	omg.addToRemixerHint = document.getElementById("add-to-remixer-hint");
-	omg.about = document.getElementById("about");
-    omg.remixer.addToRearrangerButton = document.getElementById("remixer-next");
 
-    omg.remixer.addButtons = document.getElementById("remixer-add-buttons");
-    
+	omg.remixerCaption = document.getElementById("remixer-caption");
+    omg.welcome = document.getElementById("welcome");
+	omg.gettingStartedCountdown = document.getElementById("seconds-to-go");
+	    
     omg.pauseButton = document.getElementById("play-section");
     omg.pauseButton.onclick = function (e) {
     	if (omg.player.playing) {
-    		omg.pauseButton.innerHTML = "play";
     		omg.player.stop();
     	}
     	else  {
-    		omg.pauseButton.innerHTML = "stop";
     		omg.player.play({subbeatMillis: 125,
     				loop: true,
     				sections: [bam.section]});
     	}
-    		
     	
         e.stopPropagation();
     };
+
     var pauseBlinked = false;
     omg.player.onBeatPlayedListeners.push(function (isubbeat) {
 
-    	if (isubbeat%4 == 0) {
-    		//if (!pauseBlinked)
-    			//omg.pauseButton.className = "remixer-pause-button-blink";
-    		//else
-    			//omg.pauseButton.className = "remixer-pause-button";
+    	if (bam.showingPlayButton && isubbeat%4 == 0) {
+    		if (!pauseBlinked){
+    			if (bam.showingPlayButton.className.indexOf("-blink") == -1) {
+        			bam.showingPlayButton.className = 
+        				bam.showingPlayButton.className + "-blink";    				
+    			}
+    		}    			
+    		else{
+    			bam.showingPlayButton.className = bam.showingPlayButton.className.replace("-blink", "");
+    		}
     		
     		pauseBlinked = !pauseBlinked;
     	}
@@ -390,11 +400,10 @@ function setupRemixer() {
 
     omg.remixer.nosection = document.getElementById("no-section-message");
     omg.remixer.sectionButtonRow = document.getElementById("section-button-row");
-    
-    omg.shareDialog = document.getElementById("share-dialog");
-    omg.dialogBorder = document.getElementById("dialog-border");
 
-    omg.remixer.saveButton = document.getElementById("save-button");    
+    omg.remixer.options = document.getElementById("remixer-option-panel");
+
+
     omg.remixer.shareButton = document.getElementById("share-button");
 
     omg.remixer.getSectionData = function () {
@@ -411,9 +420,9 @@ function setupRemixer() {
         return outdata;
     };
 
-    omg.remixer.zone = document.getElementById("remixer-zone");
-    omg.remixer.options = document.getElementById("remixer-option-panel");
-    
+
+    omg.remixer.addButtons = document.getElementById("remixer-add-buttons");
+
     omg.remixer.addMelodyButton = document.getElementById("remixer-add-melody");
     // make a new part
     omg.remixer.addMelodyButton.onclick = function () {
@@ -440,7 +449,7 @@ function setupRemixer() {
     			
     			omg.mm.setPart(newPart);
     			
-    			bam.slideInOptions(omg.mm.options);
+    			//bam.slideInOptions(omg.mm.options);
     		});	
     	});
     	
@@ -476,7 +485,7 @@ function setupRemixer() {
     			
     			omg.mm.setPart(newPart);
     			
-    			bam.slideInOptions(omg.mm.options);
+    			//bam.slideInOptions(omg.mm.options);
     		});	
     	});
     	
@@ -491,7 +500,7 @@ function setupRemixer() {
     			omg.remixer.addDrumbeatButton);
     	
     	var newPart = new OMGDrumpart(newdiv)
-
+    	
     	var otherParts = [];
     	var otherPartsList = bam.section.div.getElementsByClassName("part2");
     	for (var ii = 0; ii < otherPartsList.length; ii++) {
@@ -501,7 +510,21 @@ function setupRemixer() {
     	
     	bam.section.div.appendChild(newPart.div);
     	bam.part = newPart;
-    	
+
+    	if (omg.player.playing) {
+			var newSong = new OMGSong();
+			newSong.loop = true;
+			var newSection = new OMGSection();
+			for (var ip = 0; ip < bam.section.parts.length; ip++) {
+				newSection.parts.push(bam.section.parts[ip]);
+			}
+			
+			newSection.parts.push(bam.part);
+			
+			newSong.sections.push(newSection);
+			omg.player.play(newSong);
+    	}
+
     	bam.fadeOut([omg.remixer]);
     	bam.slideOutOptions(omg.remixer.options, function () {
     		bam.grow(newPart.div, function () {
@@ -526,10 +549,9 @@ function setupRemixer() {
     	bam.arrangeParts();
     	//omg.remixer.addButtons.style.top = 75 + (parts - 1) * 130 + 115 + "px";
     	
-    	omg.pauseButton.innerHTML = omg.player.playing ? "stop" : "play";
     };
 
-    
+    omg.remixer.clearButton = document.getElementById("clear-remixer");    
 	omg.remixer.clearButton.onclick = function () {
         for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
             cancelPart(bam.section.parts[ip], true);
@@ -539,8 +561,8 @@ function setupRemixer() {
 
     };
 
-    var addToRearranger = omg.remixer.addToRearrangerButton;
-    addToRearranger.onclick = function () {
+    omg.remixer.addToRearrangerButton = document.getElementById("remixer-next");
+    omg.remixer.addToRearrangerButton.onclick = function () {
 
         var sections = bam.song.sections.length; 
         
@@ -583,15 +605,32 @@ function setupRemixer() {
             	bam.fadeIn([omg.rearranger]);
             	bam.fadeIn(otherSections);
             	
+            	omg.player.play(bam.song);
+            	
             	var section = bam.section;
 
             	section.div.onclick = function () {
+
+            		var newSong = new OMGSong();
+            		newSong.sections.push(bam.section);
+            		newSong.loop = true;
+            		omg.player.play(newSong);
+            		
+                	var fadeOutList2 = [];
+                	var otherSectionList = bam.song.div.getElementsByClassName("section");
+                	for (var ii = 0; ii < otherSectionList.length; ii++) {
+                		if (otherSectionList.item(ii) != section.div)
+                			fadeOutList2.push(otherSectionList.item(ii));
+                	}
+                	fadeOutList2.push(omg.rearranger);
+
             		bam.slideDownOptions(omg.rearranger.options);
-            		bam.fadeOut([omg.rearranger], function () {
+            		bam.fadeOut(fadeOutList2, function () {
                 		bam.grow(section.div, function () {
                 			bam.section = section;
                 			bam.fadeIn(fadeOutList);
                 			bam.slideInOptions(omg.remixer.options);
+                			omg.remixer.refresh();
                 		});            			
             		});
             		section.div.onclick = null;
@@ -611,7 +650,10 @@ function setupRearranger() {
 
     omg.rearranger.playButton = document.getElementById("play-song");
     omg.rearranger.playButton.onclick = function () {
-    	omg.player.play(bam.song);
+    	if (omg.player.playing)
+    		omg.player.stop();
+    	else
+    		omg.player.play(bam.song);
     };
     
     
@@ -655,6 +697,8 @@ function setupRearranger() {
     
         omg.rearranger.unload();
         bam.slideInOptions(omg.rearranger.addSectionButton, null, 5);
+        
+        bam.slideDownOptions(omg.rearranger.options);
     
         omg.rearranger.emptyMessage.style.display = "block";
     };
@@ -746,7 +790,7 @@ function setupRearranger() {
        			bam.fadeIn([omg.remixer]);
     			omg.remixer.refresh();
     			
-    			bam.slideInOptions(omg.remixer.options);
+    			//bam.slideInOptions(omg.remixer.options);
     		});	
     	});
 
@@ -763,6 +807,9 @@ function cancelPart(part) {
         bam.section.parts.splice(partInArray, 1);
 
         if (bam.section.parts.length == 0) {
+        	
+        	bam.slideOutOptions(omg.remixer.options);
+        	
             omg.player.stop();
     		omg.remixer.nosection.style.display = "block";
         }
@@ -796,231 +843,13 @@ function pausePart(part) {
     }
 }
 
-function playBeat(iSubBeat) {
-
-    for (var il = 0; il < omg.onBeatPlayedListeners.length; il++) {
-        omg.onBeatPlayedListeners[il].call(null, iSubBeat);
-    }
-
-    if (omg.player.source === "remixer") {
-        for (var ip = 0; ip < omg.section.parts.length; ip++) {
-            playBeatForPart(iSubBeat, omg.section.parts[ip].data, omg.section.parts[ip]);
-        }
-    }
-    else if (omg.player.source === "rearranger") {
-        var section = omg.rearranger.song.sections[omg.rearranger.playingSection];
-        
-        for (var ip = 0; ip < section.parts.length; ip++) {
-            playBeatForPart(iSubBeat, section.parts[ip], 
-                omg.rearranger.client.sections[omg.rearranger.playingSection].parts[ip]);
-        }
-		
-    } 
-
-}
-
-function playBeatForPart(iSubBeat, data, client) {
-
-    if (data.type == "DRUMBEAT") {
-        playBeatForDrumPart(iSubBeat, data, client);        
-    }
-    if (data.type == "MELODY" || data.type == "BASSLINE") {
-        playBeatForMelody(iSubBeat, data, client);        
-    }
-
-}
-
-function playBeatForDrumPart(iSubBeat, data, part) {
-    var tracks = data.tracks;
-    
-	if (part.muted)
-		return;
-
-    for (var i = 0; i < tracks.length; i++) {
-        if (tracks[i].data[iSubBeat]) {
-        	playSound(tracks[i].sound, data.volume);
-        }
-    }
-}
-
-function playBeatForMelody(iSubBeat, data, part) {
-	var beatToPlay = iSubBeat;
-    if (iSubBeat == 0) {
-    	if (part.currentI === -1 || part.currentI === data.notes.length) {
-    		part.currentI = 0;
-    		part.nextBeat = 0;
-    		part.loopedBeats = 0;
-    	}
-    	else {
-    		if (!part.loopedBeats) part.loopedBeats = 0;
-			part.loopedBeats += omg.beats * omg.subbeats;
-    	}
-    }
-
-    if (part.loopedBeats) {
-    	beatToPlay += part.loopedBeats;
-    }
-
-    if (beatToPlay == part.nextBeat) {
-    
-        var note = data.notes[part.currentI];
-        
-//        if (part.soundset) {
-    	if (note && note.sound) {
-    	    if (!part.muted) {
-        		playNote(note, part, data);        		
-    		}
-        }
-        else {
-            if (!part.osc) {
-            	makeOsc(part, data);
-            }
-
-            if (!note || note.rest)
-                part.osc.frequency.setValueAtTime(0, 0);
-            else {
-            	var freq = makeFrequency(note.scaledNote);
-            	part.osc.frequency.setValueAtTime(
-            			makeFrequency(note.scaledNote), 0);
-            	part.playingI = part.currentI;
-            	var playingI = part.playingI;
-            	setTimeout(function () {
-            		if (part.playingI == playingI) {
-            			part.osc.frequency.setValueAtTime(0, 0);
-            		}
-            	}, omg.subbeats * note.beats * omg.subbeatLength * 0.85);
-            }
-        	
-        }
-    	
-        if (note) {
-            part.nextBeat += omg.subbeats * note.beats;
-            part.currentI++;
-        }
-
-    }
 
 
-}
-
-function loadSound(sound, part) {
-
-    if (!sound || !omg.player.context) {
-        return;
-    }
-
-    var key = sound;
-    var url = sound;
-    if (sound.indexOf("PRESET_") == 0) {
-        url = "audio/" + sound.substring(7).toLowerCase() + omg.fileext;
-    }
-    
-    omg.player.loadedSounds[key] = "loading";
-    
-    var request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'arraybuffer';
-
-    part.soundsLoading++;
-
-    // Decode asynchronously
-    request.onload = function() {
-        omg.player.context.decodeAudioData(request.response, function(buffer) {
-            omg.player.loadedSounds[key] = buffer;
-            onSoundLoaded(true, part);
-        }, function () {
-            debug("error :(");
-            onSoundLoaded(false, part);
-        });
-    }
-    request.send();
-
-}
-
-function playSound(sound, volume) {
-    if (omg.player.loadedSounds[sound] && 
-    		omg.player.loadedSounds[sound] !== "loading") {
-    	    	
-        var source = omg.player.context.createBufferSource();
-        source.buffer = omg.player.loadedSounds[sound];                   
-        //source.connect(omg.player.context.destination);
-        if (source.start)
-            source.start(0);
-        else {
-        	source.noteOn(0);
-        	source.stop = function () {
-        		source.noteOff(0);
-        	};
-        } 
-
-        source.gain2 = omg.player.context.createGain();
-        source.connect(source.gain2);
-        source.gain2.connect(omg.player.context.destination);
-        
-        source.gain2.gain.value = volume; 
-
-        return source;
-    }
-
-}
-
-function playNote(note, part, data) {
-
-	var audio = playSound(note.sound, data.volume);
-	var fromNow = 1000 * (note.beats/(omg.bpm/60));
-
-	setTimeout(function () {
-		fadeOut(audio.gain2.gain, function () {
-			audio.stop(0);
-		});
-	}, fromNow - 100);
-	
-    if (part)
-    	part.currentAudio = audio;
-
-}
-
-//this is cuz a way early bug in OMG Drums not using the right sound names
-function fixSound (tracks, kit) {	
-    if (tracks.length == 8 && tracks[0].sound == "PRESET_HH_KICK"
-        && tracks[1].sound == "PRESET_HH_KICK"
-            && tracks[2].sound == "PRESET_HH_KICK") {
-
-        tracks[0].sound = kit == 0 ? "PRESET_HH_KICK" : "PRESET_ROCK_KICK"; 
-        tracks[1].sound = kit == 0 ? "PRESET_HH_CLAP" : "PRESET_ROCK_SNARE";
-        tracks[2].sound = "PRESET_ROCK_HIHAT_CLOSED" ;
-        tracks[3].sound = kit == 0 ? "PRESET_HH_HIHAT" : "PRESET_ROCK_HIHAT_MED";
-        tracks[4].sound = kit == 0 ? "PRESET_HH_TAMB" : "PRESET_ROCK_HIHAT_OPEN";
-        tracks[5].sound = kit == 0 ? "PRESET_HH_SCRATCH" : "PRESET_ROCK_CRASH";
-        tracks[6].sound = "";
-        tracks[7].sound = "";
-    }
-    else if (tracks.length > 0 && tracks[0].sound == "PRESET_ROCK_KIT") {
-        tracks[0].sound = "PRESET_ROCK_KICK";        
-    }
-
-
-}
 
 function gotoURL(url) {
     window.location = url;
 }
 
-function sendVote(entry, value) {
-
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/vote", true);
-    xhr.onreadystatechange = function(){
-        if (xhr.readyState == 4){
-
-            debug(xhr.responseText);
-        }
-    }
-    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-    xhr.send("type=" + entry.type + "&id=" + entry.id + "&value=" + value);
-
-
-}
 
 function setupAsCurrentInList(searchResult, div) {
 
@@ -1078,10 +907,6 @@ function setupAsCurrentInList(searchResult, div) {
 
 }
 
-function makeFrequency(mapped) {
-    return Math.pow(2, (mapped - 69.0) / 12.0) * 440.0;
-}
-
 
 function needsMP3() {
     var ua = navigator.userAgent.toLowerCase();
@@ -1090,174 +915,9 @@ function needsMP3() {
     return iOS || safari;
 }
 
-function onSoundLoaded(success, part) {
-
-    part.soundsLoading--;
-    if (part.soundsLoading < 1) {
-    	part.loaded = true;
-    }
-}
 
 
-function initSound() {
-    omg.playedSound = true;
-    var osc = omg.player.context.createOscillator();
-    osc.connect(omg.player.context.destination);
-    osc.frequency.setValueAtTime(0, 0);
-    if (osc.start) {
-        osc.start(0);
-    }
-    else {
-        osc.noteOn(0);
-    }
-    setTimeout(function () {
-        if (osc.stop) {
-            osc.stop(0);
-        }
-        else {
-            osc.noteOff(0);
-        }
-        osc.disconnect(omg.player.context.destination);
-
-    }, 500);
-}
-
-function getImageUrlForNote(note) {
-    if (!omg.noteImageUrls) {
-        var images = [[2, "note_half", "note_rest_half"],
-                      [1.5, "note_dotted_quarter", "note_rest_dotted_quarter"],
-                      [1, "note_quarter", "note_rest_quarter"],
-                      [0.75, "note_dotted_eighth", "note_rest_dotted_eighth"],
-                      [0.5, "note_eighth", "note_rest_eighth", "note_eighth_upside"],
-                      [0.375, "note_dotted_sixteenth", "note_rest_dotted_sixteenth"],
-                      [0.25, "note_sixteenth", "note_rest_sixteenth", "note_sixteenth_upside"],
-                      [0.125, "note_thirtysecond", "note_rest_thirtysecond"]];
-        omg.noteImageUrls = images;
-    }
-
-    var draw_noteImage;
-    if (note.beats == 2.0) {
-        draw_noteImage = omg.noteImageUrls[0][note.rest ? 2 : 1];
-    }
-    if (note.beats == 1.5) {
-        draw_noteImage = omg.noteImageUrls[1][note.rest ? 2 : 1];
-    }
-    if (note.beats == 1.0) {
-        draw_noteImage = omg.noteImageUrls[2][note.rest ? 2 : 1];
-    }
-    if (note.beats == 0.75) {
-        draw_noteImage = omg.noteImageUrls[3][note.rest ? 2 : 1];
-    }
-    if (note.beats == 0.5) {
-        draw_noteImage = omg.noteImageUrls[4][note.rest ? 2 : 1];
-    }
-    if (note.beats == 0.375) {
-        draw_noteImage = omg.noteImageUrls[5][note.rest ? 2 : 1];
-    }
-    if (note.beats == 0.25) {
-        draw_noteImage = omg.noteImageUrls[6][note.rest ? 2 : 1];
-    }
-    if (note.beats == 0.125) {
-        draw_noteImage = omg.noteImageUrls[7][note.rest ? 2 : 1];
-    }
-
-    return "img/notes/" + draw_noteImage + ".png";
-
-}
-
-function getImageForNote(note, upsideDown) {
-
-    var draw_noteImage;
-    if (note.beats == 2.0) {
-        draw_noteImage = omg.noteImages[0][note.rest ? 1 : 0];
-    }
-    if (note.beats == 1.5) {
-        draw_noteImage = omg.noteImages[1][note.rest ? 1 : 0];
-    }
-    if (note.beats == 1.0) {
-        draw_noteImage = omg.noteImages[2][note.rest ? 1 : 0];
-    }
-    if (note.beats == 0.75) {
-        draw_noteImage = omg.noteImages[3][note.rest ? 1 : 0];
-    }
-    if (note.beats == 0.5) {
-        draw_noteImage = omg.noteImages[4][note.rest ? 1 : 
-        	upsideDown ? 2 : 0];
-    }
-    if (note.beats == 0.375) {
-        draw_noteImage = omg.noteImages[5][note.rest ? 1 : 0];
-    }
-    if (note.beats == 0.25) {
-        draw_noteImage = omg.noteImages[6][note.rest ? 1 : 
-        	upsideDown ? 2 : 0];
-    }
-    if (note.beats == 0.125) {
-        draw_noteImage = omg.noteImages[7][note.rest ? 1 : 0];
-    }
-
-    return draw_noteImage;
-
-}
-
-function loadSection(searchResult) {
-
-    if (omg.section) {
-        for (ip = omg.section.parts.length - 1; ip > -1; ip--) {
-            cancelPart(omg.section.parts[ip], true);
-        }
-    }
-
-	setupRemixerForPlay();
-	
-	if (!searchResult.data && searchResult.json)
-		searchResult.data = JSON.parse(searchResult.json);
-
-    var parts = [];
-    if (!searchResult.data.parts && searchResult.data.data) {
-        searchResult.data.parts = searchResult.data.data;
-        delete searchResult.data.data;
-    }
-    var partsData = searchResult.data.parts;
-    
-    if (searchResult.data.ascale == undefined &&
-    		searchResult.data.scale != undefined) {
-    	searchResult.data.ascale = searchResult.data.scale.split(",")
-    	for (var iii = 0; iii < searchResult.data.ascale.length; iii++) {
-    		searchResult.data.ascale[iii] = parseInt(searchResult.data.ascale[iii]);
-    	}
-    }
-
-    omg.section = searchResult;
-
-    omg.section.parts = [];
-    var part;
-    for (var ip = 0; ip < partsData.length; ip++) {
-    	part = {type: partsData[ip].type,
-                data: partsData[ip],
-                div: document.createElement("div")
-        };
-        parts[ip] = part; 
-        part.div.className = "remixer-part";
-
-        part.holder = document.createElement("div");
-        part.holder.className = "remixer-part-holder";
-
-        part.holder.appendChild(part.div);
-        omg.sectionDiv.appendChild(part.holder);
-        
-        setupPartDiv(part);    
-
-        omg.section.parts.push(part);
-        omg.player.loadPart(part, part.data);
-
-    }
-
-
-    if (!omg.player.playing)
-        omg.player.playWhenReady();
-}
-
-function resizePart(part, resize) {
+/*function resizePart(part, resize) {
     var div = part.div;
     var show;
     var minButton = div.getElementsByClassName("remixer-part-command")[0];
@@ -1308,25 +968,20 @@ function resizePart(part, resize) {
     }
 
     part.size = resize;
-}
+}*/
 
 
 function sectionModified() {
 
     var saveCaption = "Save";
-    omg.section.id = 0;
-    if (omg.section.parts.length == 1 && omg.section.parts[0].id) {
-    	saveCaption = "(Saved)";
-    }
-    //omg.remixer.saveButton.innerHTML = saveCaption;
-    //omg.remixer.addToRearrangerButton.innerHTML = "+<i>re</i><b>arranger</b>";
+    bam.section.id = -1;
 
 }
 
 function getOMG(data, callback) {
 
 	var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/omg?type=" + data.type + "&id=" + data.id, true);
+    xhr.open("GET", omg.url + "/omg?type=" + data.type + "&id=" + data.id, true);
     xhr.onreadystatechange = function(){
         if (xhr.readyState == 4){
         	var ooo = JSON.parse(xhr.response);
@@ -1337,6 +992,42 @@ function getOMG(data, callback) {
     xhr.send();
 }
 
+function postOMG(type, odata, callback) {
+
+	var outdata = odata;
+	if (type !== "SONG")
+    	outdata = odata.data;
+
+	var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/omg", true);
+    xhr.onreadystatechange = function(){
+        if (xhr.readyState == 4){
+
+            var results = JSON.parse(xhr.responseText);
+            if (results.result == "good") {
+            	odata.id = results.id;
+            	if (callback)
+            		callback(results);
+            }
+
+        }
+    }
+    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+    xhr.send("type=" + type + "&tags=&data=" + encodeURIComponent(JSON.stringify(outdata)));
+}
+
+function sendVote(entry, value) {
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/vote", true);
+    xhr.onreadystatechange = function(){
+        if (xhr.readyState == 4){
+            debug(xhr.responseText);
+        }
+    }
+    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+    xhr.send("type=" + entry.type + "&id=" + entry.id + "&value=" + value);
+}
 
 
 function createDrumbeatFromSoundSet(soundSet) {
@@ -1462,9 +1153,9 @@ function getSoundSet(id, callback) {
 		callback(dl)
 		return;
 	}
-	
+
 	if (typeof id == "string" && id.indexOf("PRESET_") == 0) {
-		dl = getPresetSoundSet(id);
+		dl = omg.player.getPresetSoundSet(id);
 		omg.downloadedSoundSets[id] = dl;
 		callback(dl);
 		return;
@@ -1489,11 +1180,6 @@ function getSoundSet(id, callback) {
 	xhr2.send();
 
 }
-
-function setupRemixerForPlay() {
-    omg.remixer.nosection.style.display = "none";
-}
-
 
 function shareId(id, type) {
 
@@ -1539,30 +1225,7 @@ function shareLink(url) {
 	window.location = url; 
 }
 
-function postOMG(type, odata, callback) {
 
-	var outdata = odata;
-	if (type !== "SONG")
-    	outdata = odata.data;
-
-	var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/omg", true);
-    xhr.onreadystatechange = function(){
-        if (xhr.readyState == 4){
-
-            var results = JSON.parse(xhr.responseText);
-            if (results.result == "good") {
-            	odata.id = results.id;
-            	if (callback)
-            		callback(results);
-            }
-
-        }
-    }
-    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-    xhr.send("type=" + type + "&tags=&data=" + encodeURIComponent(JSON.stringify(outdata)));
-
-}
 
 function isShrunk() {
 	return window.innerWidth < 961;
@@ -1584,7 +1247,7 @@ function drawMelodyMakerCanvas() {
     var noteHeight;
     var noteWidth;    
     if (!omg.rawNoteWidth) {
-	    var noteImage = getImageForNote({beats: 1});
+	    var noteImage = omg.ui.getImageForNote({beats: 1});
 	    noteHeight = noteImage.height;
 	    noteWidth = noteImage.width;
 	    omg.rawNoteWidth = noteWidth;
@@ -1654,11 +1317,12 @@ function drawMelodyMakerCanvas() {
 	var note;
 	var y;
 	
-	if (omg.mm.playingI > -1 && 
-			omg.mm.playingI < omg.mm.data.notes.length) {
+	var playingI = bam.part.playingI;
+	var notes = bam.part.data.notes;
+	if (playingI > -1 &&  playingI < notes.length) {
 		context.fillStyle = "#4fa5d5";
 		
-		note = omg.mm.data.notes[omg.mm.playingI];
+		note = notes[playingI];
 		if (note.rest) {
 			y = restHeight;
 		}
@@ -1667,7 +1331,7 @@ function drawMelodyMakerCanvas() {
 					fretHeight + fretHeight * 0.5 -
 					noteHeight * 0.75;
 		}
-		context.fillRect(omg.mm.playingI * noteWidth + noteWidth + 
+		context.fillRect(playingI * noteWidth + noteWidth + 
 				(omg.rawNoteWidth / 2 - omg.rawNoteWidth / 2), y, 
 				noteWidth, noteHeight);
 	}
@@ -1697,7 +1361,7 @@ function drawMelodyMakerCanvas() {
     
 	    for (var i = 0; i < omg.mm.data.notes.length; i++) {
 		    note = omg.mm.data.notes[i]
-		    noteImage = getImageForNote(note);
+		    noteImage = omg.ui.getImageForNote(note);
 		    if (omg.mm.data.notes[i].rest) {
 			    y = restHeight;
 		    }
@@ -1754,7 +1418,8 @@ function setupMelodyMaker() {
     omg.mm.canvas = document.getElementById("melody-maker-canvas");
     omg.mm.data = bam.part.data;
 
-    setupNoteImages();
+    // already called when defined
+    //omg.ui.setupNoteImages();
 	
     omg.mm.selectRootNote = document.getElementById("select-root-note-mm");
 	omg.mm.selectBottomNote = document.getElementById("melody-maker-bottom-note");
@@ -1768,24 +1433,56 @@ function setupMelodyMaker() {
 	
 	omg.mm.clearButton = document.getElementById("clear-mm");
 	omg.mm.clearButton.onclick = function () {
-		omg.mm.data.notes = [];
-		omg.mm.lastNewNote = 0;
-		drawMelodyMakerCanvas();
+
+		if (bam.part.data.type == "DRUMBEAT") {
+			var track;
+			for (var i = 0; i < bam.part.data.tracks.length; i++) {
+				track = bam.part.data.tracks[i];
+				for (var j = 0; j < track.data.length; j++) {
+					track.data[j] = 0;
+				}
+			}
+			bam.beatmaker.ui.drawLargeCanvas();
+		}
+		else {
+			omg.mm.data.notes = [];
+			omg.mm.lastNewNote = 0;
+			drawMelodyMakerCanvas();
+			bam.slideOutOptions(omg.mm.options);
+		}
 	}; 
 	
 	omg.mm.playButton = document.getElementById("play-mm");
 	omg.mm.playButton.onclick = function () {
-		if (omg.mm.playButton.innerHTML == "Play") {
-			omg.mm.playButton.innerHTML = "Stop";
-			omg.mm.play();
+
+		if (omg.player.playing) {
+			omg.player.stop();
+			return;
+		}
+		
+		if (bam.part.data.type == "DRUMBEAT") {
+			var newSong = new OMGSong();
+			newSong.loop = true;
+			var newSection = new OMGSection();
+			newSection.parts.push(bam.part);
+			newSong.sections.push(newSection);
+			omg.player.play(newSong);
 		}
 		else {
-			omg.mm.playButton.innerHTML = "Play";
+			omg.mm.play();
 		}
 	};
 
 	omg.mm.play = function () {
 
+		var newSong = new OMGSong();
+		var newSection = new OMGSection();
+		newSection.parts.push(bam.part);
+		newSong.sections.push(newSection);
+		omg.player.play(newSong);
+
+		
+		return;
 		var iSubBeat = 0;
 		
 		omg.subbeatLength = 60000 / omg.bpm / omg.subbeats;		
@@ -1808,49 +1505,38 @@ function setupMelodyMaker() {
     	}, omg.subbeatLength);
 	};
 
-	omg.mm.saveButton = document.getElementById("save-mm");
-	/*omg.mm.saveButton.onclick = function () {
-
-		if (omg.mm.saveButton.innerHTML == "Save") {
-			omg.mm.saveButton.innerHTML = "Saving...";
-			postOMG(omg.mm.data.type, omg.mm, function (response) {
-				if (response && response.result ==  "good") {
-					omg.mm.saveButton.innerHTML = "Saved";
-					
-					omg.mm.omgid = response.id;
-				}
- 
-			});
-		}
-	};*/
-
 	omg.mm.remixerButton = document.getElementById("next-mm");
 	omg.mm.remixerButton.onclick = function () {
-		setupRemixerForPlay();
 		
 		parts = bam.section.parts.length;
 		
 		var part = bam.part; 
-		console.log(bam.part);
 		
 		var type = bam.part.data.type;
 		
 		if (type == "MELODY" || type == "BASSLINE") {
-			bam.fadeOut([omg.mm]);			
+			bam.fadeOut([omg.mm]);		
+			omg.mm.playAfterAnimation = false;
 		}
 		else if (type == "DRUMBEAT") {
 			bam.fadeOut([bam.beatmaker]);
 		}
 
-		bam.section.parts.push(part);
+		var position;
+		if (typeof(part.position) == "number") {
+			position = part.position;
+		}
+		else {
+			position = parts;
+			bam.section.parts.push(part);
+		}
 		
 		bam.slideOutOptions(document.getElementById("mm-options"), function () {
-			bam.shrink(bam.part.div, 100, 88 + parts * 126, 640, 105, function () {
+			bam.shrink(bam.part.div, 100, 88 + position * 126, 640, 105, function () {
 
 				setupPartDiv(part);
-				
+
 				bam.slideInOptions(omg.remixer.options);
-				//omg.remixer.addButtons.style.top = 75 + parts * 130 + 115 + "px";
 				
 		    	var otherParts = [];
 		    	var otherPart;
@@ -1863,6 +1549,7 @@ function setupMelodyMaker() {
 
 		    	otherParts.push(omg.remixer);
 				bam.fadeIn(otherParts);
+
 				omg.remixer.refresh();
 				
 				omg.player.play({loop: true, subbeatMillis: 125, sections: [bam.section]});
@@ -1884,8 +1571,8 @@ function setupMelodyMaker() {
 	omg.mm.addRests = document.getElementById("add-rests-mm");
 	var beats;
 	var restImage;
-	for (var iimg = 0; iimg < omg.noteImageUrls.length; iimg++) {
-		beats = omg.noteImageUrls[iimg][0];
+	for (var iimg = 0; iimg < omg.ui.noteImageUrls.length; iimg++) {
+		beats = omg.ui.noteImageUrls[iimg][0];
 		if (!(beats % 0.25 == 0))
 			continue;
 		
@@ -1946,6 +1633,7 @@ function setupMelodyMaker() {
     	var visibility;
     	omg.mm.welcomeStyle = welcomeStyle;
     	if (welcomeStyle) {
+    		omg.mm.playAfterAnimation = true;
             omg.mm.drawnOnce = false;
     		visibility = "hidden";
     		omg.welcome.style.display = "block";
@@ -1963,7 +1651,8 @@ function setupMelodyMaker() {
     		
         omg.mm.style.display = "block";
         
-        makeOsc(omg.mm, omg.mm.data);
+        //makeOsc(omg.mm, omg.mm.data);
+        omg.player.makeOsc(part);
 
         var type = part.data.type;
         
@@ -1982,6 +1671,9 @@ function setupMelodyMaker() {
         drawMelodyMakerCanvas();
     };
 
+    omg.player.onBeatPlayedListeners.push(function () {
+    	drawMelodyMakerCanvas();
+    });
 }
 
 function setupMelodyMakerFretBoard() {
@@ -2038,52 +1730,6 @@ function setupMelodyMakerFretBoard() {
 }
 
 
-function makeOsc(part, data) {
-	
-	if (!omg.player || !omg.player.context) {
-		part.osc = {frequency: {setValueAtTime: function () {}}};
-		part.gain = {gain:{}};
-		return;
-	}
-	
-	var p = omg.player;
-
-	if (part.osc) {
-		try {
-			part.osc.stop(0);
-			part.osc.disconnect(part.gain);
-			part.gain.disconnect(p.context.destination);
-		}
-		catch (e) {}
-	}
-
-	part.osc = p.context.createOscillator();
-
-    if (data.type == "BASSLINE") {
-        part.osc.type = part.osc.SAWTOOTH || "sawtooth";
-    }
-
-    part.gain = p.context.createGain();
-    part.osc.connect(part.gain);
-    part.gain.connect(p.context.destination);
-    
-    if (part.muted) {
-    	part.gain.gain.value = 0;
-    	part.gain.gain.preMuteGain = 0.15;
-    }
-    else {
-        part.gain.gain.value = 0.15;    	
-    }
- 
-    part.osc.frequency.setValueAtTime(0, 0);
-    if (part.osc.start)
-        part.osc.start(0);
-    else 
-        part.osc.noteOn(0);
-    part.oscStarted = true;
-
-}
-
 function fadeOut(gain, callback) {
 	
 	var level = gain.value;
@@ -2112,34 +1758,6 @@ function welcomeMessage() {
 	omg.welcome.style.opacity = 1;
 }
 
-function setupNoteImages() {
-	if (omg.noteImages)
-		return;
-	
-	if (!omg.noteImageUrls) 
-		getImageUrlForNote({beats:1});
-	
-	omg.noteImages = [];
-	for (var i = 0; i < omg.noteImageUrls.length; i++) {
-
-		
-		var noteImage = new Image();
-	    noteImage.src = omg.ui.getNoteImageUrl(i, 1);
-	    var restImage = new Image();
-	    restImage.src = omg.ui.getNoteImageUrl(i, 2);
-	    
-	    var imageBundle = [noteImage, restImage];
-	    var upsideDown = omg.ui.getNoteImageUrl(i, 3); 
-	    if (upsideDown){
-	    	var upsideImage = new Image();
-	    	upsideImage.src = upsideDown;
-	    	imageBundle.push(upsideImage);
-    	}
-
-	    
-		omg.noteImages.push(imageBundle);
-	}
-}
 
 function addTimeToNote(note, thisNote) {
 	var skipCount = 0;
@@ -2168,7 +1786,7 @@ function addTimeToNote(note, thisNote) {
 function doneTouching() {
 	omg.mm.lastNewNote = Date.now();
 	omg.mm.frets.touching = -1;
-	omg.mm.osc.frequency.setValueAtTime(0, 0);				
+	bam.part.osc.frequency.setValueAtTime(0, 0);				
 	drawMelodyMakerCanvas();
 	
 }
@@ -2228,7 +1846,7 @@ function onMelodyMakerDisplay() {
 				
 				    var noteNumber = omg.mm.frets[fret].note;
 				
-		            omg.mm.osc.frequency.setValueAtTime(makeFrequency(noteNumber), 0);
+		            bam.part.osc.frequency.setValueAtTime(omg.player.makeFrequency(noteNumber), 0);
 		            
 		            note = {note: fret - omg.mm.frets.rootNote, scaledNote: noteNumber, beats: 0.25,
 		                    drawData: []};
@@ -2314,7 +1932,8 @@ function onMelodyMakerDisplay() {
 
 			omg.mm.frets.touching = fret;
 			
-	        omg.mm.osc.frequency.setValueAtTime(makeFrequency(noteNumber), 0);
+	        //omg.mm.osc.frequency.setValueAtTime(omg.player.makeFrequency(noteNumber), 0);
+			bam.part.osc.frequency.setValueAtTime(omg.player.makeFrequency(noteNumber), 0);
 	        
 	        note = {note: fret - omg.mm.frets.rootNote, scaledNote: noteNumber, beats: 0.25,
 	                    drawData: []};
@@ -2332,6 +1951,11 @@ function onMelodyMakerDisplay() {
 
 			    note.drawData.push({x: x, y: y, originalX: x, originalY: y});
 			} 
+			else {
+				if (!omg.mm.options.showing) {
+					bam.slideInOptions(omg.mm.options);
+				}
+			}
 	        
 	        drawMelodyMakerCanvas();
 		};
@@ -2349,51 +1973,6 @@ function onMelodyMakerDisplay() {
 	
 	setupMelodyMakerFretBoard();
 }
-
-function save(callback) {
-
-	var saveButton = omg.remixer.saveButton;
-		
-	saveButton.innerHTML = "(Saving...)";
-	if (omg.section.id && omg.section.id > 0) {
-		saveButton.innerHTML = "(Saved)";
-		if (callback) {
-		    callback(omg.section.id, "SECTION");
-		}
-	} else if (omg.section.parts.length == 1) {
-		var part = omg.section.parts[0];
-		if (part.id && part.id > 0) {
-			saveButton.innerHTML = "(Saved)";
-		    if (callback) {
-		        callback(part.id, part.type);
-		    }
-		}
-		else {
-			postOMG(part.type, part, function (results) {
-				saveButton.innerHTML = "(Saved)";
-			    if (callback) {
-		            callback(results.id, part.type);
-		        }
-			});
-		}
-	}
-	else if (omg.section.parts.length > 0) {
-	    omg.section.data = omg.remixer.getSectionData();
-		postOMG("SECTION", omg.section, function (results) {
-		    if (results && results.result == "good") {
-			    saveButton.innerHTML = "(Saved)";
-		        if (callback) {
-		            callback(results.id, "SECTION");
-		        }
-		    }
-		    else {
-		        saveButton.innerHTML = "(Error)";
-		    }
-		});
-	}
-	
-}
-
 
 
 function rescale(part, rootNote, scale) {
@@ -2434,76 +2013,6 @@ function makeScale(string) {
 	return scale;
 }
 
-function drawDrumCanvas(part, subbeat) {
-	
-	if (part.data.tracks.length == 0)
-		return;
-
-	var canvas = part.canvas;
-    var context = canvas.getContext("2d");
-
-    canvas.width = canvas.parentElement.clientWidth;
-    
-    var rowHeight = 18;
-
-    var captionWidth = 0; 
-    var maxCaptionWidth = 0;
-    var caption;
-    for (var i = 0; i < part.data.tracks.length; i++) {
-    	caption = part.data.tracks[i].name;
-    	context.fillText(caption, 0, rowHeight * (i + 1) - 6);
-    	if (caption.length > 0) {
-        	captionWidth = context.measureText(caption).width;
-        	if (captionWidth > maxCaptionWidth)
-        		maxCaptionWidth = captionWidth;
-    	}
-    }
-    
-    captionWidth = Math.min(canvas.width * 0.2, 80, maxCaptionWidth + 4);
-    var columnWidth = (canvas.width - captionWidth) / part.data.tracks[0].data.length;
-    
-    canvas.rowHeight = rowHeight;
-    canvas.columnWidth = columnWidth;
-    canvas.captionWidth = captionWidth;
-    
-    
-    for (var i = 0; i < part.data.tracks.length; i++) {
-    	for (var j = 0; j < part.data.tracks[i].data.length; j++) {
-    		
-    		context.fillStyle = part.data.tracks[i].data[j] ? "black" : 
-    				(j%4==0) ? "#C0C0C0" : "#E0E0E0";
-    		
-    		context.fillRect(captionWidth + columnWidth * j + 1, rowHeight * i + 1,
-    				columnWidth - 2, rowHeight - 2);
-    	}
-    }
-
-    context.globalAlpha = 0.5;
-    context.fillStyle = "#4fa5d5";
-	if (subbeat != undefined) {
-		context.fillRect(captionWidth + columnWidth * subbeat + 1, 0,
-				columnWidth - 2, canvas.height);
-	}
-	context.globalAlpha = 0;
-
-}
-
-function hideMainControls() {
-	omg.mainControls.style.display = "none";
-	omg.goBackToControls.style.display = "block";
-	omg.mainControlsHeader.style.display = "none";
-
-}
-
-function showMainControls() {
-	omg.goBackToControls.style.display = "none";
-	omg.savedPanel.style.display = "none";
-	omg.listView.style.display = "none";
-	
-	omg.mainControls.style.display = "block";
-	omg.mainControlsHeader.style.display = "block";
-
-}
 
 function startDrawCountDown() {
 	omg.mm.drawStarted = Date.now();
@@ -2563,85 +2072,6 @@ function startDrawCountDown() {
 		drawMelodyMakerCanvas();
 		
 	}, 1000 / 60);
-}
-
-function getSelectInstrument(type) {
-	var select = "<select class='remixer-part-instrument'>";
-
-    if (type == "BASSLINE") {
-        select += "<option value='DEFAULT'>Saw Wave</option>";
-
-        if (omg.dev)
-    	    select += "<option value='5444781580746752'>Electric Bass</option>";
-    	else
-    	    select += "<option value='1540004'>Electric Bass</option>";
-
-    }
-    else if (type == "MELODY") {
-        select += "<option value='DEFAULT'>Sine Wave</option>";
-        select += "<option value='PRESET_SYNTH1'>Keyboard</option>";
-        select += "<option value='PRESET_GUITAR1'>Electric Guitar</option>";
-	    select += "<option value='" + (omg.dev ? "5128122231947264" : "5157655500816384") + "'>Power Chords</option>";
-
-        if (omg.golinski) {
-    	    select += "<option value='" + 
-    	            omg.dev ? "6139672929501184" : "6303373460504576" + 
-    	            "'>Cheese</option>";
-        }
-    }
-    else if (type == "DRUMBEAT") {
-        select += "<option value='PRESET_HIP'>Hip</option>";
-        select += "<option value='PRESET_ROCK'>Rock</option>";
-    }
-
-		
-	return select + "</select>";
-	
-	return "";
-}
-
-function debug(out) {
-	console.log(out);
-}
-
-function setupPartWithSoundSet(ss, part, load) {
-	console.log("setup part with soundset");
-
-	if (!ss)
-		return;
-	
-	//part.soundset = ss;
-	var note;
-	var noteIndex;
-	
-	var prefix = ss.data.prefix || "";
-	var postfix = ss.data.postfix || "";
-
-	for (var ii = 0; ii < part.data.notes.length; ii++) {
-		note = part.data.notes[ii];
-		
-		if (note.rest)
-			continue;
-
-		noteIndex = note.scaledNote - ss.bottomNote;
-		if (noteIndex < 0) {
-			noteIndex = noteIndex % 12 + 12;
-		}
-		else {
-			while (noteIndex >= ss.data.data.length) {
-				noteIndex = noteIndex - 12;
-			}
-		}
-		note.sound = prefix + ss.data.data[noteIndex].url + postfix;
-
-		if (!note.sound)
-			continue;
-		
-        if (load && !omg.player.loadedSounds[note.sound]) {
-            loadSound(note.sound, part);
-        }
-	}
-
 }
 
 function drawGettingStartedLines(canvas, context) {
@@ -2736,7 +2166,8 @@ function animateDrawing() {
             clearInterval(animateInterval);
             omg.mm.animationStarted = 0;
             
-			omg.mm.play();
+            if (!omg.player.playing)
+            	omg.mm.play();
 			
 			if (!omg.util.getCookie("remixer-got-it")) {
 			    //omg.mm.showRemixerHint();
@@ -2749,6 +2180,7 @@ function animateDrawing() {
     }, 1000 / 60);
 }
 
+/* used by melody maker intro*/
 function fadeDiv(div, length, on) {
     var startedFade = Date.now();
     var percent;
@@ -2778,25 +2210,62 @@ function fadeDiv(div, length, on) {
         
 }
 
-omg.util = {};
-omg.util.getCookie = function (c_name) {
-    var i,x,y, cookies=document.cookie.split(";");
-    for (i=0; i < cookies.length; i++) {
-        x = cookies[i].substr(0, cookies[i].indexOf("="));
-        y = cookies[i].substr(cookies[i].indexOf("=") + 1);
-        x = x.replace(/^\s+|\s+$/g, "");
-        if (x == c_name) {
-            return unescape(y);
+
+
+
+function drawDrumCanvas(part, subbeat) {
+	
+	if (part.data.tracks.length == 0)
+		return;
+
+	var params = {};
+	params.drumbeat = part.data;
+	params.canvas = part.canvas;
+	params.subbeat = subbeat;
+	
+	omg.ui.drawDrumCanvas(params);
+	
+}
+
+function getSelectInstrument(type) {
+	var select = "<select class='remixer-part-instrument'>";
+
+    if (type == "BASSLINE") {
+        select += "<option value='DEFAULT'>Saw Wave</option>";
+
+        if (omg.dev)
+    	    select += "<option value='5444781580746752'>Electric Bass</option>";
+    	else
+    	    select += "<option value='1540004'>Electric Bass</option>";
+
+    }
+    else if (type == "MELODY") {
+        select += "<option value='DEFAULT'>Sine Wave</option>";
+        select += "<option value='PRESET_SYNTH1'>Keyboard</option>";
+        select += "<option value='PRESET_GUITAR1'>Electric Guitar</option>";
+	    select += "<option value='" + (omg.dev ? "5128122231947264" : "5157655500816384") + "'>Power Chords</option>";
+
+        if (omg.golinski) {
+    	    select += "<option value='" + 
+    	            omg.dev ? "6139672929501184" : "6303373460504576" + 
+    	            "'>Cheese</option>";
         }
     }
-};
+    else if (type == "DRUMBEAT") {
+        select += "<option value='PRESET_HIP'>Hip</option>";
+        select += "<option value='PRESET_ROCK'>Rock</option>";
+    }
 
-omg.util.setCookie = function (c_name,value,exdays) {
-    var exdate=new Date();
-    exdate.setDate(exdate.getDate() + exdays);
-    var c_value=escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
-    document.cookie=c_name + "=" + c_value;
-};
+		
+	return select + "</select>";
+	
+	return "";
+}
+
+function debug(out) {
+	console.log(out);
+}
+
 
 
 
@@ -2804,69 +2273,6 @@ document.getElementById("golinski").onclick = function () {
     omg.golinski = true;
 };
 
-function getPresetSoundSet(preset) {
-	var oret;
-	if (preset == "PRESET_SYNTH1") {
-		oret = {"name" : "Keyboard", 
-				"id" : -101, "bottomNote" : 33, 
-				"data" : {"name":"PRESET_SYNTH1",
-				"data":[
-		        {"url":"a1","caption":"A1"},{"url":"bf1","caption":"Bb1"},{"url":"b1","caption":"B1"},{"url":"c2","caption":"C2"},{"url":"cs2","caption":"C#2"},{"url":"d2","caption":"D2"},
-		    	{"url":"ds2","caption":"D#2"},{"url":"e2","caption":"E3"},{"url":"f2","caption":"F2"},{"url":"fs2","caption":"F#2"},{"url":"g2","caption":"G2"},{"url":"gs2","caption":"G#2"},
-		        {"url":"a2","caption":"A2"},{"url":"bf2","caption":"Bb2"},{"url":"b2","caption":"B2"},{"url":"c3","caption":"C3"},{"url":"cs3","caption":"C#3"},{"url":"d3","caption":"D3"},
-		        {"url":"ds3","caption":"D#3"},{"url":"e3","caption":"E3"},{"url":"f3","caption":"F3"},{"url":"fs3","caption":"F#3"},{"url":"g3","caption":"G3"},{"url":"gs3","caption":"G#3"},
-		        {"url":"a3","caption":"A3"},{"url":"bf3","caption":"Bb3"},{"url":"b3","caption":"B3"},{"url":"c4","caption":"C4"},{"url":"cs4","caption":"C#4"},{"url":"d4","caption":"D4"},
-		        {"url":"ds4","caption":"D#4"},{"url":"e4","caption":"E4"},{"url":"f4","caption":"F4"},{"url":"fs4","caption":"F#4"},{"url":"g4","caption":"G4"},{"url":"gs4","caption":"G#4"},
-		        {"url":"a4","caption":"A4"},{"url":"bf4","caption":"Bb4"},{"url":"b4","caption":"B4"},{"url":"c5","caption":"C5"},{"url":"cs5","caption":"C#5"},{"url":"d5","caption":"D5"},
-	        	{"url":"ds5","caption":"D#5"},{"url":"e5","caption":"E5"},{"url":"f5","caption":"F5"},{"url":"fs5","caption":"F#5"},{"url":"g5","caption":"G5"},{"url":"gs5","caption":"G#5"},		
-		        {"url":"a5","caption":"A5"},{"url":"bf5","caption":"Bb5"},{"url":"b5","caption":"B5"},{"url":"c6","caption":"C6"},{"url":"cs6","caption":"C#6"},{"url":"d6","caption":"D6"},
-		        {"url":"ds6","caption":"D#6"},{"url":"e6","caption":"E6"},{"url":"f6","caption":"F6"},{"url":"fs6","caption":"F#6"},{"url":"g6","caption":"G6"},{"url":"gs6","caption":"G#6"},
-	        	{"url":"a6","caption":"A6"}
-		        ],
-		        "prefix":"https://dl.dropboxusercontent.com/u/24411900/omg/kb/kb1_",
-		        "postfix":".mp3","bottomNote":33} };
-		if (omg.dev) {
-			oret.data.prefix = "http://localhost/mp3/kb/kb1_";
-		}
-	}
-	if (preset == "PRESET_GUITAR1") {
-		oret = {"name" : "Electric Guitar", 
-			"id" : -201, "bottomNote" : 40, 
-			"data" : {"name":"PRESET_GUITAR1",
-			"data":[
-	        {"url":"e","caption":"E2"},{"url":"f","caption":"F2"},{"url":"fs","caption":"F#2"},{"url":"g","caption":"G2"},{"url":"gs","caption":"G#2"},{"url":"a","caption":"A2"},
-	    	{"url":"bf","caption":"Bb2"},{"url":"b","caption":"B2"},{"url":"c","caption":"C3"},{"url":"cs","caption":"C#3"},{"url":"d","caption":"D3"},{"url":"ds","caption":"D#3"},
-	        {"url":"e2","caption":"E3"},{"url":"f2","caption":"F3"},{"url":"fs2","caption":"F#2"},{"url":"g2","caption":"G2"},{"url":"gs2","caption":"G#2"},{"url":"a2","caption":"A3"},
-	    	{"url":"bf2","caption":"Bb3"},{"url":"b2","caption":"B3"},{"url":"c2","caption":"C4"},{"url":"cs2","caption":"C#4"},{"url":"d2","caption":"D4"},{"url":"ds2","caption":"D#4"},
-	        {"url":"e3","caption":"E4"},{"url":"f3","caption":"F4"},{"url":"fs3","caption":"F#4"},{"url":"g3","caption":"G4"},{"url":"gs3","caption":"G#4"},{"url":"a3","caption":"A4"},
-	    	{"url":"bf3","caption":"Bb4"},{"url":"b3","caption":"B4"},{"url":"c3","caption":"C5"},{"url":"cs3","caption":"C#5"},{"url":"d3","caption":"D5"},{"url":"ds3","caption":"D#5"},
-	        {"url":"e4","caption":"E5"},{"url":"f4","caption":"F5"},{"url":"fs4","caption":"F#5"},{"url":"g4","caption":"G5"},{"url":"gs4","caption":"G#5"},{"url":"a4","caption":"A5"},
-	    	{"url":"bf4","caption":"Bb5"},{"url":"b4","caption":"B5"},{"url":"C4","caption":"C6"},{"url":"cs4","caption":"C#6"}
-	        ],
-	        "prefix":"https://dl.dropboxusercontent.com/u/24411900/omg/electric/electric_",
-	        "postfix":".mp3","bottomNote":40} };
-		if (omg.dev) {
-//			oret.data.prefix = "http://localhost/mp3/kb/kb1_";
-		}
-	}
-	if (preset == "PRESET_BASS") {
-		oret = {"name" : "Bass1", "id" : 1540004, "bottomNote" : 28, 
-				"data" : {"name":"Bass1","data":[
-                 {"url":"e","caption":"E2"},{"url":"f","caption":"F2"},{"url":"fs","caption":"F#2"},{"url":"g","caption":"G2"},{"url":"gs","caption":"G#2"},{"url":"a","caption":"A2"},
-                 {"url":"bf","caption":"Bb2"},{"url":"b","caption":"B2"},{"url":"c","caption":"C3"},{"url":"cs","caption":"C#3"},{"url":"d","caption":"D3"},{"url":"ds","caption":"Eb3"},
-                 {"url":"e2","caption":"E3"},{"url":"f2","caption":"F3"},{"url":"fs2","caption":"F#3"},{"url":"g2","caption":"G3"},{"url":"gs2","caption":"G#3"},{"url":"a2","caption":"A3"},
-                 {"url":"bf2","caption":"Bb3"},{"url":"b2","caption":"B3"},{"url":"c2","caption":"C4"}
-                 ],"prefix": "https://dl.dropboxusercontent.com/u/24411900/omg/bass1/bass_",
-                 "postfix": ".mp3",
-                 "bottomNote":19} };
-		
-		if (omg.dev) {
-			oret.data.prefix = "http://localhost/mp3/bass_";
-		}
-	}
-
-	return oret;
-}
 
 
 /*bam components*/
@@ -2887,6 +2293,9 @@ bam.setupBeatMaker = function () {
     canvas.width = width;
     canvas.style.height =  canvasHeight + "px";    
 
+    omg.player.onBeatPlayedListeners.push(function (iSubBeat) {
+    	bam.beatmaker.ui.drawLargeCanvas(iSubBeat);
+    }); 
 };
 
 
@@ -2919,8 +2328,6 @@ bam.shrink = function (div, x, y, w, h, callback) {
 			children.push(child);
 		}
 	}
-	console.log(div.className);
-	console.log(children)
 	
 	var interval = setInterval(function () {
 		var now = Date.now() - startedAt;
@@ -2945,6 +2352,7 @@ bam.shrink = function (div, x, y, w, h, callback) {
 		
 		if (now == 1) {
 			clearInterval(interval);
+			div.style.cursor = "pointer";
 			if (callback)
 				callback();
 		}
@@ -3006,6 +2414,7 @@ bam.grow = function (div, callback) {
 		
 		if (now == 1) {
 			clearInterval(interval);
+			div.style.cursor = "auto";
 			if (callback)
 				callback();
 		}
@@ -3077,6 +2486,9 @@ bam.arrangeParts = function (callback) {
 
 
 bam.slideOutOptions = function (div, callback) {
+	
+	div.showing = false;
+	
 	var windowW = window.innerWidth;
 	var originalX = div.offsetLeft;
 	
@@ -3098,6 +2510,15 @@ bam.slideOutOptions = function (div, callback) {
 
 bam.slideInOptions = function (div, callback, target) {
 
+	for (var ic = 0; ic <div.children.length; ic++) {
+		if (div.children[ic].id.indexOf("play") > -1) {
+			bam.showingPlayButton = div.children[ic];
+			break;
+		}
+	}
+	
+	div.showing = true;
+	
 	div.style.left = window.innerWidth + "px";
 	div.style.display = "block";
 
@@ -3125,6 +2546,9 @@ bam.slideInOptions = function (div, callback, target) {
 };
 
 bam.slideDownOptions = function (div, callback) {
+	
+	div.showing = false;
+	
 	var windowH = window.innerHeight;
 	var originalY = div.offsetTop;
 	
@@ -3137,6 +2561,7 @@ bam.slideDownOptions = function (div, callback) {
 		div.style.top = originalY + (windowH - originalY) * now + "px";
 
 		if (now == 1) {
+			div.style.display = "none";
 			clearInterval(interval);
 			if (callback)
 				callback();
@@ -3146,7 +2571,16 @@ bam.slideDownOptions = function (div, callback) {
 
 bam.slideUpOptions = function (div, callback, target) {
 
-	div.style.left = window.innerWidth + "px";
+	for (var ic = 0; ic <div.children.length; ic++) {
+		if (div.children[ic].id.indexOf("play") > -1) {
+			bam.showingPlayButton = div.children[ic];
+			break;
+		}
+	}
+
+	div.showing = true;
+	
+	div.style.top = window.innerHeight + "px";
 	div.style.display = "block";
 
 	var targetY

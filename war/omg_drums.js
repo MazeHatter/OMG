@@ -9,6 +9,8 @@ function OMGDrums(canvas, part) {
 
 	var omgdrums = this;
 	this.isTouching = false;
+
+	this.lastSubbeat = -1;
 	
 	this.lastBox = [-1,-1];
 	
@@ -65,7 +67,8 @@ function OMGDrums(canvas, part) {
 		var row    = Math.floor(y / omgdrums.rowHeight);
 
 		if (column == 0) {
-			omgdrums.currentTrack = row;
+			if (row < omgdrums.part.tracks.length - 1)
+				omgdrums.currentTrack = row;
 		}
 		else {
 			// figure out the subbeat this is
@@ -74,12 +77,35 @@ function OMGDrums(canvas, part) {
 			var data = omgdrums.part.tracks[omgdrums.currentTrack].data;
 			data[subbeat] = !data[subbeat];
 			
+			lastBox = [column, row];
+			omgdrums.isTouching = true;
 		}
 
 		omgdrums.drawLargeCanvas();
 	};
 
 	canvas.onmove = function (x, y) {
+		
+		if (!omgdrums.isTouching)
+			return;
+		
+		var column = Math.floor(x / omgdrums.columnWidth);
+		var row    = Math.floor(y / omgdrums.rowHeight);
+
+		if (column == 0) {
+			omgdrums.isTouching = false;
+		}
+		else if (lastBox[0] != column || lastBox[1] !== row) {
+			// figure out the subbeat this is
+			var subbeat = column - 1 + row * omg.subbeats;
+
+			var data = omgdrums.part.tracks[omgdrums.currentTrack].data;
+			data[subbeat] = !data[subbeat];
+			
+			lastBox = [column, row];
+		}
+
+		omgdrums.drawLargeCanvas();
 
 	};
 
@@ -102,9 +128,9 @@ OMGDrums.prototype.setPart = function (part) {
 	this.offsetTop = offsets.top;
 }
 
-OMGDrums.prototype.drawLargeCanvas = function () {
+OMGDrums.prototype.drawLargeCanvas = function (iSubBeat) {
 	
-	var boxMargin = 4;
+	var boxMargin = 6;
 	
 	var ctx = this.ctx;
 	var width = this.canvas.clientWidth;
@@ -118,6 +144,12 @@ OMGDrums.prototype.drawLargeCanvas = function () {
 	
 	ctx.fillStyle = "#8888FF";
 	ctx.fillRect(0, 0, this.columnWidth, height);
+
+	this.currentBeat;
+	if (typeof(iSubBeat) == "number") {
+		this.currentBeat = [(iSubBeat % omg.subbeats) + 1,
+		               Math.floor(iSubBeat / omg.subbeats)];
+	}
 	
 	var x, y, w, h;
 	for (var ii = 0; ii < this.columns; ii++) {
@@ -144,6 +176,15 @@ OMGDrums.prototype.drawLargeCanvas = function () {
 				}
 			}
 			else {
+				
+				if (this.currentBeat && omg.player.playing && 
+						ii == this.currentBeat[0] && jj == this.currentBeat[1]) {
+					ctx.fillStyle = "red";
+					ctx.fillRect(x - boxMargin, y - boxMargin, 
+							w + boxMargin * 2, h + boxMargin * 2);					
+				}
+				ctx.fillStyle = "#FFFFFF";
+				
 				if (part.tracks[this.currentTrack].data[jj * omg.subbeats + ii - 1]) {
 					ctx.fillRect(x, y, w, h);
 					ctx.fillStyle = "black";

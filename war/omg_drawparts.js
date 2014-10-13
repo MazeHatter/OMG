@@ -133,7 +133,7 @@ omg.ui.drawDrumCanvas = function (params) {
     	params.rowHeight = rowHeight;
     }
     
-    canvas.width = canvas.parentElement.clientWidth;
+    canvas.width = canvas.clientWidth; 
 
     var longestCaptionWidth = 0;
         
@@ -253,6 +253,3 @@ omg.ui.setupNoteImages = function () {
 }
 omg.ui.setupNoteImages();
 
-omg.ui.drawBigDrumCanvas = function (canvas, part) {
-	
-};
