@@ -40,8 +40,8 @@ body {
 .part2 {
 	background-color:#FFFF99;
 	position:absolute;	
-	left:-1%;
-	top:-1%;
+	left:-6px;
+	top:-6px;
 	height:102%;
 	width:102%;
 	overflow-x:hidden;	
@@ -182,163 +182,6 @@ h1 {
 
 
 
-
-
-
-
-#share-panel {
-    display:none;
-}
-
-
-.panel-box {
-	border-style: solid;
-	border-color: #A0A0A0;
-	border-width: 1px;
-	border-radius: 2px;
-	background-color: #F0F0F0;
-	padding: 8px;
-}
-
-.app {
-	padding: 6px;
-	margin: 4px;
-	position: relative;
-	cursor: pointer;
-	height:60px;
-}
-
-.applogo {
-	position:absolute;
-	right-margin: 0px;
-	vertical-align: top;
-}
-
-.appname {
-	position: relative;
-	top: 2px;
-	left: 60px;
-	font-weight: bold;
-	font-size: 14pt;
-}
-
-.appdesc {
-	position: absolute;
-	left: 60px;
-	font-size: 11pt;
-	color: #404040;
-	width: 180px;
-}
-
-
-.show-remixer-button-on {
-	border-style: solid;
-	border-color: #4fa5d5;
-	border-width: 1px;
-	border-radius: 2px;
-    padding:10px;
-	padding-left: 30px;
-	padding-right: 30px;
-	color: black;
-	background-color: white;
-	cursor: pointer;
-	display:inline-block;
-    margin-top:4px;
-    margin-left:4px;
-}
-
-.show-remixer-button-on:hover {
-    border-style: solid;
-    border-color: #4fa5d5;
-    border-width: 3px;
-    border-radius: 2px;
-    padding:8px;
-    padding-left: 28px;
-    padding-right: 28px;
-    color: black;
-    background-color: white;
-    cursor: pointer;
-    display:inline-block;
-    margin-top:4px;
-    margin-left:4px;
-}
-
-
-.show-remixer-button-off {
-	border-style: solid;
-	border-color: #4fa5d5;
-	border-width: 1px;
-	border-radius: 2px;
-	padding:10px;
-    padding-left: 30px;
-    padding-right: 30px;
-	cursor: pointer;
-	display:inline-block;
-	margin-top:4px;
-	margin-left:4px;
-}
-
-.show-remixer-button-off:hover {
-    border-style: solid;
-    border-color: #4fa5d5;
-    border-width: 3px;
-    border-radius: 2px;
-    padding:8px;
-    padding-left: 28px;
-    padding-right: 28px;
-    cursor: pointer;
-    display:inline-block;
-    margin-top:4px;
-    margin-left:4px;
-}
-
-
-.part {
-	position: relative;
-	background-color: #ffefd6;
-	border-width: 0px;
-	border-top: 1px solid #808080;
-	padding: 4px;
-	height: 30px;
-	cursor: pointer;
-}
-
-.part-votes {
-	position: absolute;
-	left: 0px;
-	top: -1px;
-	font-size: 20pt;
-	text-align:center;
-	width:70px;
-}
-
-.part-votes_caption {
-	position: absolute;
-	left: 17px;
-	top: 22px;
-	font-size: 11pt;
-}
-
-.part-caption {
-	position: absolute;
-	left: 100px;
-	top: 10px;
-}
-
-.part-type {
-	font-weight: bold;
-}
-
-.part-time {
-	position: absolute;
-	top: 12px;
-	right: 3px;
-	font-style: italic;
-	font-size: 10pt;
-	color: #404040;
-}
-
-
 .remixer-caption-bar {
 	position:relative;
 	background-color:#4fa5d5;	
@@ -358,101 +201,6 @@ h1 {
 	position:relative;
 }
 
-.drumpart-table {width:100%;
-    
-    }
-
-.drumpart-name { 
-	height:22px; 
-	width:50px;
-	white-space:nowrap; 
-	overflow:hidden; text-overflow:ellipsis;
-	background-color:white;
-	}
-.drumpart-subbeat {
-	color:white;
-	background-color:#B0B0B0;
-	font-family:courier, "courier new", monospace;
-	font-size:10pt;
-	border-radius:2px;
-	cursor: pointer;
-	
-}
-
-.re-in-remixer {font-style:italic; 
-}
-.mixer-in-remixer {font-weight:bold; 
-}
-
-/*#remixer-pause-button {
-    display:none;
-    min-width:60px;
-    text-align:center;	
-}
-
-.remixer-pause-button {
-	padding-top:0px;
-	padding-left:10px;
-	padding-right:10px;
-	border:#4fa5d5 1px solid;
-	border-radius:2px;
-	cursor:pointer;
-	padding:10px;
-	background-color:white;
-}
-
-.remixer-pause-button-blink {
-    padding-top:12px;
-    padding-left:10px;
-    padding-right:10px;
-    border:#4fa5d5 1px solid;
-    border-radius:2px;
-    cursor:pointer;
-    padding:10px;
-    background-color:#4fa5d5
-}*/
-
-
-div.vote-up {
-	width: 0; 
-	height: 0; 
-	border-left: 6px solid transparent;  /* left arrow slant */
-	border-right: 6px solid transparent; /* right arrow slant */
-	border-bottom: 10px solid #2f2f2f; /* bottom, add background color here */
-	font-size: 0;
-	line-height: 0;
-	
-	position:absolute;
-	top:8px;
-	left:60px;
-}
-
-div.vote-down {
-	width: 0; 
-	height: 0; 
-	border-left: 6px solid transparent;  /* left arrow slant */
-	border-right: 6px solid transparent; /* right arrow slant */
-	border-top: 10px solid #2f2f2f; /* bottom, add background color here */
-	font-size: 0;
-	line-height: 0;
-	
-	position:absolute;
-	top:20px;
-	left:60px;
-}
-
-.order-button {
-
-	display:inline-block;
-	background-color:#777777;
-	color:white;
-	padding:4px;
-	padding-left:10px;
-	padding-right:10px;
-	cursor: pointer;
-	font-family: Arial,Liberation Sans,DejaVu Sans,sans-serif;
-}
-
 
 .remixer-button-row {
 	display:none;
@@ -461,10 +209,6 @@ div.vote-down {
 .remixer-message {
 	padding:5px;
 	margin:5px;
-}
-
-.remixer-heading {
-	   text-align:center;
 }
 
 .remixer-collection, .remixer-part-holder {
@@ -494,14 +238,6 @@ div.vote-down {
 }
 
 
-.melody-note {
-	margin:0px;
-	border:1px solid white;
-	padding:0px;
-	display:inline-block;
-	background-color:white;
-}
-
 .beat-marker {
 	position:absolute;
 	background-color:#4fa5d5;
@@ -520,28 +256,6 @@ div.vote-down {
 }
 
 
-.create-image  {
-	margin: 0px;
-	vertical-align: middle;
-	cursor: pointer;
-}
-
-.create-image2  {
-	margin: 0px;
-	vertical-align: middle;
-	cursor: pointer;
-	height:24px;
-	width:24px;
-}
-
-.signingoogle {
-	cursor:pointer;
-}
-
-.login-area {
-	
-	text-align:center;
-}
 
 #no-web-audio {
 	display:none;
@@ -551,42 +265,6 @@ div.vote-down {
 		color:red;
 }
 
-.remixer-button {
-	display:inline-block;
-	padding:8px;
-	text-align:center;
-	border:1px solid #FFFFFF;
-	margin:0px;
-	cursor:pointer;
-	background-color:white;
-	color:black;
-	font: 12pt Arial,Liberation Sans,DejaVu Sans,sans-serif;
-	
-}
-
-.remixer-button-disabled {
-	display:inline-block;
-	padding:10px;
-	text-align:center;
-	border:1px solid #404040;
-	margin:4px;
-	color:#808080;
-}
-
-
-.remixer-button:hover {
-	color:black;
-	background-color:#E0E0E0;
-}
-
-.app:hover {
-	background-color:#FF9900;
-}
-
-#contact-box {
-	text-align:center;
-	font-size:14pt;
-}
 
 .remixer-part-rightbar {
 	position:absolute;
@@ -600,44 +278,11 @@ div.vote-down {
 	padding-top:0px;
 }
 
-#image-credits {
-	font-size:10pt;
-}
-
-.collection-stats {
-	font-size:11pt;
-	color:#505050;
-}
 
 .relative-container {
 	position:relative;
 }
 
-.more-results-button {
-	cursor:pointer;
-	border:1px solid gray;
-	border-radius:2px;
-    background-color:4fa5d5;
-    font-size:14pt;
-    margin:6px; 
-    padding:4px;
-    display:inline-block;
-}
-
-.part-list-last-row {
-	text-align:right;
-	
-}
-
-.browse-button, .create-button {
-	display:block;
-	padding:1px;
-    cursor:pointer;
-}
-
-.browse-button:hover,.create-button:hover {
-    background-color:#FF9900;	
-}
 
 .remixer-zone {
 /*	color:black;
@@ -656,212 +301,16 @@ div.vote-down {
 	/*text-align:center;*/
 }
 
-.result-range {
-	display:inline-block;
-}
 
 
-.app2 {
-	display:inline-block;
-	width:240px;
-    padding: 6px;
-    margin: 4px;
-    position: relative;
-    cursor: pointer;
-    text-align:left;
-    height:70px;
-    border:1px solid #D0D0D0;
-    border-radius:2px;
-}
-.app2:hover {
-    background-color:#FF9900;
-}
-
-
-#applist2 {
-	text-align:center;
-}
-
-
-
-
-.list-view-rightbar {
-	padding:4px;
-	text-align:center;
-}
-
-.top-bar-button {
-	border:1px solid white;
-	padding:8px;
-	margin-left:4px;
-	cursor:pointer;
-}
-.top-bar-button-selected {
-    display:inline-block;
-    border:1px solid white;
-    padding:8px;
-    margin-left:4px;
-    cursor:pointer;
-    color:black;
-    background-color:white;
-}
-
-.top-bar-button:hover {
-	color:black;
-	background-color:white;
-}
-
-#saved-panel, #create-panel {
-    display:none;
-    padding:10px;
-}
-
-#add-to-remixer-hint {
-	position:absolute;
-	top:2px;
-	border:1px solid gray;
-	background-color:#FFFF90;
-	padding:10px;
-	font-size:13pt;
-	display:none;
-}
-
-@media all and (max-width: 960px) {
-	#bbody {
-		position:relative;
-		margin-top:22px;
-	}
-	#omg48topbar {
-		vertical-align: top;
-	}
+#bbody {
+	width:1024px;
+	margin:auto;
+	position:relative;
+	margin-top:22px;
 	
-	#omg-title {
-		display:none;
-	}
-	
-	.getting-started-whitespace {
-		display:none;
-	}
-	
-	#right-panel {
-		/*width:94%;*/
-		margin:48px 4px 0px 4px;
-	}
-	
-    #left-panel {
-        margin:auto;    
-        margin-top:48px;
-        padding-left:5px;
-        padding-right:5px;
-        overflow-x:hidden;
-        display:none;
-    }
-    
-    #top-bar-view-buttons {
-        display:none;
-        position:absolute;
-        background-color: #D0D0D0;
-        margin:auto;
-        width:100%;
-        top:48px;
-        border-top:2px solid white;
-    }
-    
-    .top-bar-button {
-        text-align:center;
-        margin:15px;
-        padding:20px;
-    }
-
-
-    #top-bar-view-button {
-        margin:4px;
-        margin-top:0px;
-    }    
-    .top-bar-view-button-selected {
-        background-color:white;
-        margin:4px;
-    }    
-
-	.remixer-button {
-		padding:6px;
-		font: 11pt Arial,Liberation Sans,DejaVu Sans,sans-serif;
-	}
-
 }
-@media all and (min-width: 961px) {
-	#bbody {
-		width:1024px;
-		margin:auto;
-		position:relative;
-		margin-top:22px;
-		
-		
-	}
-	#topbar-inner {
-		width:1024px;
-		margin:auto;
-		position:relative;
-	}
-	
-	#right-panel {
-		position: absolute;
-		top: 40px;
-		width:650px;
-		overflow-x:hidden;
-		overflow-y:hidden;
-		margin:4px;
-	}
-	
-    #player-button {
-       display:none;
-    }
-    
-    .mm-tools {
-    display:inline-block;
-    }
-
-    #top-bar-view-buttons {
-        display:none;
-    }
-
-    .top-bar-button {
-        display:inline-block;
-    }
-
-    #top-bar-view-button {
-       display:none;
-    }
-
-	#left-panel {
-		left:770px;	
-	    position:fixed;
-	    margin:5px;    
-	    margin-top:50px;
-	    width:365px;
-    	overflow-y:auto;
-   	    /*overflow-x:hidden;*/
-	}
-
-	#create-panel {
-	    width:330px;
-	    margin:auto;
-	}
-	.list-view {
-	    width:330px;
-	    padding:10px;
-	}
-
-	#add-to-remixer-hint {
-		left:400px;
-	}
-}
-
-
-.select-list-filter {
-	font-size:14pt;
-	width:100%;
-}
+   
 
 #share-dialog {
 	padding:50px;
@@ -1020,27 +469,7 @@ div.vote-down {
 	color:#404040;
 	font:10pt Helvetica, arial, freesans, clean, sans-serif;
 }
-#left-panel-go-back {
-	display:none;
-}
 
-#browse-list-view {
-	display:none;
-}
-
-hr {
-	border-color:#E0E0E0;
-	border-style:solid;
-}
-
-.left-panel-dividor {
-	width:80%;
-}
-
-.filter-controls {
-	text-align:right;
-	width:100%;
-}
 
 .app-desc,.nodata {
 	color:#404040;
@@ -1065,11 +494,6 @@ hr {
 	display:none;
 }
 
-.main-controls-section {
-	color:#898f9c;
-	font:11pt Helvetica, arial, freesans, clean, sans-serif;
-	font-weight:bold;
-}
 
 .getting-started-subtext {
 	color:#898f9c;
@@ -1090,14 +514,6 @@ hr {
 	color:#404040;
 }
 
-#getting-started-canvas {
-	position:absolute;
-	top:10px;
-	left:0px;
-	width:100%;
-	height:100%;
-	border:1px solid #F0F0F0;
-}
 
 .remixer-part-leftbar {
 	display:inline-block;
@@ -1117,64 +533,23 @@ hr {
 	border:1px solid gray;
 }
 
-#add-to-remixer-hint-got-it {
-	position:absolute;
-	right:10px;
-	bottom:10px;
-	
-}
 
 .remixer-part-instrument {
 	position:relative;
 	top:-4px;
 }
 
-.about {
-	text-align:center;
-	color:#808080;
-	font:10pt Helvetica, arial, freesans, clean, sans-serif;
-}
-
-#about {
-	display:none;
-	
-}
 
 #rearranger {
 	display:none;
 }
 
-.rearranger-section {
-	padding:8px;
-	border:1px solid black;
-	border-radius:1px;
-	display:inline-block;
-	margin:4px;
-	font:14pt Helvetica, arial, freesans, clean, sans-serif;
-}
-
-#rearranger-canvas {
-	width:100%;	
-}
-
-#left-panel {
-	display:none;
-}
-
 #play-section, #play-mm, #play-song {
 	border-radius:120px;
 	padding:40px;
 	width:30px;
-	margin-left:90px;
-	margin-bottom:30px;
-}
+	margin-left:95px;
 
-#play-section, #play-mm, #play-song {
-	border-radius:120px;
-	padding:40px;
-	width:30px;
-	margin-left:90px;
-	margin-bottom:30px;
 }
 
 
@@ -1188,10 +563,10 @@ hr {
 #next-mm:hover, #remixer-next:hover {
 	background-color:#33FF33;
 }
-#finish-song {
+#next-song {
 	background-color:#55FF55;
 }
-#finish-song:hover {
+#next-song:hover {
 	background-color:#00FF00;
 }
 

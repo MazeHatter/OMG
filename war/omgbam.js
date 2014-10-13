@@ -1,24 +1,18 @@
 /* this began as a direct copy of omg.js,
- * bam is the user interface. 
- * Hopefully omg can be refactored into reusable components
- * the was started after arnold, arnold isn't complete, 
- * hopefully the components will all work together  
- * 
- *  the "section" stuff is still called "remixer", that may gradually change
+ * omg, omg.remixer, omg.mm, omg.rearranger already existed
+ * bam is the new user interface been kind of porting things too
+ *  
+ * omg has been largely refactored into reusable components
+ * (omg_player, omg_partsui, omg_util).
  *  
  */
 var bam = {animLength:700};
-var omg = {type: "DRUMBEAT",
-        order: "newest", 
-        remixerShowing: false, 
+
+var omg = { 
         bpm: 120, beats: 8, subbeats: 4, 
-        section: {type: "SECTION", data: {}, parts: []},         
         fileext: needsMP3() ? ".mp3" : ".ogg",
         soundsLoading: 0,
-        currentPage: 1,
-        listViewShowing: true,
-        sharePanelShowing: false, 
-        downloadedSoundSets: [],
+        downloadedSoundSets: []
 };
 
 window.onload = function () {
@@ -28,6 +22,15 @@ window.onload = function () {
 	bam.section = new OMGSection(bam.song.div.getElementsByClassName("section")[0]);
 	bam.part = new OMGPart(bam.section.div.getElementsByClassName("part2")[0]);
 
+	bam.zones = [bam.song.div, bam.section.div, bam.part.div];
+	window.onresize = function() {
+		console.log("onresize");
+		for (var iz = 0; iz < bam.zones.length; iz++) {
+			bam.zones[iz].style.height = window.innerHeight + 10 + "px";
+			bam.zones[iz].style.width  = window.innerWidth  + 10 + "px";			
+		}
+	};
+	
     setupRemixer();
     setupRearranger();
     setupMelodyMaker();
@@ -50,59 +53,6 @@ window.onload = function () {
     
     omg.mm.setPart(bam.part, true);
 };
-
-
-
-
-function loadSinglePart (searchResult) {
-
-	if (!searchResult.data && searchResult.json) {
-		searchResult.data = JSON.parse(searchResult.json);
-	}
-	
-	setupRemixerForPlay();
-
-    setupPartDiv(searchResult);
-
-	omg.player.setNewBpm(searchResult.data.bpm);    	
-
-	var hasSectionKey = omg.section.data.rootNote != undefined && 
-						omg.section.data.scale != undefined;
-
-	var hasPartKey = searchResult.data.rootNote != undefined &&
-				searchResult.data.scale != undefined;
-
-	if (!hasSectionKey && hasPartKey) {
-		omg.section.data.rootNote = searchResult.data.rootNote % 12;
-		omg.section.data.scale = searchResult.data.scale;
-		if (searchResult.data.ascale) {
-			omg.section.data.ascale = searchResult.data.ascale;
-		}
-		else {
-			omg.section.data.ascale = makeScale(searchResult.data.scale);
-		}
-	}
-	else if (hasSectionKey && hasPartKey) {
-		if (omg.section.data.rootNote != searchResult.data.rootNote%12 ||
-				omg.section.data.scale != searchResult.data.scale) {
-//todo readd			
-//			rescale(searchResult, omg.section.data.rootNote, 
-//					omg.section.data.ascale);
-			
-			var keyDiv = searchResult.controls.getElementsByClassName("part-key");
-			for (var idd = 0; idd < keyDiv.length; idd++) {
-				keyDiv[idd].style.color = "#808080";
-				keyDiv[idd].style.textDecoration = "line-through";
-			}
-		}
-	}
-	
-    
-    omg.player.play({subbeatMillis: 125, sections: [
-                                    {parts: [searchResult.data]}]});
-    sectionModified();
-
-}
 
 
 function setupPartDiv(part) {
@@ -181,6 +131,7 @@ function setupPartDiv(part) {
     }
 
     var muteButton = document.createElement("div");
+	muteButton.style.backgroundColor = "#99FF99";
     muteButton.className = "remixer-part-command";
     muteButton.innerHTML = "mute";
     muteButton.onclick = function (e) {
@@ -351,6 +302,33 @@ function setupMelodyDiv(part) {
     div.beatMarker = beatMarker;
     omg.player.onBeatPlayedListeners.push(div.onBeatPlayedListener);
 
+    part.canvas.onclick = function () {
+    	bam.part = part;
+
+    	if (omg.player.playing)
+    		omg.player.stop();
+    	
+    	var fadeList = [omg.remixer, part.controls];
+    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
+    	for (var ii = 0; ii < otherPartsList.length; ii++) {
+    		if (otherPartsList.item(ii) != part.div)
+    			fadeList.push(otherPartsList.item(ii));
+    		else
+    			part.position = ii;
+    	}
+        	
+    	bam.fadeOut(fadeList);
+    	bam.slideOutOptions(omg.remixer.options, function () {
+    		bam.grow(part.div, function () {
+    			bam.fadeIn([omg.mm]);
+
+    			omg.mm.setPart(part);
+    			
+    			bam.slideInOptions(omg.mm.options);
+    		});	
+    	});
+
+    };
 
 }
 
@@ -1128,7 +1106,7 @@ function toggleMute(part, newMute) {
 	if (newMute) {
 		part.muted = true;
 		
-		part.div.muteButton.style.backgroundColor = "red";
+		part.controls.muteButton.style.backgroundColor = "red";
 		
 		if (part.gain) {
 			part.preMuteGain = part.gain.gain.value;
@@ -1137,7 +1115,7 @@ function toggleMute(part, newMute) {
 	}
 	else {
 		part.muted = false;
-		part.div.muteButton.style.backgroundColor = "white";
+		part.controls.muteButton.style.backgroundColor = "#99FF99";
 		
 		if (part.gain && part.preMuteGain) {
 			part.gain.gain.value = part.preMuteGain;
@@ -1720,10 +1698,13 @@ function setupMelodyMakerFretBoard() {
 	frets.height = omg.mm.canvas.height / (frets.length + 1);
 	omg.mm.frets = frets;
 
+	console.log("mm==bam", omg.mm.data == bam.part.data);
 	var notes =  omg.mm.data.notes;
 	for (var i = 0; i < notes.length; i++) {
-		notes[i].scaledNote = 
-			omg.mm.frets[notes[i].note % omg.mm.frets.length].note;
+		console.log(notes[i].note % omg.mm.frets.length);
+		//todo, crashes, throws a -1 when lower than rootnote (halfway)
+		//notes[i].scaledNote = 
+		//	omg.mm.frets[notes[i].note % omg.mm.frets.length].note;
 	}
 	
     drawMelodyMakerCanvas();
@@ -2268,13 +2249,6 @@ function debug(out) {
 
 
 
-
-document.getElementById("golinski").onclick = function () {
-    omg.golinski = true;
-};
-
-
-
 /*bam components*/
 bam.setupBeatMaker = function () {
 
@@ -2283,7 +2257,7 @@ bam.setupBeatMaker = function () {
 	var canvas = document.getElementById("beatmaker-canvas"); 
 	bam.beatmaker.canvas = canvas; 
 
-	bam.beatmaker.ui = new OMGDrums(canvas);
+	bam.beatmaker.ui = new OMGDrumMachine(canvas);
 
 	var width = canvas.clientWidth;
 	var offsets = omg.util.totalOffsets(canvas);
@@ -2299,8 +2273,14 @@ bam.setupBeatMaker = function () {
 };
 
 
+
+
 /* bam ui stuff */
 bam.shrink = function (div, x, y, w, h, callback) {
+	
+	//remove us from the zone hierarchy
+	bam.zones.pop();
+	
 	var originalH = div.clientHeight;
 	var originalW = div.clientWidth;
 	var originalX = div.offsetLeft;
@@ -2361,6 +2341,9 @@ bam.shrink = function (div, x, y, w, h, callback) {
 
 
 bam.grow = function (div, callback) {
+	
+	bam.zones.push(div);
+	
 	var originalH = div.clientHeight;
 	var originalW = div.clientWidth;
 	var originalX = div.offsetLeft;

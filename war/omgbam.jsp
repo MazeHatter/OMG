@@ -32,16 +32,10 @@ if (user.isLoggedIn()){
 
 <div id="topbar">
 
-	<img  src="img/menu.png" id="top-bar-view-button"/>
 	<span id="omg-title"><b>o</b>pen<b>m</b>usic<b>g</b>allery.net</span>
-	<div id="top-bar-view-buttons">
-		<div class="top-bar-button" id="browse-button">Browse</div>
-		<div class="top-bar-button" id="create-button">Create</div>
-		<div class="top-bar-button" id="my-saved-button">My Saved</div>
-		<div class="top-bar-button" id="player-button"><i>re</i><b>mixer</b></div>
-	</div>
-	
+
 	<div id="topbarright">
+	dicussion
 	</div>
 
 
@@ -194,7 +188,7 @@ if (user.isLoggedIn()){
 
 		<div class="horizontal-panel-option" id="play-song">Play</div>	
 		<div class="horizontal-panel-option" id="share-song">Share</div>
-		<div class="horizontal-panel-option" id="finish-song">Finish</div>				
+		<div class="horizontal-panel-option" id="next-song">Next</div>				
 
 		<div class="horizontal-panel-option" id="clear-song">Clear</div>
 
@@ -228,299 +222,6 @@ if (user.isLoggedIn()){
 	</div>
 
 
-<div id="left-panel">
-	<div id="left-panel-heading">Main Controls</div>
-	<div id="left-panel-go-back">
-		<a href="javascript:void(0)">
-			Go Back To Main Controls
-		</a>
-	</div>
-	<hr class="left-panel-dividor"/>
-	<div id="main-controls">
-		<div class="create-button" id="show-remixer">
-			<img class="create-image2" src="img/browse.png">
-			<em>re</em><b>mixer</b>
-		</div>
-		<div class="create-button" id="show-rearranger">
-			<img class="create-image2" src="img/browse.png">
-			<em>re</em><b>arranger</b>
-		</div>
-	
-		<hr class="left-panel-dividor"/>
-
-		<span class="main-controls-section">CREATE A NEW</span>
-		<div class="create-button" id="create-melody">
-			<img class="create-image2" src="img/add2.png">
-			Melody
-		</div>
-		<div class="create-button" id="create-drumbeat">
-			<img class="create-image2" src="img/add2.png">
-			Drumbeat
-		</div>
-		<div class="create-button" id="create-bassline">
-			<img class="create-image2" src="img/add2.png">
-			Bassline
-		</div>
-		<div class="create-button" id="create-instrument">
-			<img class="create-image2" src="img/add2.png">
-			Instrument / Drumkit
-		</div>
-		<hr class="left-panel-dividor"/>
-		<span class="main-controls-section">THE GALLERY:</span>
-		<div class="browse-button" id="browse-melodies">
-			<img class="create-image2" src="img/browse.png">
-			Browse Melodies
-		</div>
-		<div class="browse-button" id="browse-drumbeats">
-			<img class="create-image2" src="img/browse.png">
-			Browse Drumbeats
-		</div>
-		<div class="browse-button" id="browse-basslines">
-			<img class="create-image2" src="img/browse.png">
-			Browse Basslines
-		</div>
-		<div class="browse-button" id="browse-sections">
-			<img class="create-image2" src="img/browse.png">
-			Browse Sections
-		</div>
-		<div class="browse-button" id="browse-songs">
-			<img class="create-image2" src="img/browse.png">
-			Browse Songs
-		</div>
-
-		<hr class="left-panel-dividor"/>
-		<span class="main-controls-section">SAVED:</span>
-		<div class="browse-button" id="my-saved">
-			<img class="create-image2" src="img/browse.png">
-			My Saved
-		</div>
-		
-		<div class="nodata">(you should <em>totally</em> make something)</div>
-		<hr class="left-panel-dividor"/>
-		<div class="about">
-		<a id="about-hyperlink" href="javascript:void(0)">About</a>
-		</div>
-	</div>
-  
-	<div id="browse-list-view" class="list-view">
-	
-		<div class="relative-container">
-			<table class="filter-controls">
-				<tr>
-					<td>
-						<select class="select-list-filter" id="select-part-type">
-						<option>Melodies</option>
-						<option>Drumbeats</option>
-						<option>Basslines</option>
-						<option>Sections</option>
-						<option>Songs</option>
-						</select>
-					</td>
-					<td>
-						<select class="select-list-filter" id="select-browse-order">
-						<option value="newest">Newest</option>
-						<option value="mostvotes">Most Votes</option>
-						</select>
-					</td>
-				</tr>
-			</table>
-
-			<!--
-			<h1 class="list-caption">Browsing:</h1>
-			
-			<div class="list-view-rightbar">
-				<div id="newest-button" class="order-button">Newest</div>
-				<div id="most-votes-button" class="order-button">Most Votes</div>
-			</div>
-			-->
-		
-			<div id="parts-list">
-				<h2>Loading...</h2>
-				<!-- example part, made dynamically
-				<div class="part">
-				<div class="part_votes">0</div>
-				<div class="part_caption">
-				<span class="part_type_caption">Type:</span>
-				<span class="part_type">TYPE</span>
-				</div>
-				<div class="part_votes_caption">votes</div>
-				<div class="part_time">111</div>
-				</div>
-				-->
-			</div>
-	
-		</div>
-	</div>
-
-
-	<div id="create-panel">
-
-		<h1 class="list-caption">Create:</h1>
-		
-		<div class="panel-box">
-			<!-- 
-			<span class="create-button">
-			<img class="create-image" src="img/add2.png">Random Drumbeat
-			</span>
-			-->
-		</div>
-		
-		<p>These apps <i>write</i> to OMG:</p>
-		<div class="panel-box">
-			<div class="app" onclick="gotoURL('apps.htm#omgdrums')">
-				<img class="applogo" src="img/omgdrums48.png">
-				<div class="appname">OMG Drums</div>
-				<div class="appdesc">Open Source drum machine for Android</div> 
-			</div>
-			<hr/>
-			<div class="app" onclick="gotoURL('apps.htm#tonezart')">
-				<img class="applogo" src="img/tonezart48.png">
-				<div class="appname">Tonezart</div>
-				<div class="appdesc">Make unique, one-of-a-kind ringtones interactively!</div>
-			</div>
-			<hr/>
-			<div class="app" onclick="gotoURL('apps.htm#omgbananas')">
-				<img class="applogo" src="img/banana48.png">
-				<div class="appname">OMG Bananas</div>
-				<div class="appdesc">Need a collaborator? This app learns what you like and helps create more!</div>
-			</div>
-			<hr/>
-			<div class="app" onclick="gotoURL('apps.htm#sketchatune')">
-				<img class="applogo" src="img/sketchatune48.png">
-				<div class="appname">Sketch a Tune</div>
-				<div class="appdesc">You doodle. Music is created. It's that simple.</div> 
-			</div>
-			<hr/>
-			<div class="app" onclick="gotoURL('apps.htm#drawmusic')">
-				<img class="applogo" src="img/drawmusic48.png">
-				<div class="appname">Draw Music MonadPad</div>
-				<div class="appdesc">The original!</div>
-			</div> 
-		</div>
-		
-		
-		<p>These apps <i>read</i> from OMG:</p>
-		<div class="panel-box">
-			<div class="app" onclick="gotoURL('apps.htm#bitar')">
-				<img class="applogo" src="img/bitar48.png">
-				<div class="appname">Bitar</div>
-				<div class="appdesc">The touchscreen digital guitar!</div>
-			</div>
-		</div>  
-		
-		
-		<p>Contact/Info:</p>
-		<div class="panel-box" id="contact-box">
-			<a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a>
-			<hr/>
-			<a href="https://github.com/MazeHatter/OMGDrums/blob/master/LICENSE.md">
-			The OMG License</a>
-			<hr/>
-			<div id="image-credits">
-				Image Credits:<br/>
-				OMG, OMG Drums, OMG Bananas, and Tonezart images<br/> by Wes Golinski 
-			</div>
-		</div>  
-	
-	
-	</div>
-	
-	<div id="saved-panel" class="list-view">
-
-		<% if (!hasUser) {%>
-		<div class="login-area" >
-			<br/>
-			<br/>
-			Login with Google to save your creations!<br/> 
-			<a href="<%=loginUrl%>"><img class="signingoogle" src="img/signingoogle.png"></a>
-			<br/>
-			<br/>
-		</div>
-		<% } %>
-
-	
-		<div id="saved-toolbar" class="relative-container">
-
-			<h1 class="list-caption">My Saved:</h1>
-			
-			<!--<div class="list-view-rightbar">
-				<select id="select-collection" class="select-list-filter">
-				<option>Saved</option>
-				</select>
-				<div id="newest-button" class="order-button">Newest</div>
-				<div id="most-votes-button" class="order-button">Most Votes</div>
-			</div>-->
-		</div>
-
-		<div id="saved-list">
-		</div>
-
-	</div>
-</div>
-
-
-
-<!--<div id="right-panel">-->
-
-	
-
-	<div id="about" class="remixer-zone">
-		<div class="remixer-caption">About OMG</div>
-		<div class="remixer-caption-bar">
-		</div>
-
-		<div class="remixer-area" >
-
-		<p class="app-desc">Open Music Gallery forms the basis of a digital network that replaces record labels and other channels of copyrighted "closed" music.</p>
-
-		<% if (!hasUser) {%>
-		<div class="login-area" >
-			Login with Google for more features:<br/> 
-			<a href="<%=loginUrl%>"><img class="signingoogle" src="img/signingoogle.png"></a>
-		</div>
-		<% } else { %>
-		<div id="logout-area">
-			<h3>
-			Logged in as <span id="login-name"><%=userName%></span> - 
-			<a id="logout-link" href="<%=logoutUrl%>">Log Out</a>
-			</h3>
-		</div>
-		<% } %>
-
-
-		<p class="getting-started">
-		
-			<div class="getting-started-subtext">
-			Have a Question?
-			</div>
-			<div> 
-			<a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a>
-			</div>
-			<br/>
-			<div class="getting-started-subtext">
-				<a target="_blank" href="https://github.com/MazeHatter/OMG/blob/master/LICENSE.md">OMG License</a>
-				<br/>
-				<br/> 
-				<a target="_blank" href="https://github.com/MazeHatter/OMG">OMG Source Code</a>
-			</div>
-			<br/>
-			<div class="getting-started-subtext">
-				OMG Logo by Wes <span id="golinski">Golinski</span>
-			</div>
-		
-		</p>	
-		</div>
-
-		<div class="remixer-bottom-bar">
-		</div>			
-		
-	</div>
-
-<!--</div>-->
-	
-	
-
-<div id="dialog-border"></div>
 
 <div id="share-dialog">
 	<h2>Share!</h2>
@@ -530,18 +231,6 @@ if (user.isLoggedIn()){
 	<img id="email-button" src="img/email.png">
 	<br/>
 	url: <input type="text" id="share-url"></input>
-</div>
-
-<div id="add-to-remixer-hint">
-	This melody can be combined with drumbeats, basslines, 
-	and more in the <em>re</em><b>mixer</b> 
-	<hr/>
-	<div class="remixer-button" id="add-to-remixer-from-hint">
-		+<em>re</em><b>mixer</b>
-	</div> 
-	Add Melody to <em>re</em><b>mixer</b>
-	
-	<div class="remixer-button" id="add-to-remixer-hint-got-it">Got it</div> 
 </div>
 
 
@@ -556,8 +245,7 @@ if (user.isLoggedIn()){
 <script src="omgbam.js"></script>
 
 <script src="omg_util.js"></script>
-<script src="omg_drums.js"></script>
-<script src="omg_drawparts.js"></script>
+<script src="omg_partsui.js"></script>
 <script src="omg_player.js"></script>
 
 </body>
