@@ -33,14 +33,14 @@ if (typeof omg != "object")
     p.play = function (song) {
 
     	p.prepareSong(song);
-    	
+
     	if (p.playing) {
     		p.nextUp = song;
     		return p.playingIntervalHandle;
     	}
-		p.song= song;
 
-		
+    	p.song= song;
+
         p.song.playingSection = 0;
     
         if (!p.song.sections || !p.song.sections.length){
@@ -107,8 +107,6 @@ if (typeof omg != "object")
     
     p.loadPart = function (part, data) {
 
-        part.currentI = -1;
-        part.nextBeat = 0;
         part.soundsLoading = 0;
     	part.loaded = false;
         if (data.type == "DRUMBEAT") {
@@ -312,15 +310,20 @@ if (typeof omg != "object")
     	var data = part.data;
     	var beatToPlay = iSubBeat;
         if (iSubBeat == 0) {
-        	if (part.currentI === -1 || part.currentI === data.notes.length) {
+        	// this sort of works, for playing melodies longer than 
+        	// the section goes, but taking it solves problems
+        	// the one I'm solving now is putting currentI in the right state
+        	// every time, so it doesn't stop the current section if the same
+        	// melody is in upnext play list
+        	//if (part.currentI === -1 || part.currentI === data.notes.length) {
         		part.currentI = 0;
         		part.nextBeat = 0;
         		part.loopedBeats = 0;
-        	}
-        	else {
-        		if (!part.loopedBeats) part.loopedBeats = 0;
-    			part.loopedBeats += 32;
-        	}
+        	//}
+        	//else {
+        	//	if (!part.loopedBeats) part.loopedBeats = 0;
+    		//	part.loopedBeats += 32;
+        	//}
         }
 
         if (part.loopedBeats) {
@@ -694,6 +697,16 @@ function OMGSection(div) {
 	this.parts = [];
 	
 	// key? tempo? we need it here too, I guess
+	
+	
+	if (div) {
+		this.controls = document.createElement("div");
+		this.controls.className = "section-controls";
+		div.appendChild(this.controls);
+		
+		
+		
+	}
 }
 
 function OMGDrumpart(div) {

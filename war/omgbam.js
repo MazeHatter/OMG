@@ -131,7 +131,6 @@ function setupPartDiv(part) {
     }
 
     var muteButton = document.createElement("div");
-	muteButton.style.backgroundColor = "#99FF99";
     muteButton.className = "remixer-part-command";
     muteButton.innerHTML = "mute";
     muteButton.onclick = function (e) {
@@ -158,7 +157,7 @@ function setupPartDiv(part) {
 
 function setupDivForDrumbeat(part) {
 	
-    if (part.data.kit != undefined) {
+    /*if (part.data.kit != undefined) {
         var kitName = part.data.kit == 0 ? "Hip" : 
             part.data.kit == 1 ? "Rock" : part.data.kit;
         var kitDiv = document.createElement("div");
@@ -176,7 +175,7 @@ function setupDivForDrumbeat(part) {
         part.controls.rightBar.appendChild(bpmDiv);
         if (isShrunk())
         	bpmDiv.style.display = "none";
-    }
+    }*/
     
     var canvas = document.createElement("canvas");
     part.controls.appendChild(canvas);
@@ -187,9 +186,35 @@ function setupDivForDrumbeat(part) {
     canvas.style.width = canvas.parentElement.clientWidth - 8 + "px";
     canvas.width = canvas.clientWidth;
 
+
     part.canvas = canvas;
     
     drawDrumCanvas(part);
+    
+    canvas.style.cursor = "pointer";
+    canvas.onclick = function () {
+    	bam.part = part;
+    	
+    	var fadeList = [omg.remixer, part.controls];
+    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
+    	for (var ii = 0; ii < otherPartsList.length; ii++) {
+    		if (otherPartsList.item(ii) != part.div)
+    			fadeList.push(otherPartsList.item(ii));
+    		else
+    			part.position = ii;
+    	}
+        	
+    	bam.fadeOut(fadeList);
+    	bam.slideOutOptions(omg.remixer.options, function () {
+    		bam.grow(part.div, function () {
+    			bam.fadeIn([bam.beatmaker]);
+    			bam.beatmaker.ui.setPart(part);
+    			bam.beatmaker.ui.drawLargeCanvas();
+    			
+    			bam.slideInOptions(omg.mm.options);
+    		});	
+    	});
+    };
     
     /*canvas.onclick = function (e) {
 		var el = canvas;
@@ -222,45 +247,19 @@ function setupDivForDrumbeat(part) {
     };
     omg.player.onBeatPlayedListeners.push(part.div.onBeatPlayedListener);
 
-    part.controls.onclick = function () {
-    	bam.part = part;
-    	
-    	var fadeList = [omg.remixer, part.controls];
-    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
-    	for (var ii = 0; ii < otherPartsList.length; ii++) {
-    		if (otherPartsList.item(ii) != part.div)
-    			fadeList.push(otherPartsList.item(ii));
-    		else
-    			part.position = ii;
-    	}
-        	
-    	bam.fadeOut(fadeList);
-    	bam.slideOutOptions(omg.remixer.options, function () {
-    		bam.grow(part.div, function () {
-    			bam.fadeIn([bam.beatmaker]);
-    			bam.beatmaker.ui.setPart(part);
-    			bam.beatmaker.ui.drawLargeCanvas();
-    			
-    			bam.slideInOptions(omg.mm.options);
-    		});	
-    	});
-
-    };
 } 
 
 function setupMelodyDiv(part) {
     var div = part.controls;
 
     var gaugeDiv;
-    if (part.data.rootNote != undefined && part.data.scale) {
+    /*if (part.data.rootNote != undefined && part.data.scale) {
         var gaugeDiv = document.createElement("div");
         gaugeDiv.className = "part-key";
         gaugeDiv.innerHTML = "Key: " + getKeyName(part.data);
         div.rightBar.appendChild(gaugeDiv);
 
-        if (isShrunk())
-        	gaugeDiv.style.display = "none";
-    }
+    }*/
 
     part.canvas = document.createElement("canvas");
     div.appendChild(part.canvas);
@@ -273,7 +272,7 @@ function setupMelodyDiv(part) {
     part.canvas.width = part.canvas.clientWidth;
 
     omg.ui.drawMelodyCanvas(part.data, part.canvas);
-        
+    
     var beatMarker = document.createElement("div");
     var offsetLeft;
     var width;
@@ -302,6 +301,7 @@ function setupMelodyDiv(part) {
     div.beatMarker = beatMarker;
     omg.player.onBeatPlayedListeners.push(div.onBeatPlayedListener);
 
+    part.canvas.style.cursor = "pointer";
     part.canvas.onclick = function () {
     	bam.part = part;
 
@@ -542,6 +542,8 @@ function setupRemixer() {
     omg.remixer.addToRearrangerButton = document.getElementById("remixer-next");
     omg.remixer.addToRearrangerButton.onclick = function () {
 
+    	var addButton = omg.rearranger.addSectionButton;
+    	
         var sections = bam.song.sections.length; 
         
     	var otherSections = [];
@@ -575,7 +577,7 @@ function setupRemixer() {
 
 
             bam.shrink(bam.section.div, 100 + position * 110, 100, 100, 300, function() {
-                omg.rearranger.addSectionButton.style.left = window.innerWidth + "px";
+                addButton.style.left = window.innerWidth + "px";
                 
                 bam.slideInOptions(omg.rearranger.addSectionButton, null, 
                 		5 + sections * 110);
@@ -587,8 +589,86 @@ function setupRemixer() {
             	
             	var section = bam.section;
 
-            	section.div.onclick = function () {
+            	var downTimeout;
+            	var doClick = false;
+            	var lastXY = [-1, -1];
+            	var overCopy = false;
+            	section.div.onmousedown = function (event) {
+            		event.preventDefault;
+            		
+            		doClick = true;
+            		downTimeout = setTimeout(function () {
+            			doClick = false;
+            			section.dragging = true;
+            			section.div.style.zIndex = "1";
+            			
+            			addButton.innerHTML = "Copy Section";
+            			
+            			section.doneDragging = function () {
+            				addButton.innerHTML = "+ Add Section";
+            				addButton.style.backgroundColor = section.div.style.backgroundColor;
+            				section.dragging = false;
+        				};
+            			
+            		}, 1500);
+            		lastXY = [event.clientX, event.clientY];
+            	};
+            	section.div.onmouseout = function () {
+            		doClick = false;
+            		clearTimeout(downTimeout);
+            		if (section.dragging) {
+            			section.doneDragging();
+            		}
+            	};
 
+            	section.div.onmousemove = function (event) {
+            		if (section.dragging) {
+            			
+                		var xy = [event.clientX, event.clientY];
+            		
+                		section.div.style.left = section.div.offsetLeft +
+                			xy[0] - lastXY[0] + "px";
+                		section.div.style.top = section.div.offsetTop +
+            			xy[1] - lastXY[1] + "px";
+                		lastXY = xy;
+                		
+                		var centerX = section.div.clientWidth / 2 + section.div.offsetLeft;
+                		var centerY = section.div.clientHeight / 2 + section.div.offsetTop;
+
+                		//console.log("centerX=" + centerX + " offset=" + addButtonParentOffsets[0] + addButton.offsetLeft);
+                		var offsets = omg.util.totalOffsets(addButton);
+                		if (centerX > offsets.left && 
+                				centerX < offsets.left + addButton.clientWidth && 
+                				centerY > offsets.top && 
+                				centerY < offsets.top + addButton.clientHeight) {
+                			addButton.style.backgroundColor = "white";
+                			overCopy = true;
+                		}
+                		else {
+                			addButton.style.backgroundColor = section.div.style.backgroundColor;
+                			overCopy = false;
+                		}
+            		}
+            	};
+            	
+            	section.div.onmouseup = function () {
+            		
+            		if (section.dragging) {
+            			if (overCopy) {
+            				bam.copySection(section);
+            				
+            				//bam.slideInOptions(addButton, null, section.parts.length * 120);
+            			}
+            			section.doneDragging();
+            		}
+            		section.dragging = false;
+            		section.div.style.zIndex = "0";
+            		
+            		if (!doClick)
+            			return;
+            		
+            		clearTimeout(downTimeout);
+            		
             		var newSong = new OMGSong();
             		newSong.sections.push(bam.section);
             		newSong.loop = true;
@@ -1115,7 +1195,7 @@ function toggleMute(part, newMute) {
 	}
 	else {
 		part.muted = false;
-		part.controls.muteButton.style.backgroundColor = "#99FF99";
+		part.controls.muteButton.style.backgroundColor = "";
 		
 		if (part.gain && part.preMuteGain) {
 			part.gain.gain.value = part.preMuteGain;
@@ -2332,7 +2412,7 @@ bam.shrink = function (div, x, y, w, h, callback) {
 		
 		if (now == 1) {
 			clearInterval(interval);
-			div.style.cursor = "pointer";
+			//div.style.cursor = "pointer";
 			if (callback)
 				callback();
 		}
@@ -2654,4 +2734,29 @@ bam.createElementOverElement = function (classname, button) {
 	newPartDiv.style.height = button.clientHeight + "px";
 
 	return newPartDiv;
+};
+
+bam.copySection = function (section) {
+	var newDiv = bam.createElementOverElement("section", omg.rearranger.addSectionButton);
+
+	bam.song.div.appendChild(newDiv);
+	
+	var newSection = new OMGSection(newDiv);
+	
+	var newPartDiv;
+	var newPart;
+	
+	for (var ip = 0; ip < section.parts.length; ip++) {
+		newPartDiv = document.createElement("div");
+		newPartDiv.className = "part2";
+		
+		newPart = new OMGPart(newPartDiv);
+		newSection.parts.push(newPart);
+		
+		newDiv.appendChild(newPartDiv);
+	}
+	bam.shrink(newDiv);
+		
+	bam.song.sections.push(newSection);
+	
 };

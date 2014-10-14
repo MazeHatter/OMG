@@ -35,7 +35,7 @@ if (user.isLoggedIn()){
 	<span id="omg-title"><b>o</b>pen<b>m</b>usic<b>g</b>allery.net</span>
 
 	<div id="topbarright">
-	dicussion
+	<a href="http://reddit.com/r/openmusic">feeback&dicussion</a>
 	</div>
 
 
@@ -49,11 +49,14 @@ if (user.isLoggedIn()){
 </div>
 
 <div id="master" class="master">
-	<div class="song">
-	<div class="section">
-	
-	<div id="part2" class="part2"></div>
-	</div>	
+	<div class="artist">
+		<div class="album">
+			<div class="song">
+				<div class="section">			
+					<div id="part2" class="part2"></div>
+				</div>	
+			</div>
+		</div>
 	</div>
 </div>
 	
