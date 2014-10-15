@@ -211,7 +211,7 @@ if (user.isLoggedIn()){
 	
 		</div>
 
-		<div class="section" id="add-section">+ Add Section</div>	
+		<div class="section" id="add-section">+ Add Section (Drag Here To Copy)</div>	
 
 	</div>
 

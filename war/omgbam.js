@@ -8,7 +8,7 @@
  */
 var bam = {animLength:700};
 
-var omg = { 
+var omg = {url: "", 
         bpm: 120, beats: 8, subbeats: 4, 
         fileext: needsMP3() ? ".mp3" : ".ogg",
         soundsLoading: 0,
@@ -24,7 +24,6 @@ window.onload = function () {
 
 	bam.zones = [bam.song.div, bam.section.div, bam.part.div];
 	window.onresize = function() {
-		console.log("onresize");
 		for (var iz = 0; iz < bam.zones.length; iz++) {
 			bam.zones[iz].style.height = window.innerHeight + 10 + "px";
 			bam.zones[iz].style.width  = window.innerWidth  + 10 + "px";			
@@ -48,35 +47,31 @@ window.onload = function () {
 		bam.showingPlayButton.className = bam.showingPlayButton.className.replace("-blink", "");
     };
 
+    var pauseBlinked = false;
+    omg.player.onBeatPlayedListeners.push(function (isubbeat) {
+    	if (bam.showingPlayButton && isubbeat%4 == 0) {
+    		if (!pauseBlinked){
+    			if (bam.showingPlayButton.className.indexOf("-blink") == -1) {
+        			bam.showingPlayButton.className = 
+        				bam.showingPlayButton.className + "-blink";    				
+    			}
+    		}    			
+    		else{
+    			bam.showingPlayButton.className = bam.showingPlayButton.className.replace("-blink", "");
+    		}
+    		pauseBlinked = !pauseBlinked;
+    	}
+    });
+
     //if we got a parameter to do something
-    //doInitStuff();
+    if (!doInitStuff()) {
+        omg.mm.setPart(bam.part, true);    	
+    }
     
-    omg.mm.setPart(bam.part, true);
 };
 
 
 function setupPartDiv(part) {
-    //todo separate partClient and partData
-
-    /*var minButton = document.createElement("div");
-    minButton.className = "remixer-part-command";
-    minButton.innerHTML = "&minus;";
-    minButton.onclick = function (e) {
-    	resizePart(part, "MINI");
-    	e.stopPropagation();
-    };
-    part.div.appendChild(minButton);
-
-    var maxButton = document.createElement("div");
-    maxButton.className = "remixer-part-command";
-    maxButton.innerHTML = "&plus;";
-    maxButton.onclick = function (e) {
-    	resizePart(part, "RESTORE");
-    	e.stopPropagation();
-    };
-    maxButton.style.display = "none";
-    part.div.appendChild(maxButton);
-	*/
 	
     part.controls = document.createElement("div");
     part.controls.style.height = part.div.clientHeight - 6 + "px";
@@ -156,27 +151,7 @@ function setupPartDiv(part) {
 }
 
 function setupDivForDrumbeat(part) {
-	
-    /*if (part.data.kit != undefined) {
-        var kitName = part.data.kit == 0 ? "Hip" : 
-            part.data.kit == 1 ? "Rock" : part.data.kit;
-        var kitDiv = document.createElement("div");
-        kitDiv.className = "part-drumkit";
-        kitDiv.innerHTML = "Kit: " + kitName;
-        part.controls.rightBar.appendChild(kitDiv);
-
-        if (isShrunk())
-        	kitDiv.style.display = "none";
-    }
-    if (part.data.bpm) {
-        var bpmDiv = document.createElement("div");
-        bpmDiv.className = "part-bpm";
-        bpmDiv.innerHTML = "BPM: " + part.data.bpm;
-        part.controls.rightBar.appendChild(bpmDiv);
-        if (isShrunk())
-        	bpmDiv.style.display = "none";
-    }*/
-    
+	    
     var canvas = document.createElement("canvas");
     part.controls.appendChild(canvas);
     
@@ -216,30 +191,6 @@ function setupDivForDrumbeat(part) {
     	});
     };
     
-    /*canvas.onclick = function (e) {
-		var el = canvas;
-		var offsetLeft = 0;
-		var offsetTop = 0;
-		while (el && !isNaN(el.offsetLeft)) {
-			offsetLeft += el.offsetLeft;
-			offsetTop += el.offsetTop;
-			el = el.parentElement;
-		}
-
-    	var xbox = Math.floor((e.clientX - offsetLeft - canvas.captionWidth) / 
-    					canvas.columnWidth);
-    	if (xbox >= 0) {
-    		var ybox = Math.floor((e.clientY - offsetTop) / 
-    					canvas.rowHeight);
-    		
-    		part.data.tracks[ybox].data[xbox] = part.data.tracks[ybox].data[xbox] ? 0 : 1;
-    		drawDrumCanvas(part);
-    	}
-    	
-    	part.id = 0;
-    	sectionModified();
-	};*/
-
     part.isNew = false;
 
     part.div.onBeatPlayedListener = function (subbeat) {
@@ -251,15 +202,6 @@ function setupDivForDrumbeat(part) {
 
 function setupMelodyDiv(part) {
     var div = part.controls;
-
-    var gaugeDiv;
-    /*if (part.data.rootNote != undefined && part.data.scale) {
-        var gaugeDiv = document.createElement("div");
-        gaugeDiv.className = "part-key";
-        gaugeDiv.innerHTML = "Key: " + getKeyName(part.data);
-        div.rightBar.appendChild(gaugeDiv);
-
-    }*/
 
     part.canvas = document.createElement("canvas");
     div.appendChild(part.canvas);
@@ -332,8 +274,6 @@ function setupMelodyDiv(part) {
 
 }
 
-
-
 function setupRemixer() {
 
     omg.remixer = document.getElementById("remixer");
@@ -356,53 +296,15 @@ function setupRemixer() {
         e.stopPropagation();
     };
 
-    var pauseBlinked = false;
-    omg.player.onBeatPlayedListeners.push(function (isubbeat) {
-
-    	if (bam.showingPlayButton && isubbeat%4 == 0) {
-    		if (!pauseBlinked){
-    			if (bam.showingPlayButton.className.indexOf("-blink") == -1) {
-        			bam.showingPlayButton.className = 
-        				bam.showingPlayButton.className + "-blink";    				
-    			}
-    		}    			
-    		else{
-    			bam.showingPlayButton.className = bam.showingPlayButton.className.replace("-blink", "");
-    		}
-    		
-    		pauseBlinked = !pauseBlinked;
-    	}
-    });
-
-    omg.sectionDiv = document.getElementById("remixer-current-section");
-
     omg.remixer.nosection = document.getElementById("no-section-message");
-    omg.remixer.sectionButtonRow = document.getElementById("section-button-row");
 
     omg.remixer.options = document.getElementById("remixer-option-panel");
 
-
     omg.remixer.shareButton = document.getElementById("share-button");
-
-    omg.remixer.getSectionData = function () {
-        var outdata;
-        var outparts;
-	    outdata = JSON.parse(JSON.stringify(omg.section.data));
-	    outparts = [];
-
-	    for (var ip = 0; ip < omg.section.parts.length; ip++) {
-	        outparts.push(omg.section.parts[ip].data);
-	    }
-	    
-	    outdata.parts = JSON.parse(JSON.stringify(outparts));
-        return outdata;
-    };
-
 
     omg.remixer.addButtons = document.getElementById("remixer-add-buttons");
 
     omg.remixer.addMelodyButton = document.getElementById("remixer-add-melody");
-    // make a new part
     omg.remixer.addMelodyButton.onclick = function () {
     
     	var newdiv = bam.createElementOverElement("part2", 
@@ -427,7 +329,6 @@ function setupRemixer() {
     			
     			omg.mm.setPart(newPart);
     			
-    			//bam.slideInOptions(omg.mm.options);
     		});	
     	});
     	
@@ -435,7 +336,6 @@ function setupRemixer() {
     };
 
     omg.remixer.addBasslineButton = document.getElementById("remixer-add-bassline");
-    // make a new part
     omg.remixer.addBasslineButton.onclick = function () {
     	    	
     	var button = omg.remixer.addBasslineButton;
@@ -463,7 +363,6 @@ function setupRemixer() {
     			
     			omg.mm.setPart(newPart);
     			
-    			//bam.slideInOptions(omg.mm.options);
     		});	
     	});
     	
@@ -471,7 +370,6 @@ function setupRemixer() {
     };
 
     omg.remixer.addDrumbeatButton = document.getElementById("remixer-add-drumbeat");
-    // make a new part
     omg.remixer.addDrumbeatButton.onclick = function () {
 
     	var newdiv = bam.createElementOverElement("part2", 
@@ -525,7 +423,6 @@ function setupRemixer() {
     		omg.remixer.nosection.style.display = "none";
     	}
     	bam.arrangeParts();
-    	//omg.remixer.addButtons.style.top = 75 + (parts - 1) * 130 + 115 + "px";
     	
     };
 
@@ -572,9 +469,8 @@ function setupRemixer() {
         bam.slideOutOptions(omg.remixer.options);
         bam.fadeOut(fadeOutList, function () {
         	
-        	// keep it rolling? maybe preference
-        	//omg.remixer.stop();
-
+	    	// keep it rolling? maybe preference
+	    	//omg.remixer.stop();
 
             bam.shrink(bam.section.div, 100 + position * 110, 100, 100, 300, function() {
                 addButton.style.left = window.innerWidth + "px";
@@ -586,113 +482,9 @@ function setupRemixer() {
             	bam.fadeIn(otherSections);
             	
             	omg.player.play(bam.song);
-            	
-            	var section = bam.section;
+    
+            	bam.setupSectionDiv(bam.section);
 
-            	var downTimeout;
-            	var doClick = false;
-            	var lastXY = [-1, -1];
-            	var overCopy = false;
-            	section.div.onmousedown = function (event) {
-            		event.preventDefault;
-            		
-            		doClick = true;
-            		downTimeout = setTimeout(function () {
-            			doClick = false;
-            			section.dragging = true;
-            			section.div.style.zIndex = "1";
-            			
-            			addButton.innerHTML = "Copy Section";
-            			
-            			section.doneDragging = function () {
-            				addButton.innerHTML = "+ Add Section";
-            				addButton.style.backgroundColor = section.div.style.backgroundColor;
-            				section.dragging = false;
-        				};
-            			
-            		}, 1500);
-            		lastXY = [event.clientX, event.clientY];
-            	};
-            	section.div.onmouseout = function () {
-            		doClick = false;
-            		clearTimeout(downTimeout);
-            		if (section.dragging) {
-            			section.doneDragging();
-            		}
-            	};
-
-            	section.div.onmousemove = function (event) {
-            		if (section.dragging) {
-            			
-                		var xy = [event.clientX, event.clientY];
-            		
-                		section.div.style.left = section.div.offsetLeft +
-                			xy[0] - lastXY[0] + "px";
-                		section.div.style.top = section.div.offsetTop +
-            			xy[1] - lastXY[1] + "px";
-                		lastXY = xy;
-                		
-                		var centerX = section.div.clientWidth / 2 + section.div.offsetLeft;
-                		var centerY = section.div.clientHeight / 2 + section.div.offsetTop;
-
-                		//console.log("centerX=" + centerX + " offset=" + addButtonParentOffsets[0] + addButton.offsetLeft);
-                		var offsets = omg.util.totalOffsets(addButton);
-                		if (centerX > offsets.left && 
-                				centerX < offsets.left + addButton.clientWidth && 
-                				centerY > offsets.top && 
-                				centerY < offsets.top + addButton.clientHeight) {
-                			addButton.style.backgroundColor = "white";
-                			overCopy = true;
-                		}
-                		else {
-                			addButton.style.backgroundColor = section.div.style.backgroundColor;
-                			overCopy = false;
-                		}
-            		}
-            	};
-            	
-            	section.div.onmouseup = function () {
-            		
-            		if (section.dragging) {
-            			if (overCopy) {
-            				bam.copySection(section);
-            				
-            				//bam.slideInOptions(addButton, null, section.parts.length * 120);
-            			}
-            			section.doneDragging();
-            		}
-            		section.dragging = false;
-            		section.div.style.zIndex = "0";
-            		
-            		if (!doClick)
-            			return;
-            		
-            		clearTimeout(downTimeout);
-            		
-            		var newSong = new OMGSong();
-            		newSong.sections.push(bam.section);
-            		newSong.loop = true;
-            		omg.player.play(newSong);
-            		
-                	var fadeOutList2 = [];
-                	var otherSectionList = bam.song.div.getElementsByClassName("section");
-                	for (var ii = 0; ii < otherSectionList.length; ii++) {
-                		if (otherSectionList.item(ii) != section.div)
-                			fadeOutList2.push(otherSectionList.item(ii));
-                	}
-                	fadeOutList2.push(omg.rearranger);
-
-            		bam.slideDownOptions(omg.rearranger.options);
-            		bam.fadeOut(fadeOutList2, function () {
-                		bam.grow(section.div, function () {
-                			bam.section = section;
-                			bam.fadeIn(fadeOutList);
-                			bam.slideInOptions(omg.remixer.options);
-                			omg.remixer.refresh();
-                		});            			
-            		});
-            		section.div.onclick = null;
-            	};
             });
         });
     };
@@ -810,8 +602,6 @@ function setupRearranger() {
         if (!omg.player.playing)
             omg.player.playWhenReady();
 
-        //omg.remixer.saveButton.innerHTML = searchResult.id ? "(Saved)" : "Save";
-    
     };
     
     omg.rearranger.unload = function () {
@@ -848,7 +638,6 @@ function setupRearranger() {
        			bam.fadeIn([omg.remixer]);
     			omg.remixer.refresh();
     			
-    			//bam.slideInOptions(omg.remixer.options);
     		});	
     	});
 
@@ -901,71 +690,6 @@ function pausePart(part) {
     }
 }
 
-
-
-
-function gotoURL(url) {
-    window.location = url;
-}
-
-
-function setupAsCurrentInList(searchResult, div) {
-
-    if (omg.currentDivInList) {
-        omg.currentDivInList.style.backgroundColor = "#ffefd6";
-        var child = omg.currentDivInList.getElementsByClassName("vote-up");
-        if (child.length > 0)
-            omg.currentDivInList.removeChild(child[0]);
-        child = omg.currentDivInList.getElementsByClassName("vote-down");
-        if (child.length > 0)
-            omg.currentDivInList.removeChild(child[0]);
-
-    }
-
-    //var div = searchResult.divInList;
-    omg.currentDivInList = div;
-    div.style.backgroundColor = "#FFFFFF";
-
-    if (!omg.player.context)
-        return;
-
-    var arrowUp = document.createElement("div");
-    arrowUp.className = "vote-up";
-    div.appendChild(arrowUp);
-
-    var arrowDown = document.createElement("div");
-    arrowDown.className = "vote-down";
-    div.appendChild(arrowDown);
-
-    var voteDiv = div.getElementsByClassName("part-votes")[0];
-    if (!voteDiv)
-    	return;
-    
-    var votes = parseInt(voteDiv.innerHTML);
-
-    arrowUp.onclick = function (e) {
-        e.stopPropagation();
-
-        sendVote(searchResult, 1)
-        div.removeChild(arrowUp);
-        div.removeChild(arrowDown);
-
-        voteDiv.innerHTML = ++votes;
-    }
-
-    arrowDown.onclick = function (e) {
-        e.stopPropagation();
-
-        sendVote(searchResult, -1)
-        div.removeChild(arrowUp);
-        div.removeChild(arrowDown);
-
-        voteDiv.innerHTML = --votes;
-    }
-
-}
-
-
 function needsMP3() {
     var ua = navigator.userAgent.toLowerCase();
     var iOS = ( ua.match(/(ipad|iphone|ipod)/g) ? true : false );
@@ -974,64 +698,8 @@ function needsMP3() {
 }
 
 
-
-/*function resizePart(part, resize) {
-    var div = part.div;
-    var show;
-    var minButton = div.getElementsByClassName("remixer-part-command")[0];
-    var maxButton = div.getElementsByClassName("remixer-part-command")[1];
-    if (resize == "MINI") {
-        show = "none";
-        showInline = "none";
-
-        if (div.beatMarker) {
-            div.beatMarker.active = false;
-            div.beatMarker.style.display = "none";
-        }
-
-        minButton.style.display = "none";
-        maxButton.style.display = "inline-block";
-    }
-    else if (resize == "RESTORE") {
-        show = "block";
-        showInline = !isShrunk() && "inline-block";
-        
-        if (div.beatMarker)
-        	div.beatMarker.active = true;
-        
-        maxButton.style.display = "none";
-        minButton.style.display = "inline-block";
-    }
-
-    div.getElementsByClassName("part-hr")[0].style.display = show;
-
-    if (part.type == "DRUMBEAT") {
-
-        
-        var divs = div.getElementsByClassName("part-drumkit");
-        if (divs.length > 0)
-            divs[0].style.display = showInline;
-        divs = div.getElementsByClassName("part-bpm");
-        if (divs.length > 0)
-            divs[0].style.display = showInline;
-
-        part.canvas.style.display = show;
-        
-    }
-
-    if (part.type == "MELODY" || part.type == "BASSLINE") {
-    	part.canvas.style.display = show;
-        part.div.beatMarker.isSetup = false;
-
-    }
-
-    part.size = resize;
-}*/
-
-
 function sectionModified() {
 
-    var saveCaption = "Save";
     bam.section.id = -1;
 
 }
@@ -1057,7 +725,7 @@ function postOMG(type, odata, callback) {
     	outdata = odata.data;
 
 	var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/omg", true);
+    xhr.open("POST", omg.url + "/omg", true);
     xhr.onreadystatechange = function(){
         if (xhr.readyState == 4){
 
@@ -1077,7 +745,7 @@ function postOMG(type, odata, callback) {
 function sendVote(entry, value) {
 
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/vote", true);
+    xhr.open("POST", omg.url + "/vote", true);
     xhr.onreadystatechange = function(){
         if (xhr.readyState == 4){
             debug(xhr.responseText);
@@ -1088,95 +756,48 @@ function sendVote(entry, value) {
 }
 
 
-function createDrumbeatFromSoundSet(soundSet) {
-	var emptyBeat = {"type":"DRUMBEAT","bpm":120,"kit":soundSet.id,
-			    isNew: true, data: []};
-			    
-    var prefix = soundSet.data.prefix || "";
-    var postfix = soundSet.data.postfix || "";
-
-	var sound;
-	for (var i = 0; i < soundSet.data.data.length; i++) {
-		sound = soundSet.data.data[i];
-		emptyBeat.data.push({"name": sound.caption,"sound":prefix + sound.url + postfix,
-				"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-				        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]});
-	}
-	return emptyBeat;
-}
-
-
 function doInitStuff() {
-	params = [];
-	var id;
-	var func;
-	var soundset;
-		
+
 	// see if there's somethign to do here
 	var params = document.location.search;
 	var nvp;
+
+	var id;
 	var type;
+	var shareParams;
+	
 	if (params.length > 1) {
 		params = params.slice(1).split("&");
 		for (var ip = 0; ip < params.length; ip++) {
 			nvp = params[ip].split("=");
 	
-			if (nvp[0] === "func") {
-				func = nvp[1];
+			if (nvp[0].toLowerCase() === "share") {
+				shareParams = nvp[1].split("-");
 			}
-			if (nvp[0] === "id") {
-				id = nvp[1];
-			}
-			if (nvp[0] === "soundset") {
-				soundset = nvp[1];
-			}
-			if (nvp[0] === "type") {
-				type = nvp[1];
-			}
-			
 		}
 	}
-	
-	if (func === "newdrumbeat") {
 
-		if (soundset && soundset > 0) {
-			
-			getSoundSet(soundset, function (ss) {
-				
-		    	var newBeats = createDrumbeatFromSoundSet(ss);
-
-		    	loadSinglePart({
-		    		type: "DRUMBEAT",
-		    		data: newBeats
-		    	});
-				
-			});
-			
-		}
-	}
-	
-	showMelodyMaker("MELODY", true);
-
-	if (func && func.toLowerCase() === "share" && type) {
-		var newPart = {id: id, type: type}; 
+	if (shareParams) {
+		type = shareParams[0];
+		var newPart = {id: shareParams[1], type: type}; 
 		getOMG(newPart, function (result) {
 
-            if (result.type == "SONG") {
+			console.log(result);
+			
+            if (type == "SONG") {
                 omg.rearranger.loadSong(result)
             }
-            else if (newPart.type == "SECTION") {
+            else if (type == "SECTION") {
             	loadSection(result);                
             }
             else {
-                loadSinglePart(result);
+            	bam.part.data = result;
+                omg.mm.setPart(result);
             }
 		});
-		//omg.listView.style.display = "none";
-		//omg.sharePanel.style.display = "block";
-		//omg.listViewShowing = false;
-		//omg.sharePanelShowing = true;
 	}
 	
+	return false;
 }
 
 function toggleMute(part, newMute) {
@@ -1283,11 +904,6 @@ function shareLink(url) {
 	window.location = url; 
 }
 
-
-
-function isShrunk() {
-	return window.innerWidth < 961;
-}
 
 function drawMelodyMakerCanvas() {
 
@@ -1531,6 +1147,21 @@ function setupMelodyMaker() {
 		}
 	};
 
+	omg.mm.shareButton = document.getElementById("share-mm");
+	omg.mm.shareButton.onclick = function () {
+
+		var goToId = function (id) {
+			window.location = "/omgbam.jsp?share=MELODY-" + id;
+		};
+		postOMG("MELODY", bam.part, function (response) {
+			if (response && response.result ==  "good") {
+				goToId(response.id);
+			}
+		});
+		
+	};
+	
+	
 	omg.mm.play = function () {
 
 		var newSong = new OMGSong();
@@ -2379,12 +2010,9 @@ bam.shrink = function (div, x, y, w, h, callback) {
 			child.originalW = child.div.clientWidth;
 			child.originalX = child.div.offsetLeft;
 			child.originalY = child.div.offsetTop;
-			
-			child.targetX = 15;
-			child.targetY = 15 + ip * h / parts.length;
-			child.targetW = w - 40;
-			child.targetH = h / parts.length - 40;
-			
+
+			bam.setTargetsSmallParts(child, ip, parts.length, w, h);
+
 			children.push(child);
 		}
 	}
@@ -2547,6 +2175,66 @@ bam.arrangeParts = function (callback) {
 	}, 1000/60);
 };
 
+bam.arrangeSections = function (callback) {
+	
+	var div = bam.song.div;
+
+	var children;
+	var child;
+
+
+	children = [];
+	var parts = div.getElementsByClassName("section");
+	for (var ip = 0; ip < parts.length; ip++) {
+		child = {div: parts.item(ip)};
+		child.originalH = child.div.clientHeight;
+		child.originalW = child.div.clientWidth;
+		child.originalX = child.div.offsetLeft;
+		child.originalY = child.div.offsetTop;
+
+		child.targetX = 100 + ip * 110;
+		child.targetY = 100;
+		child.targetW = 100;
+		child.targetH = 300;
+		
+		children.push(child);
+	}
+	
+	child = {div: omg.rearranger.addSectionButton};
+	child.originalH = 14; //padding does the rest;
+	child.originalW = 60; //padding does the rest;
+	child.originalX = child.div.offsetLeft;
+	child.originalY = child.div.offsetTop;
+	child.targetX = 5 + bam.song.sections.length * 110;
+	child.targetY = child.originalY;
+	child.targetW = child.originalW;
+	child.targetH = child.originalH;
+	children.push(child);
+
+	var startedAt = Date.now();
+	
+	var interval = setInterval(function () {
+		var now = Date.now() - startedAt;
+		var now = Math.min(1, now / bam.animLength);
+
+		if (children) {
+			for (ip = 0; ip < children.length; ip++) {
+				child = children[ip];
+				child.div.style.left   = child.originalX + (child.targetX - child.originalX) * now + "px";
+				child.div.style.top    = child.originalY + (child.targetY - child.originalY) * now + "px";
+				child.div.style.width  = child.originalW + (child.targetW - child.originalW) * now + "px";
+				child.div.style.height = child.originalH + (child.targetH - child.originalH) * now + "px";
+				
+			}
+		}
+		
+		if (now == 1) {
+			clearInterval(interval);
+			if (callback)
+				callback();
+		}
+	}, 1000/60);
+};
 
 bam.slideOutOptions = function (div, callback) {
 	
@@ -2749,14 +2437,175 @@ bam.copySection = function (section) {
 	for (var ip = 0; ip < section.parts.length; ip++) {
 		newPartDiv = document.createElement("div");
 		newPartDiv.className = "part2";
-		
+				
+		newDiv.appendChild(newPartDiv);
+
+		targets = bam.setTargetsSmallParts(null, ip, section.parts.length, 
+				newDiv.clientWidth, newDiv.clientHeight);
+
 		newPart = new OMGPart(newPartDiv);
 		newSection.parts.push(newPart);
+
+		bam.reachTarget(newPartDiv, targets);
 		
-		newDiv.appendChild(newPartDiv);
+		newPart.data = JSON.parse(JSON.stringify(section.parts[ip].data));
 	}
-	bam.shrink(newDiv);
-		
+
+	bam.setupSectionDiv(newSection);
+	
 	bam.song.sections.push(newSection);
 	
 };
+
+bam.setTargetsSmallParts = function (targets, partNo, partCount, w, h) {
+	if (!targets)
+		targets = {};
+	
+	targets.targetX = 15;
+	targets.targetY = 15 + partNo * h / partCount;
+	targets.targetW = w - 40;
+	targets.targetH = h / partCount - 40;
+	return targets;
+}
+
+bam.reachTarget = function (div, target) {
+	div.style.left = target.targetX + "px";
+	div.style.top  = target.targetY + "px";
+	div.style.width = target.targetW + "px";
+	div.style.height = target.targetH + "px";
+};
+
+bam.setupSectionDiv = function (section) {
+	var addButton = omg.rearranger.addSectionButton;
+	
+	var downTimeout;
+	var doClick = false;
+	var lastXY = [-1, -1];
+	var overCopy = false;
+	section.div.onmousedown = function (event) {
+		
+		if (bam.zones[bam.zones.length - 1] != bam.song.div) {
+			return;
+		}
+
+		event.preventDefault;
+		
+		doClick = true;
+		downTimeout = setTimeout(function () {
+			doClick = false;
+			section.dragging = true;
+			section.div.style.zIndex = "1";
+			
+			addButton.innerHTML = "Copy Section";
+			
+			bam.fadeOut([omg.rearranger.options]);
+			
+			section.doneDragging = function () {
+				addButton.innerHTML = "+ Add Section";
+				addButton.style.backgroundColor = section.div.style.backgroundColor;
+				section.dragging = false;
+				overCopy = false;
+				
+				bam.arrangeSections();
+				bam.fadeIn([omg.rearranger.options]);
+				
+				bam.song.div.onmousemove = undefined;
+			};
+			
+			bam.song.div.onmousemove = function (event) {
+				if (bam.zones[bam.zones.length - 1] != bam.song.div) {
+					return;
+				}
+
+				if (section.dragging) {
+					
+		    		var xy = [event.clientX, event.clientY];
+				
+		    		section.div.style.left = section.div.offsetLeft +
+		    			xy[0] - lastXY[0] + "px";
+		    		section.div.style.top = section.div.offsetTop +
+					xy[1] - lastXY[1] + "px";
+		    		lastXY = xy;
+		    		
+		    		var centerX = section.div.clientWidth / 2 + section.div.offsetLeft;
+		    		var centerY = section.div.clientHeight / 2 + section.div.offsetTop;
+
+		    		var offsets = omg.util.totalOffsets(addButton);
+		    		if (centerX > offsets.left && 
+		    				centerX < offsets.left + addButton.clientWidth && 
+		    				centerY > offsets.top && 
+		    				centerY < offsets.top + addButton.clientHeight) {
+		    			addButton.style.backgroundColor = "white";
+		    			overCopy = true;
+		    		}
+		    		else {
+		    			addButton.style.backgroundColor = section.div.style.backgroundColor;
+		    			overCopy = false;
+		    		}
+				}
+			};
+			
+		}, 400);
+		lastXY = [event.clientX, event.clientY];
+	};
+	
+	section.div.onmouseup = function () {
+
+		if (bam.zones[bam.zones.length - 1] != bam.song.div) {
+			return;
+		}
+		
+		if (section.dragging) {
+			if (overCopy) {
+				bam.copySection(section);
+				
+				//bam.slideInOptions(addButton, null, section.parts.length * 120);
+			}
+			section.doneDragging();
+		}
+		section.dragging = false;
+		section.div.style.zIndex = "0";
+		
+		if (!doClick)
+			return;
+		
+		clearTimeout(downTimeout);
+		
+		var newSong = new OMGSong();
+		newSong.sections.push(bam.section);
+		newSong.loop = true;
+		omg.player.play(newSong);
+		
+    	var fadeOutList2 = [];
+    	var otherSectionList = bam.song.div.getElementsByClassName("section");
+    	for (var ii = 0; ii < otherSectionList.length; ii++) {
+    		if (otherSectionList.item(ii) != section.div)
+    			fadeOutList2.push(otherSectionList.item(ii));
+    		else
+    			section.position = ii;
+    	}
+    	fadeOutList2.push(omg.rearranger);
+
+		bam.slideDownOptions(omg.rearranger.options);
+		bam.fadeOut(fadeOutList2, function () {
+    		bam.grow(section.div, function () {
+    			bam.section = section;
+ 
+    	        var fadeInList = [omg.remixer];
+    	        var controls;
+    	        for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
+    	        	controls = bam.section.parts[ip].controls;
+    	        	if (!controls) {
+    	        		setupPartDiv(bam.section.parts[ip]);
+    	        	}
+    	        	fadeInList.push(bam.section.parts[ip].controls);        	
+    	    	}
+    			bam.fadeIn(fadeInList);
+    			
+    			bam.slideInOptions(omg.remixer.options);
+    			omg.remixer.refresh();
+    		});            			
+		});
+		section.div.onclick = null;
+	};
+}

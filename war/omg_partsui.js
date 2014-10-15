@@ -254,6 +254,31 @@ omg.ui.setupNoteImages = function () {
 omg.ui.setupNoteImages();
 
 
+/*small canvas style
+ * canvas.onclick = function (e) {
+	var el = canvas;
+	var offsetLeft = 0;
+	var offsetTop = 0;
+	while (el && !isNaN(el.offsetLeft)) {
+		offsetLeft += el.offsetLeft;
+		offsetTop += el.offsetTop;
+		el = el.parentElement;
+	}
+	
+	var xbox = Math.floor((e.clientX - offsetLeft - canvas.captionWidth) / 
+					canvas.columnWidth);
+	if (xbox >= 0) {
+		var ybox = Math.floor((e.clientY - offsetTop) / 
+					canvas.rowHeight);
+		
+		part.data.tracks[ybox].data[xbox] = part.data.tracks[ybox].data[xbox] ? 0 : 1;
+		drawDrumCanvas(part);
+	}
+	
+	part.id = 0;
+	sectionModified();
+};*/
+
 
 
 

@@ -732,8 +732,25 @@ function OMGDrumpart(div) {
 	        {"name":"scratch","sound":"PRESET_HH_SCRATCH",
         	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
-	      ]}
+	      ]};
 	
+	this.loadSoundSet = function (soundSet) {
+		var emptyBeat = {"type":"DRUMBEAT","bpm":120,"kit":soundSet.id,
+				    isNew: true, data: []};
+				    
+	    var prefix = soundSet.data.prefix || "";
+	    var postfix = soundSet.data.postfix || "";
+
+		var sound;
+		for (var i = 0; i < soundSet.data.data.length; i++) {
+			sound = soundSet.data.data[i];
+			emptyBeat.data.push({"name": sound.caption,"sound":prefix + sound.url + postfix,
+					"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]});
+		}
+		return emptyBeat;
+	};
+
 	// key? tempo? we need it here too, I guess
 	
 }
