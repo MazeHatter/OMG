@@ -24,6 +24,7 @@ body {
 	width:100%;
 	overflow-x:hidden;	
 	overflow-y:hidden;
+	display:none;
 }
 .section {
 	background-color:#99AAFF;
@@ -36,6 +37,7 @@ body {
 	overflow-y:hidden;
 	border-radius:8px;
 	border:2px solid black;
+	display:none;
 }
 .part2 {
 	background-color:#FFFF99;
@@ -49,6 +51,7 @@ body {
 	border-radius:8px;
 	border:2px solid black;
 	padding:4px;
+	display:none;
 }
 
 
@@ -364,7 +367,7 @@ h1 {
 }
 
 #melody-maker {
-	/*display:none;*/
+	display:none;
 	visibility:hidden;
 }
 

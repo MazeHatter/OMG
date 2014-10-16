@@ -456,7 +456,7 @@ OMGDrumMachine.prototype.drawLargeCanvas = function (iSubBeat) {
 						ctx.strokeRect(x, y, w, h);
 						ctx.fillStyle = "white";
 					}
-					ctx.fillText(part.tracks[jj].name, x, y + h / 2);
+					ctx.fillText(part.tracks[jj].name, x + 20, y + h / 2);
 				}
 			}
 			else {

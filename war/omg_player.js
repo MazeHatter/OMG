@@ -690,6 +690,13 @@ function OMGSong(div) {
 	
 	// key? tempo? yes, we need that shit
 };
+OMGSong.prototype.getData = function () {
+	this.data.sections = [];
+	for (var ip = 0; ip < this.sections.length; ip++) {
+		this.data.sections[ip] = this.sections[ip].getData();
+	}
+	return this.data;
+};
 
 function OMGSection(div) {
 	this.div = div;
@@ -704,10 +711,17 @@ function OMGSection(div) {
 		this.controls.className = "section-controls";
 		div.appendChild(this.controls);
 		
-		
-		
+		//?
 	}
 }
+
+OMGSection.prototype.getData = function () {
+	this.data.parts = [];
+	for (var ip = 0; ip < this.parts.length; ip++) {
+		this.data.parts[ip] = this.parts[ip].data;
+	}
+	return this.data;
+};
 
 function OMGDrumpart(div) {
 	this.div = div;	

@@ -52,9 +52,9 @@ if (user.isLoggedIn()){
 	<div class="artist">
 		<div class="album">
 			<div class="song">
-				<div class="section">			
+				<!--<div class="section">			
 					<div id="part2" class="part2"></div>
-				</div>	
+				</div>-->	
 			</div>
 		</div>
 	</div>
@@ -156,8 +156,8 @@ if (user.isLoggedIn()){
 	</div>
 
 	<div class="option-panel" id="remixer-option-panel">
-		<div class="panel-option" id="play-section">Stop</div>
-		<div class="panel-option" id="share-button">Share</div>
+		<div class="panel-option" id="play-section">Play</div>
+		<div class="panel-option" id="share-section">Share</div>
 		<div class="panel-option" id="remixer-next">Next</div>				
 		<div class="panel-option" id="clear-remixer">Clear</div>
 
@@ -211,7 +211,7 @@ if (user.isLoggedIn()){
 	
 		</div>
 
-		<div class="section" id="add-section">+ Add Section (Drag Here To Copy)</div>	
+		<div class="section" id="add-section">+ Add Section</div>	
 
 	</div>
 

@@ -6,818 +6,930 @@
  * (omg_player, omg_partsui, omg_util).
  *  
  */
-var bam = {animLength:700};
-
-var omg = {url: "", 
-        bpm: 120, beats: 8, subbeats: 4, 
-        fileext: needsMP3() ? ".mp3" : ".ogg",
-        soundsLoading: 0,
-        downloadedSoundSets: []
+var bam = {
+	animLength : 700
 };
 
-window.onload = function () {
+var omg = {
+	url : "",
+	bpm : 120,
+	beats : 8,
+	subbeats : 4,
+	fileext : needsMP3() ? ".mp3" : ".ogg",
+	soundsLoading : 0,
+	downloadedSoundSets : []
+};
+
+window.onload = function() {
 	bam.div = document.getElementById("master");
+	bam.zones = [];
 
-	bam.song = new OMGSong(bam.div.getElementsByClassName("song")[0]);
-	bam.section = new OMGSection(bam.song.div.getElementsByClassName("section")[0]);
-	bam.part = new OMGPart(bam.section.div.getElementsByClassName("part2")[0]);
+	setupRemixer();
+	setupRearranger();
+	setupMelodyMaker();
+	bam.setupBeatMaker();
 
-	bam.zones = [bam.song.div, bam.section.div, bam.part.div];
+	omg.player.onPlay = function() {
+		omg.rearranger.playButton.innerHTML = "Stop";
+		omg.mm.playButton.innerHTML = "Stop";
+		omg.pauseButton.innerHTML = "Stop";
+	};
+	omg.player.onStop = function() {
+		omg.rearranger.playButton.innerHTML = "Play";
+		omg.mm.playButton.innerHTML = "Play";
+		omg.pauseButton.innerHTML = "Play";
+		bam.showingPlayButton.className = bam.showingPlayButton.className
+				.replace("-blink", "");
+	};
+
+	var pauseBlinked = false;
+	omg.player.onBeatPlayedListeners
+			.push(function(isubbeat) {
+				if (bam.showingPlayButton && isubbeat % 4 == 0) {
+					if (!pauseBlinked) {
+						if (bam.showingPlayButton.className.indexOf("-blink") == -1) {
+							bam.showingPlayButton.className = bam.showingPlayButton.className
+									+ "-blink";
+						}
+					} else {
+						bam.showingPlayButton.className = bam.showingPlayButton.className
+								.replace("-blink", "");
+					}
+					pauseBlinked = !pauseBlinked;
+				}
+			});
+
+	bam.load(getLoadParams());
+
 	window.onresize = function() {
 		for (var iz = 0; iz < bam.zones.length; iz++) {
 			bam.zones[iz].style.height = window.innerHeight + 10 + "px";
-			bam.zones[iz].style.width  = window.innerWidth  + 10 + "px";			
+			bam.zones[iz].style.width = window.innerWidth + 10 + "px";
 		}
 	};
-	
-    setupRemixer();
-    setupRearranger();
-    setupMelodyMaker();
-    bam.setupBeatMaker();
 
-    omg.player.onPlay = function () {
-    	omg.rearranger.playButton.innerHTML = "Stop";
-    	omg.mm.playButton.innerHTML = "Stop";
-    	omg.pauseButton.innerHTML = "Stop";
-    };
-    omg.player.onStop = function () {
-    	omg.rearranger.playButton.innerHTML = "Play";
-    	omg.mm.playButton.innerHTML = "Play";
-    	omg.pauseButton.innerHTML = "Play";
-		bam.showingPlayButton.className = bam.showingPlayButton.className.replace("-blink", "");
-    };
-
-    var pauseBlinked = false;
-    omg.player.onBeatPlayedListeners.push(function (isubbeat) {
-    	if (bam.showingPlayButton && isubbeat%4 == 0) {
-    		if (!pauseBlinked){
-    			if (bam.showingPlayButton.className.indexOf("-blink") == -1) {
-        			bam.showingPlayButton.className = 
-        				bam.showingPlayButton.className + "-blink";    				
-    			}
-    		}    			
-    		else{
-    			bam.showingPlayButton.className = bam.showingPlayButton.className.replace("-blink", "");
-    		}
-    		pauseBlinked = !pauseBlinked;
-    	}
-    });
-
-    //if we got a parameter to do something
-    if (!doInitStuff()) {
-        omg.mm.setPart(bam.part, true);    	
-    }
-    
 };
 
-
 function setupPartDiv(part) {
-	
-    part.controls = document.createElement("div");
-    part.controls.style.height = part.div.clientHeight - 6 + "px";
-    part.div.appendChild(part.controls);
 
-    var type = part.data.type;
-    var typeDiv = document.createElement("div");
-    typeDiv.className ='remixer-part-type';
-    typeDiv.innerHTML = type;
-    part.controls.appendChild(typeDiv);
-    
-    var barDiv = document.createElement("div");
-    barDiv.className ='remixer-part-leftbar';
-    barDiv.innerHTML = getSelectInstrument(type);
-    part.controls.appendChild(barDiv);
+	part.controls = document.createElement("div");
+	part.controls.style.height = part.div.clientHeight - 6 + "px";
+	part.div.appendChild(part.controls);
 
-    part.controls.rightBar = document.createElement("div");
-    part.controls.rightBar.className = "remixer-part-rightbar";
-    part.controls.appendChild(part.controls.rightBar);
+	var type = part.data.type;
+	var typeDiv = document.createElement("div");
+	typeDiv.className = 'remixer-part-type';
+	typeDiv.innerHTML = type;
+	part.controls.appendChild(typeDiv);
 
-    part.controls.selectInstrument = part.controls.getElementsByClassName("remixer-part-instrument")[0];
-    part.controls.selectInstrument.onchange = function () {
-    	var instrument = part.controls.selectInstrument.value;
-    	
-    	if (instrument == "DEFAULT") {
+	var barDiv = document.createElement("div");
+	barDiv.className = 'remixer-part-leftbar';
+	barDiv.innerHTML = getSelectInstrument(type);
+	part.controls.appendChild(barDiv);
+
+	part.controls.rightBar = document.createElement("div");
+	part.controls.rightBar.className = "remixer-part-rightbar";
+	part.controls.appendChild(part.controls.rightBar);
+
+	part.controls.selectInstrument = part.controls
+			.getElementsByClassName("remixer-part-instrument")[0];
+	part.controls.selectInstrument.onchange = function() {
+		var instrument = part.controls.selectInstrument.value;
+
+		if (instrument == "DEFAULT") {
 
 			for (var ii = 0; ii < part.data.notes.length; ii++) {
-			    if (part.data.notes[ii].hasOwnProperty("sound")) {
-			        delete part.data.notes[ii].sound;
-			    }
+				if (part.data.notes[ii].hasOwnProperty("sound")) {
+					delete part.data.notes[ii].sound;
+				}
 			}
-    		
-    		delete part.sound;
-    		
-    		return;
-    	}
-    	
-    	getSoundSet(instrument, function (ss) {
-    	    
-    	    part.sound = ss;
-    	
-    		omg.player.setupPartWithSoundSet(ss, part, true);
-    	});
 
-    };
+			delete part.sound;
 
-    if (type == "DRUMBEAT") {
-        setupDivForDrumbeat(part);
-    }
-    if (type == "MELODY" || type == "BASSLINE") {
-        setupMelodyDiv(part);
-    }
+			return;
+		}
 
-    var muteButton = document.createElement("div");
-    muteButton.className = "remixer-part-command";
-    muteButton.innerHTML = "mute";
-    muteButton.onclick = function (e) {
+		getSoundSet(instrument, function(ss) {
+
+			part.sound = ss;
+
+			omg.player.setupPartWithSoundSet(ss, part, true);
+		});
+
+	};
+
+	if (type == "DRUMBEAT") {
+		setupDivForDrumbeat(part);
+	}
+	if (type == "MELODY" || type == "BASSLINE") {
+		setupMelodyDiv(part);
+	}
+
+	var muteButton = document.createElement("div");
+	muteButton.className = "remixer-part-command";
+	muteButton.innerHTML = "mute";
+	muteButton.onclick = function(e) {
 		toggleMute(part);
-    		
-    	e.stopPropagation();
-    };
-    part.controls.rightBar.appendChild(muteButton);
-    part.controls.muteButton = muteButton;
 
-    var closePartButton = document.createElement("div");
-    closePartButton.innerHTML = "&times;";
-    closePartButton.className = "remixer-part-command";
-    closePartButton.onclick = function () {
-        cancelPart(part, true);
-        
-        sectionModified();
-        omg.remixer.refresh();
-    };
-    part.controls.rightBar.appendChild(closePartButton);
+		e.stopPropagation();
+	};
+	part.controls.rightBar.appendChild(muteButton);
+	part.controls.muteButton = muteButton;
 
+	var closePartButton = document.createElement("div");
+	closePartButton.innerHTML = "&times;";
+	closePartButton.className = "remixer-part-command";
+	closePartButton.onclick = function() {
+		cancelPart(part, true);
+
+		sectionModified();
+		omg.remixer.refresh();
+	};
+	part.controls.rightBar.appendChild(closePartButton);
 
 }
 
 function setupDivForDrumbeat(part) {
-	    
-    var canvas = document.createElement("canvas");
-    part.controls.appendChild(canvas);
-    
-    canvas.height = canvas.parentElement.clientHeight - canvas.offsetTop - 4;
-    var rowHeight = canvas.height / part.data.tracks.length;
-    canvas.style.height = canvas.height + "px";
-    canvas.style.width = canvas.parentElement.clientWidth - 8 + "px";
-    canvas.width = canvas.clientWidth;
 
+	var canvas = document.createElement("canvas");
+	part.controls.appendChild(canvas);
 
-    part.canvas = canvas;
-    
-    drawDrumCanvas(part);
-    
-    canvas.style.cursor = "pointer";
-    canvas.onclick = function () {
-    	bam.part = part;
-    	
-    	var fadeList = [omg.remixer, part.controls];
-    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
-    	for (var ii = 0; ii < otherPartsList.length; ii++) {
-    		if (otherPartsList.item(ii) != part.div)
-    			fadeList.push(otherPartsList.item(ii));
-    		else
-    			part.position = ii;
-    	}
-        	
-    	bam.fadeOut(fadeList);
-    	bam.slideOutOptions(omg.remixer.options, function () {
-    		bam.grow(part.div, function () {
-    			bam.fadeIn([bam.beatmaker]);
-    			bam.beatmaker.ui.setPart(part);
-    			bam.beatmaker.ui.drawLargeCanvas();
-    			
-    			bam.slideInOptions(omg.mm.options);
-    		});	
-    	});
-    };
-    
-    part.isNew = false;
+	canvas.height = canvas.parentElement.clientHeight - canvas.offsetTop - 4;
+	var rowHeight = canvas.height / part.data.tracks.length;
+	canvas.style.height = canvas.height + "px";
+	canvas.style.width = canvas.parentElement.clientWidth - 8 + "px";
+	canvas.width = canvas.clientWidth;
 
-    part.div.onBeatPlayedListener = function (subbeat) {
-        drawDrumCanvas(part, subbeat);
-    };
-    omg.player.onBeatPlayedListeners.push(part.div.onBeatPlayedListener);
+	part.canvas = canvas;
 
-} 
+	drawDrumCanvas(part);
+
+	canvas.style.cursor = "pointer";
+	canvas.onclick = function() {
+		bam.part = part;
+
+		var fadeList = [ omg.remixer, part.controls ];
+		var otherPartsList = bam.section.div.getElementsByClassName("part2");
+		for (var ii = 0; ii < otherPartsList.length; ii++) {
+			if (otherPartsList.item(ii) != part.div)
+				fadeList.push(otherPartsList.item(ii));
+			else
+				part.position = ii;
+		}
+
+		bam.fadeOut(fadeList);
+		bam.slideOutOptions(omg.remixer.options, function() {
+			bam.grow(part.div, function() {
+				bam.fadeIn([ bam.beatmaker ]);
+				bam.beatmaker.ui.setPart(part);
+				bam.beatmaker.ui.drawLargeCanvas();
+
+				bam.slideInOptions(omg.mm.options);
+			});
+		});
+	};
+
+	part.isNew = false;
+
+	part.div.onBeatPlayedListener = function(subbeat) {
+		drawDrumCanvas(part, subbeat);
+	};
+	omg.player.onBeatPlayedListeners.push(part.div.onBeatPlayedListener);
+
+}
 
 function setupMelodyDiv(part) {
-    var div = part.controls;
+	var div = part.controls;
 
-    part.canvas = document.createElement("canvas");
-    div.appendChild(part.canvas);
+	part.canvas = document.createElement("canvas");
+	div.appendChild(part.canvas);
 
-    part.canvas.style.width = div.clientWidth + "px";
-    part.canvas.style.height = "70px";
-    part.canvas.height = 70;
+	part.canvas.style.width = div.clientWidth + "px";
+	part.canvas.style.height = "70px";
+	part.canvas.height = 70;
 
-    part.canvas.style.width = part.canvas.parentElement.clientWidth - 10 + "px";
-    part.canvas.width = part.canvas.clientWidth;
+	part.canvas.style.width = part.canvas.parentElement.clientWidth - 10 + "px";
+	part.canvas.width = part.canvas.clientWidth;
 
-    omg.ui.drawMelodyCanvas(part.data, part.canvas);
-    
-    var beatMarker = document.createElement("div");
-    var offsetLeft;
-    var width;
-    beatMarker.className = "beat-marker";
-    beatMarker.style.width = part.canvas.noteWidth + "px";
-    beatMarker.style.height = part.canvas.height + "px";
-    beatMarker.style.top = part.canvas.offsetTop + "px";
-    div.appendChild(beatMarker);
+	omg.ui.drawMelodyCanvas(part.data, part.canvas);
 
-    div.onBeatPlayedListener = function (subbeat) {
-		
+	var beatMarker = document.createElement("div");
+	var offsetLeft;
+	var width;
+	beatMarker.className = "beat-marker";
+	beatMarker.style.width = part.canvas.noteWidth + "px";
+	beatMarker.style.height = part.canvas.height + "px";
+	beatMarker.style.top = part.canvas.offsetTop + "px";
+	div.appendChild(beatMarker);
+
+	div.onBeatPlayedListener = function(subbeat) {
+
 		if (part.size == "MINI") {
-    		beatMarker.style.display = "none";
-    	}
-    	else if (part.currentI - 1 < part.data.notes.length && part.currentI >= 0) {
-            offsetLeft = part.canvas.offsetLeft ;
-            width = part.canvas.noteWidth;
-            offsetLeft += width * part.currentI;
-            beatMarker.style.display = "block";
-            beatMarker.style.left = offsetLeft + "px";
-        }
-        else {
-            beatMarker.style.display = "none";
-        }
-    };
-    div.beatMarker = beatMarker;
-    omg.player.onBeatPlayedListeners.push(div.onBeatPlayedListener);
+			beatMarker.style.display = "none";
+		} else if (part.currentI - 1 < part.data.notes.length
+				&& part.currentI >= 0) {
+			offsetLeft = part.canvas.offsetLeft;
+			width = part.canvas.noteWidth;
+			offsetLeft += width * part.currentI;
+			beatMarker.style.display = "block";
+			beatMarker.style.left = offsetLeft + "px";
+		} else {
+			beatMarker.style.display = "none";
+		}
+	};
+	div.beatMarker = beatMarker;
+	omg.player.onBeatPlayedListeners.push(div.onBeatPlayedListener);
 
-    part.canvas.style.cursor = "pointer";
-    part.canvas.onclick = function () {
-    	bam.part = part;
+	part.canvas.style.cursor = "pointer";
+	part.canvas.onclick = function() {
+		bam.part = part;
 
-    	if (omg.player.playing)
-    		omg.player.stop();
-    	
-    	var fadeList = [omg.remixer, part.controls];
-    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
-    	for (var ii = 0; ii < otherPartsList.length; ii++) {
-    		if (otherPartsList.item(ii) != part.div)
-    			fadeList.push(otherPartsList.item(ii));
-    		else
-    			part.position = ii;
-    	}
-        	
-    	bam.fadeOut(fadeList);
-    	bam.slideOutOptions(omg.remixer.options, function () {
-    		bam.grow(part.div, function () {
-    			bam.fadeIn([omg.mm]);
+		if (omg.player.playing)
+			omg.player.stop();
 
-    			omg.mm.setPart(part);
-    			
-    			bam.slideInOptions(omg.mm.options);
-    		});	
-    	});
+		var fadeList = [ omg.remixer, part.controls ];
+		var otherPartsList = bam.section.div.getElementsByClassName("part2");
+		for (var ii = 0; ii < otherPartsList.length; ii++) {
+			if (otherPartsList.item(ii) != part.div)
+				fadeList.push(otherPartsList.item(ii));
+			else
+				part.position = ii;
+		}
 
-    };
+		bam.fadeOut(fadeList);
+		bam.slideOutOptions(omg.remixer.options, function() {
+			bam.grow(part.div, function() {
+				bam.fadeIn([ omg.mm ]);
+
+				omg.mm.setPart(part);
+
+				bam.slideInOptions(omg.mm.options);
+			});
+		});
+
+	};
 
 }
 
 function setupRemixer() {
 
-    omg.remixer = document.getElementById("remixer");
+	omg.remixer = document.getElementById("remixer");
 
 	omg.remixerCaption = document.getElementById("remixer-caption");
-    omg.welcome = document.getElementById("welcome");
+	omg.welcome = document.getElementById("welcome");
 	omg.gettingStartedCountdown = document.getElementById("seconds-to-go");
-	    
-    omg.pauseButton = document.getElementById("play-section");
-    omg.pauseButton.onclick = function (e) {
-    	if (omg.player.playing) {
-    		omg.player.stop();
-    	}
-    	else  {
-    		omg.player.play({subbeatMillis: 125,
-    				loop: true,
-    				sections: [bam.section]});
-    	}
-    	
-        e.stopPropagation();
-    };
 
-    omg.remixer.nosection = document.getElementById("no-section-message");
+	omg.pauseButton = document.getElementById("play-section");
+	omg.pauseButton.onclick = function(e) {
+		if (omg.player.playing) {
+			omg.player.stop();
+		} else {
+			omg.player.play({
+				subbeatMillis : 125,
+				loop : true,
+				sections : [ bam.section ]
+			});
+		}
 
-    omg.remixer.options = document.getElementById("remixer-option-panel");
+		e.stopPropagation();
+	};
 
-    omg.remixer.shareButton = document.getElementById("share-button");
+	omg.remixer.nosection = document.getElementById("no-section-message");
 
-    omg.remixer.addButtons = document.getElementById("remixer-add-buttons");
+	omg.remixer.options = document.getElementById("remixer-option-panel");
 
-    omg.remixer.addMelodyButton = document.getElementById("remixer-add-melody");
-    omg.remixer.addMelodyButton.onclick = function () {
-    
-    	var newdiv = bam.createElementOverElement("part2", 
-    			omg.remixer.addMelodyButton);
-    	
-    	var newPart = new OMGPart(newdiv);
+	omg.remixer.addButtons = document.getElementById("remixer-add-buttons");
 
-    	var otherParts = [];
-    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
-    	for (var ii = 0; ii < otherPartsList.length; ii++) {
-    		otherParts.push(otherPartsList.item(ii));
-    	}
-    	bam.fadeOut(otherParts);
-    	
-    	bam.section.div.appendChild(newdiv);
-    	bam.part = newPart;
-    	
-    	bam.fadeOut([omg.remixer]);
-    	bam.slideOutOptions(omg.remixer.options, function () {
-    		bam.grow(newPart.div, function () {
-    			bam.fadeIn([omg.mm, omg.mm.canvas]);
-    			
-    			omg.mm.setPart(newPart);
-    			
-    		});	
-    	});
-    	
-    	
-    };
+	omg.remixer.addMelodyButton = document.getElementById("remixer-add-melody");
+	omg.remixer.addMelodyButton.onclick = function() {
 
-    omg.remixer.addBasslineButton = document.getElementById("remixer-add-bassline");
-    omg.remixer.addBasslineButton.onclick = function () {
-    	    	
-    	var button = omg.remixer.addBasslineButton;
-    	var newdiv = bam.createElementOverElement("part2", 
-    			omg.remixer.addBasslineButton);
-    	
-    	var newPart = new OMGPart(newdiv)
-    	newPart.data.type = "BASSLINE";
-    	
-    	var otherParts = [];
-    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
-    	for (var ii = 0; ii < otherPartsList.length; ii++) {
-    		otherParts.push(otherPartsList.item(ii));
-    	}
+		var newdiv = bam.createElementOverElement("part2",
+				omg.remixer.addMelodyButton);
+		bam.fadeIn([newdiv]);
+		
+		var newPart = new OMGPart(newdiv);
 
-    	bam.fadeOut(otherParts);
-    	
-    	bam.section.div.appendChild(newdiv);
-    	bam.part = newPart;
-    	
-    	bam.fadeOut([omg.remixer]);
-    	bam.slideOutOptions(omg.remixer.options, function () {
-    		bam.grow(newPart.div, function () {
-    			bam.fadeIn([omg.mm, omg.mm.canvas]);
-    			
-    			omg.mm.setPart(newPart);
-    			
-    		});	
-    	});
-    	
-    	
-    };
+		var otherParts = [];
+		var otherPartsList = bam.section.div.getElementsByClassName("part2");
+		for (var ii = 0; ii < otherPartsList.length; ii++) {
+			otherParts.push(otherPartsList.item(ii));
+		}
+		bam.fadeOut(otherParts);
 
-    omg.remixer.addDrumbeatButton = document.getElementById("remixer-add-drumbeat");
-    omg.remixer.addDrumbeatButton.onclick = function () {
+		bam.section.div.appendChild(newdiv);
+		bam.part = newPart;
 
-    	var newdiv = bam.createElementOverElement("part2", 
-    			omg.remixer.addDrumbeatButton);
-    	
-    	var newPart = new OMGDrumpart(newdiv)
-    	
-    	var otherParts = [];
-    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
-    	for (var ii = 0; ii < otherPartsList.length; ii++) {
-    		otherParts.push(otherPartsList.item(ii));
-    	}
-    	bam.fadeOut(otherParts);
-    	
-    	bam.section.div.appendChild(newPart.div);
-    	bam.part = newPart;
+		bam.fadeOut([ omg.remixer ]);
+		bam.slideOutOptions(omg.remixer.options, function() {
+			bam.grow(newPart.div, function() {
+				bam.fadeIn([ omg.mm, omg.mm.canvas ]);
 
-    	if (omg.player.playing) {
+				omg.mm.setPart(newPart);
+
+			});
+		});
+
+	};
+
+	omg.remixer.addBasslineButton = document
+			.getElementById("remixer-add-bassline");
+	omg.remixer.addBasslineButton.onclick = function() {
+
+		var button = omg.remixer.addBasslineButton;
+		var newdiv = bam.createElementOverElement("part2", button);
+		bam.fadeIn([newdiv]);
+		
+		var newPart = new OMGPart(newdiv)
+		newPart.data.type = "BASSLINE";
+
+		var otherParts = [];
+		var otherPartsList = bam.section.div.getElementsByClassName("part2");
+		for (var ii = 0; ii < otherPartsList.length; ii++) {
+			otherParts.push(otherPartsList.item(ii));
+		}
+
+		bam.fadeOut(otherParts);
+
+		bam.section.div.appendChild(newdiv);
+		bam.part = newPart;
+
+		bam.fadeOut([ omg.remixer ]);
+		bam.slideOutOptions(omg.remixer.options, function() {
+			bam.grow(newPart.div, function() {
+				bam.fadeIn([ omg.mm, omg.mm.canvas ]);
+
+				omg.mm.setPart(newPart);
+
+			});
+		});
+
+	};
+
+	omg.remixer.addDrumbeatButton = document
+			.getElementById("remixer-add-drumbeat");
+	omg.remixer.addDrumbeatButton.onclick = function() {
+
+		var newdiv = bam.createElementOverElement("part2",
+				omg.remixer.addDrumbeatButton);
+		bam.fadeIn([newdiv]);
+
+		var newPart = new OMGDrumpart(newdiv)
+
+		var otherParts = [];
+		var otherPartsList = bam.section.div.getElementsByClassName("part2");
+		for (var ii = 0; ii < otherPartsList.length; ii++) {
+			otherParts.push(otherPartsList.item(ii));
+		}
+		bam.fadeOut(otherParts);
+
+		bam.section.div.appendChild(newPart.div);
+		bam.part = newPart;
+
+		if (omg.player.playing) {
 			var newSong = new OMGSong();
 			newSong.loop = true;
 			var newSection = new OMGSection();
 			for (var ip = 0; ip < bam.section.parts.length; ip++) {
 				newSection.parts.push(bam.section.parts[ip]);
 			}
-			
+
 			newSection.parts.push(bam.part);
-			
+
 			newSong.sections.push(newSection);
 			omg.player.play(newSong);
-    	}
-
-    	bam.fadeOut([omg.remixer]);
-    	bam.slideOutOptions(omg.remixer.options, function () {
-    		bam.grow(newPart.div, function () {
-    			bam.fadeIn([bam.beatmaker]);
-    			bam.beatmaker.ui.setPart(newPart);
-    			bam.beatmaker.ui.drawLargeCanvas();
-    			
-    			bam.slideInOptions(omg.mm.options);
-    		});	
-    	});
-    	
-    	
-    };
-
-    omg.remixer.refresh = function () {
-    	if (bam.section.parts.length == 0) {
-    		omg.remixer.nosection.style.display = "block";
-    	}
-    	else {
-    		omg.remixer.nosection.style.display = "none";
-    	}
-    	bam.arrangeParts();
-    	
-    };
-
-    omg.remixer.clearButton = document.getElementById("clear-remixer");    
-	omg.remixer.clearButton.onclick = function () {
-        for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
-            cancelPart(bam.section.parts[ip], true);
-        }
-        sectionModified();
-        omg.remixer.refresh();
-
-    };
-
-    omg.remixer.addToRearrangerButton = document.getElementById("remixer-next");
-    omg.remixer.addToRearrangerButton.onclick = function () {
-
-    	var addButton = omg.rearranger.addSectionButton;
-    	
-        var sections = bam.song.sections.length; 
-        
-    	var otherSections = [];
-    	var otherSectionList = bam.song.div.getElementsByClassName("section");
-    	for (var ii = 0; ii < otherSectionList.length; ii++) {
-    		if (otherSectionList.item(ii) != bam.section.div)
-    			otherSections.push(otherSectionList.item(ii));
-    	}
-
-    	var position;
-		if (typeof(bam.section.position) == "number" && bam.section.position > -1) {
-			position = bam.section.position;
 		}
-		else {
+
+		bam.fadeOut([ omg.remixer ]);
+		bam.slideOutOptions(omg.remixer.options, function() {
+			bam.grow(newPart.div, function() {
+				bam.fadeIn([ bam.beatmaker ]);
+				bam.beatmaker.ui.setPart(newPart);
+				bam.beatmaker.ui.drawLargeCanvas();
+
+				bam.slideInOptions(omg.mm.options);
+			});
+		});
+
+	};
+
+	omg.remixer.refresh = function() {
+		if (bam.section.parts.length == 0) {
+			omg.remixer.nosection.style.display = "block";
+		} else {
+			omg.remixer.nosection.style.display = "none";
+		}
+		bam.arrangeParts();
+
+	};
+
+	omg.remixer.clearButton = document.getElementById("clear-remixer");
+	omg.remixer.clearButton.onclick = function() {
+		for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
+			cancelPart(bam.section.parts[ip], true);
+		}
+		sectionModified();
+		omg.remixer.refresh();
+
+	};
+
+	omg.remixer.addToRearrangerButton = document.getElementById("remixer-next");
+	omg.remixer.addToRearrangerButton.onclick = function() {
+
+		var addButton = omg.rearranger.addSectionButton;
+
+		var sections = bam.song.sections.length;
+
+		var otherSections = [];
+		var otherSectionList = bam.song.div.getElementsByClassName("section");
+		for (var ii = 0; ii < otherSectionList.length; ii++) {
+			if (otherSectionList.item(ii) != bam.section.div)
+				otherSections.push(otherSectionList.item(ii));
+		}
+
+		var position;
+		if (typeof (bam.section.position) == "number"
+				&& bam.section.position > -1) {
+			position = bam.section.position;
+		} else {
 			position = sections;
 			bam.section.position = position;
-	        bam.song.sections.push(bam.section);
-	        sections++;
+			bam.song.sections.push(bam.section);
+			sections++;
 		}
-        
-        var fadeOutList = [omg.remixer];
-        for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
-        	fadeOutList.push(bam.section.parts[ip].controls);        	
-    	}
-        
-        bam.slideOutOptions(omg.remixer.options);
-        bam.fadeOut(fadeOutList, function () {
-        	
-	    	// keep it rolling? maybe preference
-	    	//omg.remixer.stop();
 
-            bam.shrink(bam.section.div, 100 + position * 110, 100, 100, 300, function() {
-                addButton.style.left = window.innerWidth + "px";
-                
-                bam.slideInOptions(omg.rearranger.addSectionButton, null, 
-                		5 + sections * 110);
-                bam.slideUpOptions(omg.rearranger.options);
-            	bam.fadeIn([omg.rearranger]);
-            	bam.fadeIn(otherSections);
-            	
-            	omg.player.play(bam.song);
-    
-            	bam.setupSectionDiv(bam.section);
+		var fadeOutList = [ omg.remixer ];
+		for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
+			fadeOutList.push(bam.section.parts[ip].controls);
+		}
 
-            });
-        });
-    };
+		bam.slideOutOptions(omg.remixer.options);
+		bam.fadeOut(fadeOutList, function() {
 
+			// keep it rolling? maybe preference
+			// omg.remixer.stop();
+
+			bam.shrink(bam.section.div, 100 + position * 110, 100, 100, 300,
+					function() {
+						addButton.style.left = window.innerWidth + "px";
+
+						bam.slideInOptions(omg.rearranger.addSectionButton,
+								null, 5 + sections * 110);
+						bam.slideUpOptions(omg.rearranger.options);
+						bam.fadeIn([ omg.rearranger ]);
+						bam.fadeIn(otherSections);
+
+						omg.player.play(bam.song);
+
+						bam.setupSectionDiv(bam.section);
+
+					});
+		});
+	};
+
+	omg.remixer.shareButton = document.getElementById("share-section");
+	omg.remixer.shareButton.onclick = function () {
+		var type = "SECTION";
+
+		var goToId = function(id) {
+			window.location = "/omgbam.jsp?share=" + type + "-" + id;
+		};
+
+		postOMG(type, bam.section.getData(), function(response) {
+			if (response && response.result == "good") {
+				goToId(response.id);
+			}
+		});
+
+	};
 }
 
 function setupRearranger() {
-    omg.rearranger = document.getElementById("rearranger");
-    omg.rearranger.options = document.getElementById("song-option-panel");
-    omg.rearranger.area = document.getElementById("rearranger-area");
-    omg.rearranger.emptyMessage = document.getElementById("rearranger-is-empty");
-    omg.rearranger.tools = document.getElementById("rearranger-tools");
+	omg.rearranger = document.getElementById("rearranger");
+	omg.rearranger.options = document.getElementById("song-option-panel");
+	omg.rearranger.area = document.getElementById("rearranger-area");
+	omg.rearranger.emptyMessage = document
+			.getElementById("rearranger-is-empty");
+	omg.rearranger.tools = document.getElementById("rearranger-tools");
 
-    omg.rearranger.playButton = document.getElementById("play-song");
-    omg.rearranger.playButton.onclick = function () {
-    	if (omg.player.playing)
-    		omg.player.stop();
-    	else
-    		omg.player.play(bam.song);
-    };
-    
-    
-    omg.rearranger.playingSection = 0;
+	omg.rearranger.playButton = document.getElementById("play-song");
+	omg.rearranger.playButton.onclick = function() {
+		if (omg.player.playing)
+			omg.player.stop();
+		else
+			omg.player.play(bam.song);
+	};
 
-    omg.rearranger.newSong = function () {
-        omg.rearranger.nextSectionLetter = 0; // A
-        omg.rearranger.song = {sections: []};
-        omg.rearranger.client = {sections: []};
-    };
-    
-    omg.rearranger.newSong();
-    
-    var lastSection;
-    var clientSection;
-    
-    omg.rearranger.getletter = function (sectionnumber) {
+	omg.rearranger.playingSection = 0;
 
-        return String.fromCharCode(65 + sectionnumber);
-    };
+	omg.rearranger.newSong = function() {
+		omg.rearranger.nextSectionLetter = 0; // A
+		omg.rearranger.song = {
+			sections : []
+		};
+		omg.rearranger.client = {
+			sections : []
+		};
+	};
 
-    
-    omg.rearranger.shareButton = document.getElementById("share-song");
-    omg.rearranger.shareButton.onclick = function () {
-    	if (omg.rearranger.song.id && omg.rearranger.song.id > 0) {
-		    shareId(omg.rearranger.song.id, "SONG");
-	    }
-	    else if (omg.rearranger.song.sections.length > 0) {
-		    postOMG("SONG", omg.rearranger.song, function (results) {
-			    shareId(results.id, "SONG");
-		    });
-	    }
+	omg.rearranger.newSong();
 
-    };
-    
-    omg.rearranger.clearButton = document.getElementById("clear-song");
-    omg.rearranger.clearButton.onclick = function () {
-    
-        if (omg.player.playing)
-            omg.player.stop();
-    
-        omg.rearranger.unload();
-        bam.slideInOptions(omg.rearranger.addSectionButton, null, 5);
-        
-        bam.slideDownOptions(omg.rearranger.options);
-    
-        omg.rearranger.emptyMessage.style.display = "block";
-    };
+	var lastSection;
+	var clientSection;
 
+	omg.rearranger.getletter = function(sectionnumber) {
 
-    omg.rearranger.loadSong = function (searchResult) {
+		return String.fromCharCode(65 + sectionnumber);
+	};
 
-        omg.rearranger.emptyMessage.style.display = "none";
+	omg.rearranger.shareButton = document.getElementById("share-song");
+	omg.rearranger.shareButton.onclick = function() {
 
+		var type = "SONG";
 
-        omg.rearranger.unload();
-        
-        var client = {sections: []};
-        var clientSection;
-        var clientPart;
-        var part;
-        var song = JSON.parse(searchResult.json);
-        song.id = searchResult.id;
-        omg.rearranger.song = song;
-        omg.rearranger.client = client;
-        
-        omg.rearranger.nextSectionLetter = 0;
-        
-        for (var ii = 0; ii < song.sections.length; ii++) {
-            clientSection = {parts: []};
-            client.sections.push(clientSection);
+		var goToId = function(id) {
+			window.location = "/omgbam.jsp?share=" + type + "-" + id;
+		};
 
-            for (var ip = 0; ip < song.sections[ii].parts.length; ip++) {
-                part = song.sections[ii].parts[ip];
-                
-                clientPart = {};
-                clientSection.parts.push(clientPart);
-                omg.player.loadPart(clientPart, part);
-                
-                if (part.type == "MELODY" || part.type == "BASSLINE") {                    
-                    omg.setNoteRange(part, clientPart);
-                }
-            }
-                        
-            clientSection.div = document.createElement("div");
-            clientSection.div.className = "rearranger-section";
-            clientSection.div.innerHTML = String.fromCharCode(65 + song.sections[ii].letter);
+		if (bam.song.id && bam.song.id > 0) {
+			goToId(bam.song.id);
+		}
+		else {
+			postOMG(type, bam.song.getData(), function(response) {
+				if (response && response.result == "good") {
+					goToId(response.id);
+				}
+			});			
+		}
 
-            if (song.sections[ii].letter >= omg.rearranger.nextSectionLetter)
-                omg.rearranger.nextSectionLetter = song.sections[ii].letter + 1;
-            
-            omg.rearranger.area.appendChild(clientSection.div);
-            
-        }
-                
-        if (!omg.player.playing)
-            omg.player.playWhenReady();
+	};
 
-    };
-    
-    omg.rearranger.unload = function () {
-        var sections = bam.song.sections;
-        for (i = 0; i < sections.length; i++) {
-            bam.song.div.removeChild(sections[i].div);
-            bam.song.sections.splice(i, 1);
-            i--;
-        }
-    
-        omg.rearranger.newSong();
-    };
-    
-    
-    omg.rearranger.addSectionButton = document.getElementById("add-section");
-    omg.rearranger.addSectionButton.onclick = function () {
-    	
-    	var newDiv = bam.createElementOverElement("section", omg.rearranger.addSectionButton);
-    	bam.section = new OMGSection(newDiv);
-    		
-    	var otherParts = [];
-    	var otherPartsList = bam.song.div.getElementsByClassName("section");
-    	for (var ii = 0; ii < otherPartsList.length; ii++) {
-    		otherParts.push(otherPartsList.item(ii));
-    	}
-    	bam.fadeOut(otherParts);
-    	
-    	bam.song.div.appendChild(newDiv);
-    	
-    	bam.fadeOut([omg.rearranger]);
-    	bam.slideDownOptions(omg.rearranger.options, function () {
-    		bam.grow(bam.section.div, function () {
-    			
-       			bam.fadeIn([omg.remixer]);
-    			omg.remixer.refresh();
-    			
-    		});	
-    	});
+	omg.rearranger.clearButton = document.getElementById("clear-song");
+	omg.rearranger.clearButton.onclick = function() {
 
-    };
+		if (omg.player.playing)
+			omg.player.stop();
+
+		omg.rearranger.unload();
+		bam.slideInOptions(omg.rearranger.addSectionButton, null, 5);
+
+		bam.slideDownOptions(omg.rearranger.options);
+
+		omg.rearranger.emptyMessage.style.display = "block";
+	};
+
+	omg.rearranger.loadSong = function(searchResult) {
+
+		omg.rearranger.emptyMessage.style.display = "none";
+
+		omg.rearranger.unload();
+
+		var client = {
+			sections : []
+		};
+		var clientSection;
+		var clientPart;
+		var part;
+		var song = JSON.parse(searchResult.json);
+		song.id = searchResult.id;
+		omg.rearranger.song = song;
+		omg.rearranger.client = client;
+
+		omg.rearranger.nextSectionLetter = 0;
+
+		for (var ii = 0; ii < song.sections.length; ii++) {
+			clientSection = {
+				parts : []
+			};
+			client.sections.push(clientSection);
+
+			for (var ip = 0; ip < song.sections[ii].parts.length; ip++) {
+				part = song.sections[ii].parts[ip];
+
+				clientPart = {};
+				clientSection.parts.push(clientPart);
+				omg.player.loadPart(clientPart, part);
+
+				if (part.type == "MELODY" || part.type == "BASSLINE") {
+					omg.setNoteRange(part, clientPart);
+				}
+			}
+
+			clientSection.div = document.createElement("div");
+			clientSection.div.className = "rearranger-section";
+			clientSection.div.innerHTML = String
+					.fromCharCode(65 + song.sections[ii].letter);
+
+			if (song.sections[ii].letter >= omg.rearranger.nextSectionLetter)
+				omg.rearranger.nextSectionLetter = song.sections[ii].letter + 1;
+
+			omg.rearranger.area.appendChild(clientSection.div);
+
+		}
+
+		if (!omg.player.playing)
+			omg.player.playWhenReady();
+
+	};
+
+	omg.rearranger.unload = function() {
+		var sections = bam.song.sections;
+		for (i = 0; i < sections.length; i++) {
+			bam.song.div.removeChild(sections[i].div);
+			bam.song.sections.splice(i, 1);
+			i--;
+		}
+
+		omg.rearranger.newSong();
+	};
+
+	omg.rearranger.addSectionButton = document.getElementById("add-section");
+	omg.rearranger.addSectionButton.onclick = function() {
+
+		var newDiv = bam.createElementOverElement("section",
+				omg.rearranger.addSectionButton);
+		bam.section = new OMGSection(newDiv);
+
+		var otherParts = [];
+		var otherPartsList = bam.song.div.getElementsByClassName("section");
+		for (var ii = 0; ii < otherPartsList.length; ii++) {
+			otherParts.push(otherPartsList.item(ii));
+		}
+		bam.fadeOut(otherParts);
+
+		bam.song.div.appendChild(newDiv);
+
+		bam.fadeIn([bam.section.div]);
+		bam.fadeOut([ omg.rearranger ]);
+		bam.slideDownOptions(omg.rearranger.options, function() {
+			bam.grow(bam.section.div, function() {
+
+				bam.fadeIn([ omg.remixer ]);
+				omg.remixer.refresh();
+
+			});
+		});
+
+	};
 }
-
-
 
 function cancelPart(part) {
 	pausePart(part);
-	
-    var partInArray = bam.section.parts.indexOf(part);
-    if (partInArray > -1) {
-        bam.section.parts.splice(partInArray, 1);
 
-        if (bam.section.parts.length == 0) {
-        	
-        	bam.slideOutOptions(omg.remixer.options);
-        	
-            omg.player.stop();
-    		omg.remixer.nosection.style.display = "block";
-        }
-    }
-    
-    bam.section.div.removeChild(part.div);
+	var partInArray = bam.section.parts.indexOf(part);
+	if (partInArray > -1) {
+		bam.section.parts.splice(partInArray, 1);
 
-    if (part.div.onBeatPlayedListener) {
-        var index = omg.player.onBeatPlayedListeners.indexOf(part.div.onBeatPlayedListener);
-        if (index > -1) {
-            omg.player.onBeatPlayedListeners.splice(index, 1);
-        }
-        part.div.onBeatPlayedListener = undefined;
-    }
-    
+		if (bam.section.parts.length == 0) {
+
+			bam.slideOutOptions(omg.remixer.options);
+
+			omg.player.stop();
+			omg.remixer.nosection.style.display = "block";
+		}
+	}
+
+	bam.section.div.removeChild(part.div);
+
+	if (part.div.onBeatPlayedListener) {
+		var index = omg.player.onBeatPlayedListeners
+				.indexOf(part.div.onBeatPlayedListener);
+		if (index > -1) {
+			omg.player.onBeatPlayedListeners.splice(index, 1);
+		}
+		part.div.onBeatPlayedListener = undefined;
+	}
+
 }
 
 function pausePart(part) {
-    if (part.osc && part.oscStarted) {
-        
-    	fadeOut(part.gain.gain, function () {
-        	part.osc.stop(0);
-            part.playingI = null;
+	if (part.osc && part.oscStarted) {
 
-            part.osc.disconnect(part.gain);
-            part.gain.disconnect(omg.player.context.destination);
-            part.oscStarted = false;
-            part.osc = null;
-    	});
-    	
-    }
+		fadeOut(part.gain.gain, function() {
+			part.osc.stop(0);
+			part.playingI = null;
+
+			part.osc.disconnect(part.gain);
+			part.gain.disconnect(omg.player.context.destination);
+			part.oscStarted = false;
+			part.osc = null;
+		});
+
+	}
 }
 
 function needsMP3() {
-    var ua = navigator.userAgent.toLowerCase();
-    var iOS = ( ua.match(/(ipad|iphone|ipod)/g) ? true : false );
-    var safari = ua.indexOf('safari') > -1 && ua.indexOf('chrome')  == -1;
-    return iOS || safari;
+	var ua = navigator.userAgent.toLowerCase();
+	var iOS = (ua.match(/(ipad|iphone|ipod)/g) ? true : false);
+	var safari = ua.indexOf('safari') > -1 && ua.indexOf('chrome') == -1;
+	return iOS || safari;
 }
-
 
 function sectionModified() {
 
-    bam.section.id = -1;
+	bam.section.id = -1;
 
 }
 
 function getOMG(data, callback) {
 
 	var xhr = new XMLHttpRequest();
-    xhr.open("GET", omg.url + "/omg?type=" + data.type + "&id=" + data.id, true);
-    xhr.onreadystatechange = function(){
-        if (xhr.readyState == 4){
-        	var ooo = JSON.parse(xhr.response);
-//        	ooo.list[0].divInList = data.divInList;
-            callback(ooo.list[0]);
-        }
-    };
-    xhr.send();
+	xhr
+			.open("GET", omg.url + "/omg?type=" + data.type + "&id=" + data.id,
+					true);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
+			var response = JSON.parse(xhr.response);
+			var ooo = response.list[0];
+			ooo.data = JSON.parse(ooo.json);
+			// ooo.list[0].divInList = data.divInList;
+			callback(ooo);
+		}
+	};
+	xhr.send();
 }
 
-function postOMG(type, odata, callback) {
-
-	var outdata = odata;
-	if (type !== "SONG")
-    	outdata = odata.data;
+function postOMG(type, data, callback) {
 
 	var xhr = new XMLHttpRequest();
-    xhr.open("POST", omg.url + "/omg", true);
-    xhr.onreadystatechange = function(){
-        if (xhr.readyState == 4){
+	xhr.open("POST", omg.url + "/omg", true);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
 
-            var results = JSON.parse(xhr.responseText);
-            if (results.result == "good") {
-            	odata.id = results.id;
-            	if (callback)
-            		callback(results);
-            }
+			var results = JSON.parse(xhr.responseText);
+			if (results.result == "good") {
+				data.id = results.id;
+				if (callback)
+					callback(results);
+			}
 
-        }
-    }
-    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-    xhr.send("type=" + type + "&tags=&data=" + encodeURIComponent(JSON.stringify(outdata)));
+		}
+	}
+	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhr.send("type=" + type + "&tags=&data="
+			+ encodeURIComponent(JSON.stringify(data)));
 }
 
 function sendVote(entry, value) {
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", omg.url + "/vote", true);
-    xhr.onreadystatechange = function(){
-        if (xhr.readyState == 4){
-            debug(xhr.responseText);
-        }
-    }
-    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-    xhr.send("type=" + entry.type + "&id=" + entry.id + "&value=" + value);
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", omg.url + "/vote", true);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
+			debug(xhr.responseText);
+		}
+	}
+	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhr.send("type=" + entry.type + "&id=" + entry.id + "&value=" + value);
 }
 
-
-function doInitStuff() {
+function getLoadParams() {
 
 	// see if there's somethign to do here
 	var params = document.location.search;
 	var nvp;
 
-	var id;
-	var type;
 	var shareParams;
-	
+	var loadParams;
+
 	if (params.length > 1) {
 		params = params.slice(1).split("&");
 		for (var ip = 0; ip < params.length; ip++) {
 			nvp = params[ip].split("=");
-	
+
 			if (nvp[0].toLowerCase() === "share") {
 				shareParams = nvp[1].split("-");
+				loadParams = {
+						id : shareParams[1],
+						type : shareParams[0].toUpperCase()
+				};
 			}
 		}
 	}
 
-	if (shareParams) {
-		type = shareParams[0];
-		var newPart = {id: shareParams[1], type: type}; 
-		getOMG(newPart, function (result) {
-
-			console.log(result);
-			
-            if (type == "SONG") {
-                omg.rearranger.loadSong(result)
-            }
-            else if (type == "SECTION") {
-            	loadSection(result);                
-            }
-            else {
-            	bam.part.data = result;
-                omg.mm.setPart(result);
-            }
-		});
-	}
-	
-	return false;
+	return loadParams;
 }
+
+bam.load = function (params)  {
+
+	var type = params ? params.type : "MELODY";
+
+	var songDiv = bam.div.getElementsByClassName("song")[0];
+	bam.song = new OMGSong(songDiv);
+	bam.zones.push(songDiv);
+	
+	if (type == "SONG") {
+		bam.fadeIn([songDiv, omg.rearranger, omg.rearranger.addSectionButton]);
+		bam.slideUpOptions(omg.rearranger.options);
+		getOMG(params, function(result) {
+			var newSection;
+			var newSections = [];
+			for (var ip = 0; ip < result.data.sections.length; ip++) {
+				newSections.push(bam.makeSection(result.data.sections[ip]).div);
+			};
+			bam.fadeIn(newSections);
+			bam.arrangeSections();
+			
+		});
+		return;
+	} 
+
+	var newDiv = document.createElement("div");
+	newDiv.className = "section";
+	bam.song.div.appendChild(newDiv);
+	bam.section = new OMGSection(newDiv);
+	//bam.song.sections.push(bam.section);
+	bam.zones.push(newDiv);
+
+	// to make the beginning as pretty as possible (no weird flickers)
+	// we whiteout the container divs and add their color after 
+	// the current zone is setup
+	var songBG = window.getComputedStyle(bam.song.div, null).backgroundColor;
+	var sectionBG = window.getComputedStyle(bam.section.div, null).backgroundColor;
+	bam.song.div.style.backgroundColor = "white";
+	bam.song.div.style.display = "block";
+	var restoreColors = function () {
+		bam.song.div.style.backgroundColor = songBG;
+		bam.section.div.style.backgroundColor = sectionBG;
+	};
+	
+	if (type == "SECTION") {
+		
+		bam.fadeIn([bam.section.div, omg.remixer], function () {
+			bam.song.div.style.backgroundColor = songBG;
+		});
+		getOMG(params, function(result) {
+			var newPart;
+			var newParts = [];
+			for (var ip = 0; ip < result.data.parts.length; ip++) {
+				newParts.push(bam.makePart(result.data.parts[ip]).div);
+			};
+			bam.fadeIn(newParts);
+			omg.remixer.refresh();
+		});
+		bam.slideInOptions(omg.remixer.options);
+		return;
+	}
+
+	bam.section.div.style.backgroundColor = "white";
+	bam.section.div.style.display = "block";
+	
+	newDiv = document.createElement("div");
+	newDiv.className = "part2";
+	bam.section.div.appendChild(newDiv);
+	bam.zones.push(newDiv);
+	
+	if (type == "DRUMBEAT") {
+		getOMG(params, function(result) {
+
+			bam.part = result;
+			//bam.section.parts.push(bam.part);
+			
+			bam.part.div = newDiv;
+			bam.fadeIn([bam.part.div, bam.beatmaker ], restoreColors);
+	
+			bam.beatmaker.ui.setPart(result);
+			bam.beatmaker.ui.drawLargeCanvas();
+	
+			bam.slideInOptions(omg.mm.options);
+		});
+	} 
+	else if (type == "MELODY" || type == "BASSLINE") {
+		if (params) {
+			getOMG(params, function(result) {
+				bam.part = result;
+				bam.part.div = newDiv;
+				bam.fadeIn([bam.part.div], restoreColors);
+				omg.mm.setPart(result);
+				
+				bam.slideInOptions(omg.mm.options);			
+			});
+		}
+		else {
+			bam.part = new OMGPart(newDiv);
+			bam.fadeIn([bam.part.div], restoreColors);
+			omg.mm.setPart(bam.part);
+		}
+	}
+
+};
 
 function toggleMute(part, newMute) {
 	if (newMute == undefined) {
-		newMute = !part.muted; 
+		newMute = !part.muted;
 	}
 	if (newMute) {
 		part.muted = true;
-		
+
 		part.controls.muteButton.style.backgroundColor = "red";
-		
+
 		if (part.gain) {
 			part.preMuteGain = part.gain.gain.value;
 			part.gain.gain.value = 0;
 		}
-	}
-	else {
+	} else {
 		part.muted = false;
 		part.controls.muteButton.style.backgroundColor = "";
-		
+
 		if (part.gain && part.preMuteGain) {
 			part.gain.gain.value = part.preMuteGain;
 		}
@@ -826,7 +938,7 @@ function toggleMute(part, newMute) {
 }
 
 function getSoundSet(id, callback) {
-	
+
 	var dl = omg.downloadedSoundSets[id];
 	if (dl) {
 		callback(dl)
@@ -839,22 +951,21 @@ function getSoundSet(id, callback) {
 		callback(dl);
 		return;
 	}
-	
+
 	var xhr2 = new XMLHttpRequest();
-	xhr2.open("GET", "/soundset?id=" + id, true) 
-	xhr2.onreadystatechange = function () {
-		
+	xhr2.open("GET", "/soundset?id=" + id, true)
+	xhr2.onreadystatechange = function() {
+
 		if (xhr2.readyState == 4) {
 			var ojson = JSON.parse(xhr2.responseText);
 			if (id) {
-				omg.downloadedSoundSets[id] = ojson.list[0]; 
+				omg.downloadedSoundSets[id] = ojson.list[0];
 				callback(ojson.list[0]);
-			}
-			else {
+			} else {
 				callback(ojson);
 			}
-		} 
-		
+		}
+
 	};
 	xhr2.send();
 
@@ -867,9 +978,9 @@ function shareId(id, type) {
 	if (type && id) {
 		url = url + "?func=share&type=" + type + "&id=" + id;
 	}
-	
+
 	document.getElementById("share-url").value = url;
-	
+
 	var shareDialog = omg.shareDialog;
 	var dialogBorder = omg.dialogBorder;
 	var shareButton = omg.shareButton;
@@ -877,38 +988,37 @@ function shareId(id, type) {
 	shareDialog.style.display = "block";
 
 	var left = window.innerWidth / 2 - shareDialog.clientWidth / 2;
-	var top = window.innerHeight /2 - shareDialog.clientHeight / 2;
+	var top = window.innerHeight / 2 - shareDialog.clientHeight / 2;
 	shareDialog.style.left = left + "px";
 	shareDialog.style.top = top + "px";
-	
-	dialogBorder.onclick = function () {
+
+	dialogBorder.onclick = function() {
 		dialogBorder.onclick = null;
 		shareDialog.style.display = "none";
 		dialogBorder.style.display = "none";
 	};
-	
-	document.getElementById("twitter-button").onclick = function () {
+
+	document.getElementById("twitter-button").onclick = function() {
 		shareLink('http://twitter.com/home?status=' + encodeURIComponent(url));
 	};
-	document.getElementById("facebook-button").onclick = function () {
-		shareLink("http://www.facebook.com/sharer/sharer.php?t=OpenMusicGallery.net&u=" +
-				encodeURIComponent(url));
+	document.getElementById("facebook-button").onclick = function() {
+		shareLink("http://www.facebook.com/sharer/sharer.php?t=OpenMusicGallery.net&u="
+				+ encodeURIComponent(url));
 	};
-	document.getElementById("email-button").onclick = function () {
+	document.getElementById("email-button").onclick = function() {
 		shareLink("mailto:?subject=OpenMusicGallery.net!&body=" + url);
 	};
 
 }
 
 function shareLink(url) {
-	window.location = url; 
+	window.location = url;
 }
-
 
 function drawMelodyMakerCanvas() {
 
-    var backgroundAlpha = 1;
-    var noteAlpha = 1;
+	var backgroundAlpha = 1;
+	var noteAlpha = 1;
 
 	var frets = omg.mm.frets;
 	var fretHeight = frets.height;
@@ -918,98 +1028,91 @@ function drawMelodyMakerCanvas() {
 
 	canvas.width = canvas.clientWidth;
 
-    var noteHeight;
-    var noteWidth;    
-    if (!omg.rawNoteWidth) {
-	    var noteImage = omg.ui.getImageForNote({beats: 1});
-	    noteHeight = noteImage.height;
-	    noteWidth = noteImage.width;
-	    omg.rawNoteWidth = noteWidth;
-	    omg.rawNoteHeight = noteHeight;    
-    }
-    else {
-        noteHeight = omg.rawNoteHeight;
-        noteWidth = omg.rawNoteWidth;
-    }
+	var noteHeight;
+	var noteWidth;
+	if (!omg.rawNoteWidth) {
+		var noteImage = omg.ui.getImageForNote({
+			beats : 1
+		});
+		noteHeight = noteImage.height;
+		noteWidth = noteImage.width;
+		omg.rawNoteWidth = noteWidth;
+		omg.rawNoteHeight = noteHeight;
+	} else {
+		noteHeight = omg.rawNoteHeight;
+		noteWidth = omg.rawNoteWidth;
+	}
 
 	if (noteWidth * (omg.mm.data.notes.length + 2) > canvas.width) {
 		noteWidth = canvas.width / (omg.mm.data.notes.length + 2);
 	}
-	var restHeight = canvas.height / 2 - noteHeight / 2; 
+	var restHeight = canvas.height / 2 - noteHeight / 2;
 
-
-    var now;	
+	var now;
 
 	if (omg.mm.welcomeStyle) {
-        noteAlpha = 0;
+		noteAlpha = 0;
 
-        if (omg.mm.drawStarted) { 
-            now = Date.now() - omg.mm.drawStarted;
-		    context.globalAlpha =  0.3;
-    		context.fillStyle = "#4fa5d5";
-            context.fillRect(0, 0, 
-                now / 4000 * canvas.width, canvas.height);
-		    context.globalAlpha =  1;
-        }
+		if (omg.mm.drawStarted) {
+			now = Date.now() - omg.mm.drawStarted;
+			context.globalAlpha = 0.3;
+			context.fillStyle = "#4fa5d5";
+			context.fillRect(0, 0, now / 4000 * canvas.width, canvas.height);
+			context.globalAlpha = 1;
+		}
 
-        drawGettingStartedLines(canvas, context);
+		drawGettingStartedLines(canvas, context);
 
 		if (omg.mm.animationStarted) {
-            var halfTime = omg.mm.animationLength / 2;
-		    now = Date.now() - omg.mm.animationStarted;
-		    if (now < 800) {
-    		    backgroundAlpha = now / 800;
-		    }
-		    else if (now >= 1500) {
-                noteAlpha = (now - halfTime) / halfTime;
-            }
-            else {		    
-	            backgroundAlpha = 1;
-		    }
+			var halfTime = omg.mm.animationLength / 2;
+			now = Date.now() - omg.mm.animationStarted;
+			if (now < 800) {
+				backgroundAlpha = now / 800;
+			} else if (now >= 1500) {
+				noteAlpha = (now - halfTime) / halfTime;
+			} else {
+				backgroundAlpha = 1;
+			}
+		} else {
+			return;
 		}
-		else {
-		    return;
-		}
-	}	
+	}
 
-    context.lineWidth = 1;
+	context.lineWidth = 1;
 
-    context.globalAlpha = backgroundAlpha;
+	context.globalAlpha = backgroundAlpha;
 
 	context.fillStyle = "white";
 	context.fillRect(0, 0, canvas.width, fretHeight);
-	
-	var ii;
-	if (!omg.mm.animationStarted && frets.current != undefined && frets.current < frets.length) {
-		context.fillStyle = "orange";
-		ii = frets.length - frets.current; 
-		context.fillRect(0, ii * fretHeight , 
-				canvas.width, fretHeight);
-	}
 
+	var ii;
+	if (!omg.mm.animationStarted && frets.current != undefined
+			&& frets.current < frets.length) {
+		context.fillStyle = "orange";
+		ii = frets.length - frets.current;
+		context.fillRect(0, ii * fretHeight, canvas.width, fretHeight);
+	}
 
 	var note;
 	var y;
-	
+
 	var playingI = bam.part.playingI;
 	var notes = bam.part.data.notes;
-	if (playingI > -1 &&  playingI < notes.length) {
+	if (playingI > -1 && playingI < notes.length) {
 		context.fillStyle = "#4fa5d5";
-		
+
 		note = notes[playingI];
 		if (note.rest) {
 			y = restHeight;
+		} else {
+			y = (omg.mm.frets.length - note.note - omg.mm.frets.rootNote)
+					* fretHeight + fretHeight * 0.5 - noteHeight * 0.75;
 		}
-		else {
-			y = (omg.mm.frets.length - note.note - omg.mm.frets.rootNote) * 
-					fretHeight + fretHeight * 0.5 -
-					noteHeight * 0.75;
-		}
-		context.fillRect(playingI * noteWidth + noteWidth + 
-				(omg.rawNoteWidth / 2 - omg.rawNoteWidth / 2), y, 
-				noteWidth, noteHeight);
+		context.fillRect(playingI * noteWidth + noteWidth
+				+ (omg.rawNoteWidth / 2 - omg.rawNoteWidth / 2), y, noteWidth,
+				noteHeight);
 	}
-	
+
 	context.lineWidth = "2px";
 	context.strokeStyle = "black";
 	context.fillStyle = "black";
@@ -1019,7 +1122,7 @@ function drawMelodyMakerCanvas() {
 	for (var i = 0; i < frets.length; i++) {
 
 		ii = 1 + frets.length - i;
-		
+
 		context.moveTo(0, ii * fretHeight);
 		context.lineTo(canvas.width, ii * fretHeight);
 		context.fillStyle = "black";
@@ -1028,55 +1131,56 @@ function drawMelodyMakerCanvas() {
 	context.stroke();
 	context.closePath();
 
-    context.globalAlpha = noteAlpha;
+	context.globalAlpha = noteAlpha;
 
-    var x;
-    if (!omg.mm.drawnOnce || noteAlpha > 0) {
-    
-	    for (var i = 0; i < omg.mm.data.notes.length; i++) {
-		    note = omg.mm.data.notes[i]
-		    noteImage = omg.ui.getImageForNote(note);
-		    if (omg.mm.data.notes[i].rest) {
-			    y = restHeight;
-		    }
-		    else {
-			    y = (omg.mm.frets.length - omg.mm.data.notes[i].note - omg.mm.frets.rootNote) * 
-					    fretHeight + fretHeight * 0.5 -
-					    noteImage.height * 0.75;
-		    }
+	var x;
+	if (!omg.mm.drawnOnce || noteAlpha > 0) {
 
-		    if (note.rest || noteAlpha == 1)
-    		    x = i * noteWidth + noteWidth;
-    		else 
-    		    x = note.drawData.x;
-		
-		    context.drawImage(noteImage, x, y);
-	    }
-    }
-	
+		for (var i = 0; i < omg.mm.data.notes.length; i++) {
+			note = omg.mm.data.notes[i]
+			noteImage = omg.ui.getImageForNote(note);
+			if (omg.mm.data.notes[i].rest) {
+				y = restHeight;
+			} else {
+				y = (omg.mm.frets.length - omg.mm.data.notes[i].note - omg.mm.frets.rootNote)
+						* fretHeight
+						+ fretHeight
+						* 0.5
+						- noteImage.height
+						* 0.75;
+			}
+
+			if (note.rest || noteAlpha == 1)
+				x = i * noteWidth + noteWidth;
+			else
+				x = note.drawData.x;
+
+			context.drawImage(noteImage, x, y);
+		}
+	}
+
 	omg.mm.drawnOnce = true;
 }
 
-
 function getKeyName(data) {
-	
+
 	var keyName = "";
 	if (data.rootNote != undefined) {
 		keyName = omg.noteNames[data.rootNote];
 		keyName = keyName.slice(0, keyName.length - 1);
 	}
-	
+
 	if (data.scale) {
-		for (var scaleName in omg.scales) {
+		for ( var scaleName in omg.scales) {
 			if (omg.scales[scaleName] === data.scale) {
 				keyName += " " + scaleName;
 				break;
 			}
 		}
 	}
-	
+
 	return keyName;
-		
+
 }
 
 function setupMelodyMaker() {
@@ -1086,16 +1190,12 @@ function setupMelodyMaker() {
 	omg.mm.initialOptions = document.getElementById("mm-initial-options");
 	omg.mm.options = document.getElementById("mm-options");
 	omg.mm.detail = document.getElementById("melody-maker-detail");
-	
+
 	omg.mm.subtoolbar = document.getElementById("melody-maker-button-row");
 
-    omg.mm.canvas = document.getElementById("melody-maker-canvas");
-    omg.mm.data = bam.part.data;
+	omg.mm.canvas = document.getElementById("melody-maker-canvas");
 
-    // already called when defined
-    //omg.ui.setupNoteImages();
-	
-    omg.mm.selectRootNote = document.getElementById("select-root-note-mm");
+	omg.mm.selectRootNote = document.getElementById("select-root-note-mm");
 	omg.mm.selectBottomNote = document.getElementById("melody-maker-bottom-note");
 	omg.mm.selectTopNote = document.getElementById("melody-maker-top-note");
 	omg.mm.selectScale = document.getElementById("melody-maker-scale");
@@ -1104,9 +1204,9 @@ function setupMelodyMaker() {
 	omg.mm.selectBottomNote.onchange = setupMelodyMakerFretBoard;
 	omg.mm.selectTopNote.onchange = setupMelodyMakerFretBoard;
 	omg.mm.selectScale.onchange = setupMelodyMakerFretBoard;
-	
+
 	omg.mm.clearButton = document.getElementById("clear-mm");
-	omg.mm.clearButton.onclick = function () {
+	omg.mm.clearButton.onclick = function() {
 
 		if (bam.part.data.type == "DRUMBEAT") {
 			var track;
@@ -1117,23 +1217,22 @@ function setupMelodyMaker() {
 				}
 			}
 			bam.beatmaker.ui.drawLargeCanvas();
-		}
-		else {
+		} else {
 			omg.mm.data.notes = [];
 			omg.mm.lastNewNote = 0;
 			drawMelodyMakerCanvas();
 			bam.slideOutOptions(omg.mm.options);
 		}
-	}; 
-	
+	};
+
 	omg.mm.playButton = document.getElementById("play-mm");
-	omg.mm.playButton.onclick = function () {
+	omg.mm.playButton.onclick = function() {
 
 		if (omg.player.playing) {
 			omg.player.stop();
 			return;
 		}
-		
+
 		if (bam.part.data.type == "DRUMBEAT") {
 			var newSong = new OMGSong();
 			newSong.loop = true;
@@ -1141,120 +1240,99 @@ function setupMelodyMaker() {
 			newSection.parts.push(bam.part);
 			newSong.sections.push(newSection);
 			omg.player.play(newSong);
-		}
-		else {
+		} else {
 			omg.mm.play();
 		}
 	};
 
 	omg.mm.shareButton = document.getElementById("share-mm");
-	omg.mm.shareButton.onclick = function () {
+	omg.mm.shareButton.onclick = function() {
 
-		var goToId = function (id) {
-			window.location = "/omgbam.jsp?share=MELODY-" + id;
+		var type = bam.part.data.type;
+
+		var goToId = function(id) {
+			window.location = "/omgbam.jsp?share=" + type + "-" + id;
 		};
-		postOMG("MELODY", bam.part, function (response) {
-			if (response && response.result ==  "good") {
+
+		postOMG(type, bam.part.data, function(response) {
+			if (response && response.result == "good") {
 				goToId(response.id);
 			}
 		});
-		
-	};
-	
-	
-	omg.mm.play = function () {
 
+	};
+
+	omg.mm.play = function() {
 		var newSong = new OMGSong();
 		var newSection = new OMGSection();
 		newSection.parts.push(bam.part);
 		newSong.sections.push(newSection);
 		omg.player.play(newSong);
-
-		
-		return;
-		var iSubBeat = 0;
-		
-		omg.subbeatLength = 60000 / omg.bpm / omg.subbeats;		
-		omg.mm.currentI = -1;
-		playBeatForMelody(iSubBeat, omg.mm.data, omg.mm);
-		drawMelodyMakerCanvas();
-		
-		omg.mm.intervalHandle = setInterval(function() {
-            iSubBeat++;
-            if (omg.mm.currentI == omg.mm.data.notes.length) {
-            	clearInterval(omg.mm.intervalHandle);
-            	omg.mm.playButton.innerHTML = "Play";
-            	return;
-                //iSubBeat = 0;
-                //loopStarted = Date.now();
-            }
-            playBeatForMelody(iSubBeat, omg.mm.data, omg.mm);
-            drawMelodyMakerCanvas();
-    		
-    	}, omg.subbeatLength);
 	};
 
 	omg.mm.remixerButton = document.getElementById("next-mm");
-	omg.mm.remixerButton.onclick = function () {
-		
+	omg.mm.remixerButton.onclick = function() {
+
 		parts = bam.section.parts.length;
-		
-		var part = bam.part; 
-		
+
+		var part = bam.part;
+
 		var type = bam.part.data.type;
-		
+
 		if (type == "MELODY" || type == "BASSLINE") {
-			bam.fadeOut([omg.mm]);		
+			bam.fadeOut([ omg.mm ]);
 			omg.mm.playAfterAnimation = false;
-		}
-		else if (type == "DRUMBEAT") {
-			bam.fadeOut([bam.beatmaker]);
+		} else if (type == "DRUMBEAT") {
+			bam.fadeOut([ bam.beatmaker ]);
 		}
 
 		var position;
-		if (typeof(part.position) == "number") {
+		if (typeof (part.position) == "number") {
 			position = part.position;
-		}
-		else {
+		} else {
 			position = parts;
 			bam.section.parts.push(part);
 		}
-		
-		bam.slideOutOptions(document.getElementById("mm-options"), function () {
-			bam.shrink(bam.part.div, 100, 88 + position * 126, 640, 105, function () {
 
-				setupPartDiv(part);
+		bam.slideOutOptions(document.getElementById("mm-options"), function() {
+			bam.shrink(bam.part.div, 100, 88 + position * 126, 640, 105,
+					function() {
 
-				bam.slideInOptions(omg.remixer.options);
-				
-		    	var otherParts = [];
-		    	var otherPart;
-		    	var otherPartsList = bam.section.div.getElementsByClassName("part2");
-		    	for (var ii = 0; ii < otherPartsList.length; ii++) {
-		    		otherPart = otherPartsList.item(ii)
-		    		if (bam.part.div != otherPart)
-		    			otherParts.push(otherPart);
-		    	}
+						setupPartDiv(part);
 
-		    	otherParts.push(omg.remixer);
-				bam.fadeIn(otherParts);
+						bam.slideInOptions(omg.remixer.options);
 
-				omg.remixer.refresh();
-				
-				omg.player.play({loop: true, subbeatMillis: 125, sections: [bam.section]});
-				
-				if (typeof(part.id) != "number" || part.id <= 0) {
-					postOMG(type, omg.mm, function (response) {
-						if (response && response.result ==  "good") {
-							part.id = response.id; 
+						var otherParts = [];
+						var otherPart;
+						var otherPartsList = bam.section.div
+								.getElementsByClassName("part2");
+						for (var ii = 0; ii < otherPartsList.length; ii++) {
+							otherPart = otherPartsList.item(ii)
+							if (bam.part.div != otherPart)
+								otherParts.push(otherPart);
+						}
+
+						otherParts.push(omg.remixer);
+						bam.fadeIn(otherParts);
+
+						omg.remixer.refresh();
+
+						omg.player.play({
+							loop : true,
+							subbeatMillis : 125,
+							sections : [ bam.section ]
+						});
+
+						if (typeof (part.id) != "number" || part.id <= 0) {
+							postOMG(type, part.data, function(response) {
+								if (response && response.result == "good") {
+									part.id = response.id;
+								}
+							});
 						}
 					});
-				}
-			});	
 		});
-		
-		bam.mode = "SECTION";
-	
+
 	};
 
 	omg.mm.addRests = document.getElementById("add-rests-mm");
@@ -1264,109 +1342,113 @@ function setupMelodyMaker() {
 		beats = omg.ui.noteImageUrls[iimg][0];
 		if (!(beats % 0.25 == 0))
 			continue;
-		
+
 		restImage = document.createElement("img");
 		restImage.className = "add-rest-image";
 		restImage.src = omg.ui.getNoteImageUrl(iimg, 2);
-		restImage.onclick = (function (beats) {
-			return function () {
-				omg.mm.data.notes.push({rest:true, beats: beats});
+		restImage.onclick = (function(beats) {
+			return function() {
+				omg.mm.data.notes.push({
+					rest : true,
+					beats : beats
+				});
 				drawMelodyMakerCanvas();
 			};
 		})(beats);
-		
+
 		omg.mm.addRests.appendChild(restImage);
 	}
-	
+
 	omg.mm.autoAddRests = true;
 	var autoAdd = document.createElement("div");
 	autoAdd.innerHTML = "auto";
 	autoAdd.className = "auto-add-rests-on";
 	omg.mm.addRests.appendChild(autoAdd);
-	
-	autoAdd.onclick = function () {
-    	omg.mm.autoAddRests = !omg.mm.autoAddRests;
-    	autoAdd.className = "auto-add-rests-" + 
-    	        (omg.mm.autoAddRests ? "on" : "off");
+
+	autoAdd.onclick = function() {
+		omg.mm.autoAddRests = !omg.mm.autoAddRests;
+		autoAdd.className = "auto-add-rests-"
+				+ (omg.mm.autoAddRests ? "on" : "off");
 	};
-	
-    omg.mm.showRemixerHint = function () {
-        fadeDiv(omg.dialogBorder, 300, true)
-        setTimeout(function () {
-            fadeDiv(omg.addToRemixerHint, 300, true);
-        }, 200);
-        
-        var closeHint = function () {
-	        omg.dialogBorder.onclick = null;
-	        fadeDiv(omg.addToRemixerHint, 300, false);
-	        fadeDiv(omg.dialogBorder, 300, false);
-        };
-        
-        omg.dialogBorder.onclick = closeHint;
-        document.getElementById("add-to-remixer-hint-got-it").onclick = function () {
-            omg.util.setCookie("remixer-got-it", "true");
-            closeHint();
-        };
-        document.getElementById("add-to-remixer-from-hint").onclick = function() {
-            omg.util.setCookie("remixer-got-it", "true");
-            closeHint();
-            omg.mm.remixerButton.onclick();
-        };
-    };
 
-    omg.mm.setPart = function (part, welcomeStyle) {
+	omg.mm.showRemixerHint = function() {
+		fadeDiv(omg.dialogBorder, 300, true)
+		setTimeout(function() {
+			fadeDiv(omg.addToRemixerHint, 300, true);
+		}, 200);
 
-    	omg.mm.part = part;
-    	omg.mm.data = part.data;
+		var closeHint = function() {
+			omg.dialogBorder.onclick = null;
+			fadeDiv(omg.addToRemixerHint, 300, false);
+			fadeDiv(omg.dialogBorder, 300, false);
+		};
 
-    	var visibility;
-    	omg.mm.welcomeStyle = welcomeStyle;
-    	if (welcomeStyle) {
-    		omg.mm.playAfterAnimation = true;
-            omg.mm.drawnOnce = false;
-    		visibility = "hidden";
-    		omg.welcome.style.display = "block";
-    		//omg.mm.canvas.style.opacity = 0.33;
-    	}
-    	else {
-    		visibility = "visible";
-    	}
-    	omg.mm.caption.style.visibility = visibility;
+		omg.dialogBorder.onclick = closeHint;
+		document.getElementById("add-to-remixer-hint-got-it").onclick = function() {
+			omg.util.setCookie("remixer-got-it", "true");
+			closeHint();
+		};
+		document.getElementById("add-to-remixer-from-hint").onclick = function() {
+			omg.util.setCookie("remixer-got-it", "true");
+			closeHint();
+			omg.mm.remixerButton.onclick();
+		};
+	};
 
-    	omg.mm.addRests.style.visibility = visibility;
-    	omg.mm.subtoolbar.style.visibility = visibility;
+	omg.mm.setPart = function(part, welcomeStyle) {
 
-    	omg.mm.style.visibility = "visible";
-    		
-        omg.mm.style.display = "block";
-        
-        //makeOsc(omg.mm, omg.mm.data);
-        omg.player.makeOsc(part);
+		omg.mm.part = part;
+		omg.mm.data = part.data;
 
-        var type = part.data.type;
-        
-        if (type == "BASSLINE") {
-        	omg.mm.selectBottomNote.selectedIndex = 19;
-        	omg.mm.selectTopNote.selectedIndex = 39;
-        	omg.mm.caption.innerHTML = "Bassline";
-        }
-        else {
-        	omg.mm.selectBottomNote.selectedIndex = 39;
-        	omg.mm.selectTopNote.selectedIndex = 70;
-        	omg.mm.caption.innerHTML = "Melody";
-        }
-        
-        onMelodyMakerDisplay();
-        drawMelodyMakerCanvas();
-    };
+		var visibility;
+		omg.mm.welcomeStyle = welcomeStyle;
+		if (welcomeStyle) {
+			omg.mm.playAfterAnimation = true;
+			omg.mm.drawnOnce = false;
+			visibility = "hidden";
+			omg.welcome.style.display = "block";
+			// omg.mm.canvas.style.opacity = 0.33;
+		} else {
+			visibility = "visible";
+			omg.welcome.style.display = "none";
+		}
+		omg.mm.caption.style.visibility = visibility;
 
-    omg.player.onBeatPlayedListeners.push(function () {
-    	drawMelodyMakerCanvas();
-    });
+		omg.mm.addRests.style.visibility = visibility;
+		omg.mm.subtoolbar.style.visibility = visibility;
+
+		omg.mm.style.visibility = "visible";
+
+		omg.mm.style.display = "block";
+
+		// makeOsc(omg.mm, omg.mm.data);
+		omg.player.makeOsc(part);
+
+		var type = part.data.type;
+
+		if (type == "BASSLINE") {
+			omg.mm.selectBottomNote.selectedIndex = 19;
+			omg.mm.selectTopNote.selectedIndex = 39;
+			omg.mm.caption.innerHTML = "Bassline";
+		} else {
+			omg.mm.selectBottomNote.selectedIndex = 39;
+			omg.mm.selectTopNote.selectedIndex = 70;
+			omg.mm.caption.innerHTML = "Melody";
+		}
+
+		onMelodyMakerDisplay();
+		drawMelodyMakerCanvas();
+	};
+
+	omg.player.onBeatPlayedListeners.push(function() {
+		if (bam.part && (bam.part.data.type == "MELODY" || bam.part.data.type == "BASSLINE")) {
+				drawMelodyMakerCanvas();				
+		}
+	});
 }
 
 function setupMelodyMakerFretBoard() {
-	
+
 	var rootNote = omg.mm.selectRootNote.selectedIndex;
 	var bottomNote;
 	var topNote;
@@ -1375,14 +1457,13 @@ function setupMelodyMakerFretBoard() {
 		bottomNote = omg.mm.selectBottomNote.selectedIndex + 9;
 		topNote = omg.mm.selectTopNote.selectedIndex + 9;
 		octaveShift = omg.mm.selectOctaveShift.selectedIndex;
-	}
-	else {
+	} else {
 		octaveShift = omg.mm.data.type == "BASSLINE" ? 3 : 5;
-		rootNote += octaveShift * 12; 
+		rootNote += octaveShift * 12;
 		bottomNote = rootNote - 12;
-		topNote = rootNote + + 12;
+		topNote = rootNote + +12;
 	}
-	
+
 	var fretCount = topNote - bottomNote + 1;
 
 	omg.mm.data.bottomNote = bottomNote;
@@ -1390,59 +1471,59 @@ function setupMelodyMakerFretBoard() {
 	omg.mm.data.topNote = topNote;
 	omg.mm.data.octaveShift = octaveShift;
 	omg.mm.data.scale = omg.mm.selectScale.value;
-	omg.mm.data.ascale = omg.util.splitInts(omg.mm.data.scale); 
-	
+	omg.mm.data.ascale = omg.util.splitInts(omg.mm.data.scale);
+
 	var scale = makeScale(omg.mm.data.scale);
 
 	var noteInScale;
 	var frets = [];
 	for (var i = bottomNote; i <= topNote; i++) {
-		
+
 		if (i == rootNote)
 			frets.rootNote = frets.length;
-		
-		if (scale.indexOf((i - rootNote%12) % 12) > -1) {
-			frets.push({note: i, caption: omg.noteNames[i]});
+
+		if (scale.indexOf((i - rootNote % 12) % 12) > -1) {
+			frets.push({
+				note : i,
+				caption : omg.noteNames[i]
+			});
 		}
 	}
 
 	frets.height = omg.mm.canvas.height / (frets.length + 1);
 	omg.mm.frets = frets;
 
-	console.log("mm==bam", omg.mm.data == bam.part.data);
-	var notes =  omg.mm.data.notes;
+	var notes = omg.mm.data.notes;
 	for (var i = 0; i < notes.length; i++) {
-		console.log(notes[i].note % omg.mm.frets.length);
-		//todo, crashes, throws a -1 when lower than rootnote (halfway)
-		//notes[i].scaledNote = 
-		//	omg.mm.frets[notes[i].note % omg.mm.frets.length].note;
+		//console.log(notes[i].note % omg.mm.frets.length);
+		// todo, crashes, throws a -1 when lower than rootnote (halfway)
+		// notes[i].scaledNote =
+		// omg.mm.frets[notes[i].note % omg.mm.frets.length].note;
 	}
-	
-    drawMelodyMakerCanvas();
+
+	drawMelodyMakerCanvas();
 }
 
-
 function fadeOut(gain, callback) {
-	
+
 	var level = gain.value;
 	var dpct = 0.015;
-	var interval = setInterval(function () {
+	var interval = setInterval(function() {
 		if (level > 0) {
 			level = level - dpct;
 			gain.setValueAtTime(level, 0);
-		}
-		else {
+		} else {
 			clearInterval(interval);
-			
+
 			if (callback)
 				callback();
 		}
- 	}, 1);
+	}, 1);
 }
 
 function welcomeMessage() {
- 
-	//omg.gettingStartedCountdown.innerHTML = "4";
+
+	// omg.gettingStartedCountdown.innerHTML = "4";
 	showMelodyMaker("MELODY", true);
 	omg.remixer.style.display = "none";
 	omg.remixerShowing = false;
@@ -1450,37 +1531,34 @@ function welcomeMessage() {
 	omg.welcome.style.opacity = 1;
 }
 
-
 function addTimeToNote(note, thisNote) {
 	var skipCount = 0;
 	var skipped = 0;
-    var handle = setInterval(function () {
+	var handle = setInterval(function() {
 
 		if (note.beats < 2 && omg.mm.lastNewNote == thisNote) {
 			if (skipCount == skipped) {
 				note.beats += note.beats < 1 ? 0.25 : 0.5;
-    			drawMelodyMakerCanvas();
+				drawMelodyMakerCanvas();
 
-    			skipped = 0;
-    			skipCount++;
-			}
-			else {
+				skipped = 0;
+				skipCount++;
+			} else {
 				skipped++;
 			}
-		}
-		else {
+		} else {
 			clearInterval(handle);
 		}
-    }, 225);
+	}, 225);
 
 }
 
 function doneTouching() {
 	omg.mm.lastNewNote = Date.now();
 	omg.mm.frets.touching = -1;
-	bam.part.osc.frequency.setValueAtTime(0, 0);				
+	bam.part.osc.frequency.setValueAtTime(0, 0);
 	drawMelodyMakerCanvas();
-	
+
 }
 
 function onMelodyMakerDisplay() {
@@ -1489,10 +1567,10 @@ function onMelodyMakerDisplay() {
 		omg.mm.hasBeenShown = true;
 
 		var canvas = omg.mm.canvas;
-		
+
 		var offsetLeft = 0;
 		var offsetTop = 0;
-		
+
 		var el = canvas;
 		while (el && !isNaN(el.offsetLeft)) {
 			offsetLeft += el.offsetLeft;
@@ -1500,185 +1578,216 @@ function onMelodyMakerDisplay() {
 			el = el.parentElement;
 		}
 
-	    var canvas = omg.mm.canvas;
-	    var canvasHeight = window.innerHeight - offsetTop - 12 - 38;
-	    canvas.height = canvasHeight;
-	    canvas.width = canvas.clientWidth;
-	    canvas.style.height =  canvasHeight + "px";
-	    
-		canvas.onmousemove = function (e) {
+		var canvas = omg.mm.canvas;
+		var canvasHeight = window.innerHeight - offsetTop - 12 - 38;
+		canvas.height = canvasHeight;
+		canvas.width = canvas.clientWidth;
+		canvas.style.height = canvasHeight + "px";
+
+		canvas.onmousemove = function(e) {
 			e.preventDefault();
-			
+
 			var x = e.clientX - offsetLeft;
 			var y = e.clientY - offsetTop;
 			canvas.onmove(x, y);
 		};
 
-		canvas.ontouchmove = function (e) {
+		canvas.ontouchmove = function(e) {
 			e.preventDefault();
 
-			var x = e.targetTouches[0].pageX - offsetLeft;			
+			var x = e.targetTouches[0].pageX - offsetLeft;
 			var y = e.targetTouches[0].pageY - offsetTop;
 			canvas.onmove(x, y);
 		};
 
-		canvas.onmove = function (x, y) {
+		canvas.onmove = function(x, y) {
 			var oldCurrent = omg.mm.frets.current;
-			var fret = omg.mm.frets.length - Math.floor(y / omg.mm.frets.height);
+			var fret = omg.mm.frets.length
+					- Math.floor(y / omg.mm.frets.height);
 			if (fret >= omg.mm.frets.length) {
 				fret = omg.mm.frets.length - 1;
 			}
-			
-			omg.mm.frets.current = fret;			
-			
-			if (fret > -1 && omg.mm.frets.touching > -1) {
-    			var note = omg.mm.data.notes[omg.mm.data.notes.length - 1];
-			
-			    if (omg.mm.frets.touching != fret) {
-				
-				    var noteNumber = omg.mm.frets[fret].note;
-				
-		            bam.part.osc.frequency.setValueAtTime(omg.player.makeFrequency(noteNumber), 0);
-		            
-		            note = {note: fret - omg.mm.frets.rootNote, scaledNote: noteNumber, beats: 0.25,
-		                    drawData: []};
-		            omg.mm.data.notes.push(note);
-				    omg.mm.lastNewNote = Date.now();
-		            addTimeToNote(note, omg.mm.lastNewNote);
-		            
-				    omg.mm.frets.touching = fret;
-			    }
 
-			    if (omg.mm.welcomeStyle && note) {
-    			    note.drawData.push({x: x, y: y, originalX: x, originalY: y});
-		        }
-			
+			omg.mm.frets.current = fret;
+
+			if (fret > -1 && omg.mm.frets.touching > -1) {
+				var note = omg.mm.data.notes[omg.mm.data.notes.length - 1];
+
+				if (omg.mm.frets.touching != fret) {
+
+					var noteNumber = omg.mm.frets[fret].note;
+
+					bam.part.osc.frequency.setValueAtTime(omg.player
+							.makeFrequency(noteNumber), 0);
+
+					note = {
+						note : fret - omg.mm.frets.rootNote,
+						scaledNote : noteNumber,
+						beats : 0.25,
+						drawData : []
+					};
+					omg.mm.data.notes.push(note);
+					omg.mm.lastNewNote = Date.now();
+					addTimeToNote(note, omg.mm.lastNewNote);
+
+					omg.mm.frets.touching = fret;
+				}
+
+				if (omg.mm.welcomeStyle && note) {
+					note.drawData.push({
+						x : x,
+						y : y,
+						originalX : x,
+						originalY : y
+					});
+				}
+
 			}
-			
+
 			if (oldCurrent != omg.mm.frets.current) {
 				drawMelodyMakerCanvas();
 			}
 
 		};
 
-		canvas.onmouseout = function () {
+		canvas.onmouseout = function() {
 			omg.mm.frets.current = -1;
 			doneTouching();
 		};
 
-		canvas.onmousedown = function (e) {
+		canvas.onmousedown = function(e) {
 			e.preventDefault();
-			
+
 			var x = e.clientX - offsetLeft;
 			var y = e.clientY - offsetTop;
 			canvas.ondown(x, y);
 		};
 
-		canvas.ontouchstart = function (e) {
+		canvas.ontouchstart = function(e) {
 			e.preventDefault();
-			
+
 			var x = e.targetTouches[0].pageX - offsetLeft;
 			var y = e.targetTouches[0].pageY - offsetTop;
 			canvas.ondown(x, y);
 		};
-		
-		canvas.ondown = function (x, y) {
 
-            if (omg.mm.animationStarted)
-                return;
+		canvas.ondown = function(x, y) {
 
-			var fret = omg.mm.frets.length - Math.floor(y / omg.mm.frets.height) ;
+			if (omg.mm.animationStarted)
+				return;
+
+			var fret = omg.mm.frets.length
+					- Math.floor(y / omg.mm.frets.height);
 			if (fret >= omg.mm.frets.length)
 				fret = omg.mm.frets.length - 1;
-			
+
 			var noteNumber = omg.mm.frets[fret].note;
 
-            var note;
-            
-            if (omg.mm.autoAddRests && omg.mm.lastNewNote) {
-                var lastNoteTime = Date.now() - omg.mm.lastNewNote;
+			var note;
 
-                if (lastNoteTime < 210) {
+			if (omg.mm.autoAddRests && omg.mm.lastNewNote) {
+				var lastNoteTime = Date.now() - omg.mm.lastNewNote;
 
-                }
-                else if (lastNoteTime < 300) {
-    	            note = {rest: true, beats: 0.25};
-                }
-                else if (lastNoteTime < 450) {
-    	            note = {rest: true, beats: 0.5};
-                }
-                else if (lastNoteTime < 800) {
-                    note = {rest: true, beats: 1};
-                }
-                else if (lastNoteTime < 1200) {
-                    note = {rest: true, beats: 1.5};
-                }
-                else if (lastNoteTime < 4000) {
-                    note = {rest: true, beats: 2};
-                }
+				if (lastNoteTime < 210) {
 
-                if (note) {
-        	        omg.mm.data.notes.push(note);                
-                }
-            }
+				} else if (lastNoteTime < 300) {
+					note = {
+						rest : true,
+						beats : 0.25
+					};
+				} else if (lastNoteTime < 450) {
+					note = {
+						rest : true,
+						beats : 0.5
+					};
+				} else if (lastNoteTime < 800) {
+					note = {
+						rest : true,
+						beats : 1
+					};
+				} else if (lastNoteTime < 1200) {
+					note = {
+						rest : true,
+						beats : 1.5
+					};
+				} else if (lastNoteTime < 4000) {
+					note = {
+						rest : true,
+						beats : 2
+					};
+				}
+
+				if (note) {
+					omg.mm.data.notes.push(note);
+				}
+			}
 
 			omg.mm.frets.touching = fret;
-			
-	        //omg.mm.osc.frequency.setValueAtTime(omg.player.makeFrequency(noteNumber), 0);
-			bam.part.osc.frequency.setValueAtTime(omg.player.makeFrequency(noteNumber), 0);
-	        
-	        note = {note: fret - omg.mm.frets.rootNote, scaledNote: noteNumber, beats: 0.25,
-	                    drawData: []};
-	        omg.mm.data.notes.push(note);
 
-	        omg.mm.lastNewNote = Date.now();
-	        var skip = false;
-	        
-	        addTimeToNote(note, omg.mm.lastNewNote);
+			// omg.mm.osc.frequency.setValueAtTime(omg.player.makeFrequency(noteNumber),
+			// 0);
+			bam.part.osc.frequency.setValueAtTime(omg.player
+					.makeFrequency(noteNumber), 0);
+
+			note = {
+				note : fret - omg.mm.frets.rootNote,
+				scaledNote : noteNumber,
+				beats : 0.25,
+				drawData : []
+			};
+			omg.mm.data.notes.push(note);
+
+			omg.mm.lastNewNote = Date.now();
+			var skip = false;
+
+			addTimeToNote(note, omg.mm.lastNewNote);
 
 			if (omg.mm.welcomeStyle) {
-				if (!omg.mm.drawStarted && !omg.mm.animationStarted) {				
+				if (!omg.mm.drawStarted && !omg.mm.animationStarted) {
 					startDrawCountDown();
 				}
 
-			    note.drawData.push({x: x, y: y, originalX: x, originalY: y});
-			} 
-			else {
+				note.drawData.push({
+					x : x,
+					y : y,
+					originalX : x,
+					originalY : y
+				});
+			} else {
 				if (!omg.mm.options.showing) {
 					bam.slideInOptions(omg.mm.options);
 				}
 			}
-	        
-	        drawMelodyMakerCanvas();
+
+			drawMelodyMakerCanvas();
 		};
-		
-		canvas.onmouseup = function (e) {
+
+		canvas.onmouseup = function(e) {
 			e.preventDefault();
 			doneTouching();
 		};
-		
-		canvas.ontouchend = function (e) {
+
+		canvas.ontouchend = function(e) {
 			e.preventDefault();
 			doneTouching();
 		};
 	}
-	
+
 	setupMelodyMakerFretBoard();
 }
 
-
 function rescale(part, rootNote, scale) {
-	
+
 	var octaveShift = part.data.octave || part.data.octaveShift;
 	var octaves2;
-	if (isNaN(octaveShift)) 
+	if (isNaN(octaveShift))
 		octaveShift = part.data.type == "BASSLINE" ? 3 : 5;
 	var newNote;
 	var onote;
 	var note;
 	for (var i = 0; i < part.data.notes.length; i++) {
 		octaves2 = 0;
-		
+
 		onote = part.data.notes[i];
 		newNote = onote.note;
 		while (newNote >= scale.length) {
@@ -1689,12 +1798,12 @@ function rescale(part, rootNote, scale) {
 			newNote = newNote + scale.length;
 			octaves2--;
 		}
-		
+
 		newNote = scale[newNote] + octaves2 * 12 + octaveShift * 12 + rootNote;
 
 		onote.scaledNote = newNote;
 	}
-	
+
 }
 
 function makeScale(string) {
@@ -1705,7 +1814,6 @@ function makeScale(string) {
 	return scale;
 }
 
-
 function startDrawCountDown() {
 	omg.mm.drawStarted = Date.now();
 
@@ -1713,15 +1821,15 @@ function startDrawCountDown() {
 
 	visibility = "visible";
 	omg.mm.caption.style.visibility = visibility;
-	
+
 	omg.mm.addRests.style.visibility = visibility;
 	omg.mm.subtoolbar.style.visibility = visibility;
 
 	omg.mm.initialOptions.style.display = "none";
-	
+
 	omg.mm.options.style.display = "block";
 	omg.mm.options.style.visibility = visibility;
-	
+
 	var opacity = 0;
 	omg.mm.caption.style.opacity = 0;
 
@@ -1731,7 +1839,7 @@ function startDrawCountDown() {
 
 	omg.mm.options.style.left = window.innerWidth + "px";
 	bam.slideInOptions(omg.mm.options);
-	
+
 	var now;
 	var fadeInterval = setInterval(function countdown() {
 		now = Date.now() - omg.mm.drawStarted;
@@ -1739,174 +1847,169 @@ function startDrawCountDown() {
 		if (now < 2000) {
 			opacity = Math.min(1, now / 2000);
 			omg.welcome.style.opacity = 1 - opacity;
-		}
-		else {
+		} else {
 			opacity = Math.min(1, (now - 2000) / 2000);
 			omg.welcome.style.opacity = 0;
 			omg.mm.caption.style.opacity = opacity;
-			
+
 			omg.mm.addRests.style.opacity = opacity;
 			omg.mm.subtoolbar.style.opacity = opacity;
-			//omg.mm.options.style.opacity = opacity;
+			// omg.mm.options.style.opacity = opacity;
 		}
-				
+
 		if (now >= 4000) {
 			omg.mm.drawStarted = 0;
-			
+
 			clearInterval(fadeInterval);
 			doneTouching();
 			animateDrawing();
+		} else {
+			// omg.gettingStartedCountdown.innerHTML = 4 - Math.floor(now /
+			// 1000);
 		}
-		else {
-			//omg.gettingStartedCountdown.innerHTML = 4 - Math.floor(now / 1000);
-		}
-		
+
 		drawMelodyMakerCanvas();
-		
+
 	}, 1000 / 60);
 }
 
 function drawGettingStartedLines(canvas, context) {
 
-    if (!omg.mm.animationStarted)
-        context.lineWidth = 4;
-    else {
-        context.lineWidth = 4 * (1 - ((Date.now() - omg.mm.animationStarted) / omg.mm.animationLength));
-    }
+	if (!omg.mm.animationStarted)
+		context.lineWidth = 4;
+	else {
+		context.lineWidth = 4 * (1 - ((Date.now() - omg.mm.animationStarted) / omg.mm.animationLength));
+	}
 
-    context.beginPath();
-    var note;
-    for (var i = 0; i < omg.mm.data.notes.length; i++) {
-        note = omg.mm.data.notes[i];
+	context.beginPath();
+	var note;
+	for (var i = 0; i < omg.mm.data.notes.length; i++) {
+		note = omg.mm.data.notes[i];
 
-        if (!note.drawData)
-            continue;
-                    
-        for (var j = 0; j < note.drawData.length; j++) {
-            
-            if (j == 0) {
-                context.moveTo(note.drawData[j].x, note.drawData[j].y);
-                if (note.drawData.length == 1) {
-                    context.lineTo(note.drawData[j].x, note.drawData[j].y + 5);
-                }
-            }    
-            else {
-                context.lineTo(note.drawData[j].x, note.drawData[j].y);
-            }
-        }
-    
-    }
-    context.stroke();
-    context.closePath();
+		if (!note.drawData)
+			continue;
+
+		for (var j = 0; j < note.drawData.length; j++) {
+
+			if (j == 0) {
+				context.moveTo(note.drawData[j].x, note.drawData[j].y);
+				if (note.drawData.length == 1) {
+					context.lineTo(note.drawData[j].x, note.drawData[j].y + 5);
+				}
+			} else {
+				context.lineTo(note.drawData[j].x, note.drawData[j].y);
+			}
+		}
+
+	}
+	context.stroke();
+	context.closePath();
 }
 
 function animateDrawing() {
-    omg.mm.animationLength = bam.animLength;
+	omg.mm.animationLength = bam.animLength;
 
-    var canvas =  omg.mm.canvas;   
-    var context = canvas.getContext("2d");
+	var canvas = omg.mm.canvas;
+	var context = canvas.getContext("2d");
 
-    var animationStarted = Date.now();
-    omg.mm.animationStarted = animationStarted;
-    var now;
-    var nowP;
-    var i;
-    var j;
-    var notes = omg.mm.data.notes;
-    var noteCount = notes.length;
-    var drawData;
-    var startX;
-    var finishX;
-    var dx;
-    var dx2;
+	var animationStarted = Date.now();
+	omg.mm.animationStarted = animationStarted;
+	var now;
+	var nowP;
+	var i;
+	var j;
+	var notes = omg.mm.data.notes;
+	var noteCount = notes.length;
+	var drawData;
+	var startX;
+	var finishX;
+	var dx;
+	var dx2;
 
-    var noteWidth = omg.rawNoteWidth;
+	var noteWidth = omg.rawNoteWidth;
 	if (noteWidth * (noteCount + 2) > canvas.width) {
 		noteWidth = canvas.width / (noteCount + 2);
 	}
 
-    var animateInterval = setInterval(function () {
-     
-        now = Date.now() - omg.mm.animationStarted;
-        nowP = now / omg.mm.animationLength;
-        
-        for (i = 0; i < noteCount; i++) {
-            drawData = notes[i].drawData;
+	var animateInterval = setInterval(function() {
 
-            if (!drawData)
-                continue;
-                        
-            for (j = 0; j < drawData.length; j++) {
-                startX = drawData[j].originalX;
-                finishX = (i + 1) * noteWidth;
+		now = Date.now() - omg.mm.animationStarted;
+		nowP = now / omg.mm.animationLength;
 
-                dx = startX - finishX;
-                dx2 = dx - omg.rawNoteWidth * 0.58;
-                drawData.x = startX - dx * nowP;
-                drawData[j].x = startX - dx2 * nowP;
-                drawData[j].y = drawData[j].originalY;// - 10 * nowP;
-            }
-            
-        }
-        
-        if (now >= omg.mm.animationLength) {
-            for (i = 0; i < noteCount; i++) {
-                delete notes[i].drawData;
-            }
-        
-            omg.mm.welcomeStyle = false;
-            clearInterval(animateInterval);
-            omg.mm.animationStarted = 0;
-            
-            if (!omg.player.playing)
-            	omg.mm.play();
-			
-			if (!omg.util.getCookie("remixer-got-it")) {
-			    //omg.mm.showRemixerHint();
+		for (i = 0; i < noteCount; i++) {
+			drawData = notes[i].drawData;
+
+			if (!drawData)
+				continue;
+
+			for (j = 0; j < drawData.length; j++) {
+				startX = drawData[j].originalX;
+				finishX = (i + 1) * noteWidth;
+
+				dx = startX - finishX;
+				dx2 = dx - omg.rawNoteWidth * 0.58;
+				drawData.x = startX - dx * nowP;
+				drawData[j].x = startX - dx2 * nowP;
+				drawData[j].y = drawData[j].originalY;// - 10 * nowP;
 			}
-	
-        }
- 
-        drawMelodyMakerCanvas();
-            
-    }, 1000 / 60);
-}
 
-/* used by melody maker intro*/
-function fadeDiv(div, length, on) {
-    var startedFade = Date.now();
-    var percent;
-    
-    if (on)
-        div.style.opacity = 0;
-        
-    div.style.display = "block";
-    
-	var fadeDivInterval = setInterval(function () {
-	    percent = (Date.now() - startedFade) / length;
-	    
-	    if (!on)
-	        percent = 1 - percent;
-	    	    
-        div.style.opacity = (div == omg.dialogBorder) ?
-            0.6 * percent : percent;
-        
-       if ((on && percent >= 1) || (!on && percent <= 0)) {
-            clearInterval(fadeDivInterval);
-            if (!on)
-                div.style.display = "none";
-       }
-             
+		}
+
+		if (now >= omg.mm.animationLength) {
+			for (i = 0; i < noteCount; i++) {
+				delete notes[i].drawData;
+			}
+
+			omg.mm.welcomeStyle = false;
+			clearInterval(animateInterval);
+			omg.mm.animationStarted = 0;
+
+			if (!omg.player.playing)
+				omg.mm.play();
+
+			if (!omg.util.getCookie("remixer-got-it")) {
+				// omg.mm.showRemixerHint();
+			}
+
+		}
+
+		drawMelodyMakerCanvas();
+
 	}, 1000 / 60);
-
-        
 }
 
+/* used by melody maker intro */
+function fadeDiv(div, length, on) {
+	var startedFade = Date.now();
+	var percent;
 
+	if (on)
+		div.style.opacity = 0;
 
+	div.style.display = "block";
+
+	var fadeDivInterval = setInterval(
+			function() {
+				percent = (Date.now() - startedFade) / length;
+
+				if (!on)
+					percent = 1 - percent;
+
+				div.style.opacity = (div == omg.dialogBorder) ? 0.6 * percent
+						: percent;
+
+				if ((on && percent >= 1) || (!on && percent <= 0)) {
+					clearInterval(fadeDivInterval);
+					if (!on)
+						div.style.display = "none";
+				}
+
+			}, 1000 / 60);
+
+}
 
 function drawDrumCanvas(part, subbeat) {
-	
+
 	if (part.data.tracks.length == 0)
 		return;
 
@@ -1914,43 +2017,41 @@ function drawDrumCanvas(part, subbeat) {
 	params.drumbeat = part.data;
 	params.canvas = part.canvas;
 	params.subbeat = subbeat;
-	
+
 	omg.ui.drawDrumCanvas(params);
-	
+
 }
 
 function getSelectInstrument(type) {
 	var select = "<select class='remixer-part-instrument'>";
 
-    if (type == "BASSLINE") {
-        select += "<option value='DEFAULT'>Saw Wave</option>";
+	if (type == "BASSLINE") {
+		select += "<option value='DEFAULT'>Saw Wave</option>";
 
-        if (omg.dev)
-    	    select += "<option value='5444781580746752'>Electric Bass</option>";
-    	else
-    	    select += "<option value='1540004'>Electric Bass</option>";
+		if (omg.dev)
+			select += "<option value='5444781580746752'>Electric Bass</option>";
+		else
+			select += "<option value='1540004'>Electric Bass</option>";
 
-    }
-    else if (type == "MELODY") {
-        select += "<option value='DEFAULT'>Sine Wave</option>";
-        select += "<option value='PRESET_SYNTH1'>Keyboard</option>";
-        select += "<option value='PRESET_GUITAR1'>Electric Guitar</option>";
-	    select += "<option value='" + (omg.dev ? "5128122231947264" : "5157655500816384") + "'>Power Chords</option>";
+	} else if (type == "MELODY") {
+		select += "<option value='DEFAULT'>Sine Wave</option>";
+		select += "<option value='PRESET_SYNTH1'>Keyboard</option>";
+		select += "<option value='PRESET_GUITAR1'>Electric Guitar</option>";
+		select += "<option value='"
+				+ (omg.dev ? "5128122231947264" : "5157655500816384")
+				+ "'>Power Chords</option>";
 
-        if (omg.golinski) {
-    	    select += "<option value='" + 
-    	            omg.dev ? "6139672929501184" : "6303373460504576" + 
-    	            "'>Cheese</option>";
-        }
-    }
-    else if (type == "DRUMBEAT") {
-        select += "<option value='PRESET_HIP'>Hip</option>";
-        select += "<option value='PRESET_ROCK'>Rock</option>";
-    }
+		if (omg.golinski) {
+			select += "<option value='" + omg.dev ? "6139672929501184"
+					: "6303373460504576" + "'>Cheese</option>";
+		}
+	} else if (type == "DRUMBEAT") {
+		select += "<option value='PRESET_HIP'>Hip</option>";
+		select += "<option value='PRESET_ROCK'>Rock</option>";
+	}
 
-		
 	return select + "</select>";
-	
+
 	return "";
 }
 
@@ -1958,54 +2059,51 @@ function debug(out) {
 	console.log(out);
 }
 
-
-
-/*bam components*/
-bam.setupBeatMaker = function () {
+/* bam components */
+bam.setupBeatMaker = function() {
 
 	bam.beatmaker = document.getElementById("beatmaker");
 
-	var canvas = document.getElementById("beatmaker-canvas"); 
-	bam.beatmaker.canvas = canvas; 
+	var canvas = document.getElementById("beatmaker-canvas");
+	bam.beatmaker.canvas = canvas;
 
 	bam.beatmaker.ui = new OMGDrumMachine(canvas);
 
 	var width = canvas.clientWidth;
 	var offsets = omg.util.totalOffsets(canvas);
-	
-    var canvasHeight = window.innerHeight - 150;
-    canvas.height = canvasHeight;
-    canvas.width = width;
-    canvas.style.height =  canvasHeight + "px";    
 
-    omg.player.onBeatPlayedListeners.push(function (iSubBeat) {
-    	bam.beatmaker.ui.drawLargeCanvas(iSubBeat);
-    }); 
+	var canvasHeight = window.innerHeight - 150;
+	canvas.height = canvasHeight;
+	canvas.width = width;
+	canvas.style.height = canvasHeight + "px";
+
+	omg.player.onBeatPlayedListeners.push(function(iSubBeat) {
+		bam.beatmaker.ui.drawLargeCanvas(iSubBeat);
+	});
 };
 
-
-
-
 /* bam ui stuff */
-bam.shrink = function (div, x, y, w, h, callback) {
-	
-	//remove us from the zone hierarchy
+bam.shrink = function(div, x, y, w, h, callback) {
+
+	// remove us from the zone hierarchy
 	bam.zones.pop();
-	
+
 	var originalH = div.clientHeight;
 	var originalW = div.clientWidth;
 	var originalX = div.offsetLeft;
 	var originalY = div.offsetTop;
-	
+
 	var startedAt = Date.now();
-	
+
 	var children;
 	var child;
 	if (div.className === "section") {
 		children = [];
 		var parts = div.getElementsByClassName("part2");
 		for (var ip = 0; ip < parts.length; ip++) {
-			child = {div: parts.item(ip)};
+			child = {
+				div : parts.item(ip)
+			};
 			child.originalH = child.div.clientHeight;
 			child.originalW = child.div.clientWidth;
 			child.originalX = child.div.offsetLeft;
@@ -2016,42 +2114,45 @@ bam.shrink = function (div, x, y, w, h, callback) {
 			children.push(child);
 		}
 	}
-	
-	var interval = setInterval(function () {
+
+	var interval = setInterval(function() {
 		var now = Date.now() - startedAt;
 		var now = Math.min(1, now / bam.animLength);
 
 		div.style.left = originalX + (x - originalX) * now + "px";
-		div.style.top  = originalY + (y - originalY) * now + "px";
+		div.style.top = originalY + (y - originalY) * now + "px";
 
-		div.style.width  = originalW + (w - originalW) * now + "px";
+		div.style.width = originalW + (w - originalW) * now + "px";
 		div.style.height = originalH + (h - originalH) * now + "px";
 
 		if (children) {
 			for (ip = 0; ip < children.length; ip++) {
 				child = children[ip];
-				child.div.style.left   = child.originalX + (child.targetX - child.originalX) * now + "px";
-				child.div.style.top    = child.originalY + (child.targetY - child.originalY) * now + "px";
-				child.div.style.width  = child.originalW + (child.targetW - child.originalW) * now + "px";
-				child.div.style.height = child.originalH + (child.targetH - child.originalH) * now + "px";
-				
+				child.div.style.left = child.originalX
+						+ (child.targetX - child.originalX) * now + "px";
+				child.div.style.top = child.originalY
+						+ (child.targetY - child.originalY) * now + "px";
+				child.div.style.width = child.originalW
+						+ (child.targetW - child.originalW) * now + "px";
+				child.div.style.height = child.originalH
+						+ (child.targetH - child.originalH) * now + "px";
+
 			}
 		}
-		
+
 		if (now == 1) {
 			clearInterval(interval);
-			//div.style.cursor = "pointer";
+			// div.style.cursor = "pointer";
 			if (callback)
 				callback();
 		}
-	}, 1000/60);
+	}, 1000 / 60);
 };
 
+bam.grow = function(div, callback) {
 
-bam.grow = function (div, callback) {
-	
 	bam.zones.push(div);
-	
+
 	var originalH = div.clientHeight;
 	var originalW = div.clientWidth;
 	var originalX = div.offsetLeft;
@@ -2064,56 +2165,64 @@ bam.grow = function (div, callback) {
 		children = [];
 		var parts = div.getElementsByClassName("part2");
 		for (var ip = 0; ip < parts.length; ip++) {
-			child = {div: parts.item(ip)};
+			child = {
+				div : parts.item(ip)
+			};
 			child.originalH = child.div.clientHeight;
 			child.originalW = child.div.clientWidth;
 			child.originalX = child.div.offsetLeft;
 			child.originalY = child.div.offsetTop;
 
-			//110, 88 + parts * 126, 640, 105
+			// 110, 88 + parts * 126, 640, 105
 			child.targetX = 100;
 			child.targetY = 88 + ip * 126;
 			child.targetW = 640;
 			child.targetH = 105;
-			
+
 			children.push(child);
 		}
 	}
 
 	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
+
+	var interval = setInterval(function() {
 		var now = Date.now() - startedAt;
 		var now = Math.min(1, now / bam.animLength);
 
 		div.style.left = originalX + (-5 - originalX) * now + "px";
-		div.style.top  = originalY + (-5 - originalY) * now + "px";
+		div.style.top = originalY + (-5 - originalY) * now + "px";
 
-		div.style.width  = originalW + (window.innerWidth + 10 - originalW) * now + "px";
-		div.style.height = originalH + (window.innerHeight + 10 - originalH) * now + "px";
+		div.style.width = originalW + (window.innerWidth + 10 - originalW)
+				* now + "px";
+		div.style.height = originalH + (window.innerHeight + 10 - originalH)
+				* now + "px";
 
 		if (children) {
 			for (ip = 0; ip < children.length; ip++) {
 				child = children[ip];
-				child.div.style.left   = child.originalX + (child.targetX - child.originalX) * now + "px";
-				child.div.style.top    = child.originalY + (child.targetY - child.originalY) * now + "px";
-				child.div.style.width  = child.originalW + (child.targetW - child.originalW) * now + "px";
-				child.div.style.height = child.originalH + (child.targetH - child.originalH) * now + "px";
-				
+				child.div.style.left = child.originalX
+						+ (child.targetX - child.originalX) * now + "px";
+				child.div.style.top = child.originalY
+						+ (child.targetY - child.originalY) * now + "px";
+				child.div.style.width = child.originalW
+						+ (child.targetW - child.originalW) * now + "px";
+				child.div.style.height = child.originalH
+						+ (child.targetH - child.originalH) * now + "px";
+
 			}
 		}
-		
+
 		if (now == 1) {
 			clearInterval(interval);
 			div.style.cursor = "auto";
 			if (callback)
 				callback();
 		}
-	}, 1000/60);
+	}, 1000 / 60);
 };
 
-bam.arrangeParts = function (callback) {
-	
+bam.arrangeParts = function(callback) {
+
 	var div = bam.section.div;
 
 	var children;
@@ -2123,22 +2232,26 @@ bam.arrangeParts = function (callback) {
 		children = [];
 		var parts = div.getElementsByClassName("part2");
 		for (var ip = 0; ip < parts.length; ip++) {
-			child = {div: parts.item(ip)};
+			child = {
+				div : parts.item(ip)
+			};
 			child.originalH = child.div.clientHeight;
 			child.originalW = child.div.clientWidth;
 			child.originalX = child.div.offsetLeft;
 			child.originalY = child.div.offsetTop;
 
-			//110, 88 + parts * 126, 640, 105
+			// 110, 88 + parts * 126, 640, 105
 			child.targetX = 100;
 			child.targetY = 88 + ip * 126;
 			child.targetW = 640;
 			child.targetH = 105;
-			
+
 			children.push(child);
 		}
-		
-		child = {div: omg.remixer.addButtons};
+
+		child = {
+			div : omg.remixer.addButtons
+		};
 		child.originalH = child.div.clientHeight;
 		child.originalW = 640;
 		child.originalX = 4;
@@ -2151,42 +2264,47 @@ bam.arrangeParts = function (callback) {
 	}
 
 	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
+
+	var interval = setInterval(function() {
 		var now = Date.now() - startedAt;
 		var now = Math.min(1, now / bam.animLength);
 
 		if (children) {
 			for (ip = 0; ip < children.length; ip++) {
 				child = children[ip];
-				child.div.style.left   = child.originalX + (child.targetX - child.originalX) * now + "px";
-				child.div.style.top    = child.originalY + (child.targetY - child.originalY) * now + "px";
-				child.div.style.width  = child.originalW + (child.targetW - child.originalW) * now + "px";
-				child.div.style.height = child.originalH + (child.targetH - child.originalH) * now + "px";
-				
+				child.div.style.left = child.originalX
+						+ (child.targetX - child.originalX) * now + "px";
+				child.div.style.top = child.originalY
+						+ (child.targetY - child.originalY) * now + "px";
+				child.div.style.width = child.originalW
+						+ (child.targetW - child.originalW) * now + "px";
+				child.div.style.height = child.originalH
+						+ (child.targetH - child.originalH) * now + "px";
+
 			}
 		}
-		
+
 		if (now == 1) {
 			clearInterval(interval);
 			if (callback)
 				callback();
 		}
-	}, 1000/60);
+	}, 1000 / 60);
 };
 
-bam.arrangeSections = function (callback) {
-	
+bam.arrangeSections = function(callback) {
+
 	var div = bam.song.div;
 
 	var children;
 	var child;
 
-
 	children = [];
 	var parts = div.getElementsByClassName("section");
 	for (var ip = 0; ip < parts.length; ip++) {
-		child = {div: parts.item(ip)};
+		child = {
+			div : parts.item(ip)
+		};
 		child.originalH = child.div.clientHeight;
 		child.originalW = child.div.clientWidth;
 		child.originalX = child.div.offsetLeft;
@@ -2196,13 +2314,15 @@ bam.arrangeSections = function (callback) {
 		child.targetY = 100;
 		child.targetW = 100;
 		child.targetH = 300;
-		
+
 		children.push(child);
 	}
-	
-	child = {div: omg.rearranger.addSectionButton};
-	child.originalH = 14; //padding does the rest;
-	child.originalW = 60; //padding does the rest;
+
+	child = {
+		div : omg.rearranger.addSectionButton
+	};
+	child.originalH = 14; // padding does the rest;
+	child.originalW = 60; // padding does the rest;
 	child.originalX = child.div.offsetLeft;
 	child.originalY = child.div.offsetTop;
 	child.targetX = 5 + bam.song.sections.length * 110;
@@ -2212,40 +2332,44 @@ bam.arrangeSections = function (callback) {
 	children.push(child);
 
 	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
+
+	var interval = setInterval(function() {
 		var now = Date.now() - startedAt;
 		var now = Math.min(1, now / bam.animLength);
 
 		if (children) {
 			for (ip = 0; ip < children.length; ip++) {
 				child = children[ip];
-				child.div.style.left   = child.originalX + (child.targetX - child.originalX) * now + "px";
-				child.div.style.top    = child.originalY + (child.targetY - child.originalY) * now + "px";
-				child.div.style.width  = child.originalW + (child.targetW - child.originalW) * now + "px";
-				child.div.style.height = child.originalH + (child.targetH - child.originalH) * now + "px";
-				
+				child.div.style.left = child.originalX
+						+ (child.targetX - child.originalX) * now + "px";
+				child.div.style.top = child.originalY
+						+ (child.targetY - child.originalY) * now + "px";
+				child.div.style.width = child.originalW
+						+ (child.targetW - child.originalW) * now + "px";
+				child.div.style.height = child.originalH
+						+ (child.targetH - child.originalH) * now + "px";
+
 			}
 		}
-		
+
 		if (now == 1) {
 			clearInterval(interval);
 			if (callback)
 				callback();
 		}
-	}, 1000/60);
+	}, 1000 / 60);
 };
 
-bam.slideOutOptions = function (div, callback) {
-	
+bam.slideOutOptions = function(div, callback) {
+
 	div.showing = false;
-	
+
 	var windowW = window.innerWidth;
 	var originalX = div.offsetLeft;
-	
+
 	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
+
+	var interval = setInterval(function() {
 		var now = Date.now() - startedAt;
 		now = Math.min(1, now / bam.animLength);
 
@@ -2256,20 +2380,20 @@ bam.slideOutOptions = function (div, callback) {
 			if (callback)
 				callback();
 		}
-	}, 1000/60);	
+	}, 1000 / 60);
 };
 
-bam.slideInOptions = function (div, callback, target) {
+bam.slideInOptions = function(div, callback, target) {
 
-	for (var ic = 0; ic <div.children.length; ic++) {
+	for (var ic = 0; ic < div.children.length; ic++) {
 		if (div.children[ic].id.indexOf("play") > -1) {
 			bam.showingPlayButton = div.children[ic];
 			break;
 		}
 	}
-	
+
 	div.showing = true;
-	
+
 	div.style.left = window.innerWidth + "px";
 	div.style.display = "block";
 
@@ -2279,10 +2403,10 @@ bam.slideInOptions = function (div, callback, target) {
 	else
 		targetLeft = 680;
 	var originalX = window.innerWidth;
-	
+
 	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
+
+	var interval = setInterval(function() {
 		var now = Date.now() - startedAt;
 		now = Math.min(1, now / bam.animLength);
 
@@ -2293,19 +2417,19 @@ bam.slideInOptions = function (div, callback, target) {
 			if (callback)
 				callback();
 		}
-	}, 1000/60);	
+	}, 1000 / 60);
 };
 
-bam.slideDownOptions = function (div, callback) {
-	
+bam.slideDownOptions = function(div, callback) {
+
 	div.showing = false;
-	
+
 	var windowH = window.innerHeight;
 	var originalY = div.offsetTop;
-	
+
 	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
+
+	var interval = setInterval(function() {
 		var now = Date.now() - startedAt;
 		now = Math.min(1, now / bam.animLength);
 
@@ -2317,12 +2441,12 @@ bam.slideDownOptions = function (div, callback) {
 			if (callback)
 				callback();
 		}
-	}, 1000/60);	
+	}, 1000 / 60);
 };
 
-bam.slideUpOptions = function (div, callback, target) {
+bam.slideUpOptions = function(div, callback, target) {
 
-	for (var ic = 0; ic <div.children.length; ic++) {
+	for (var ic = 0; ic < div.children.length; ic++) {
 		if (div.children[ic].id.indexOf("play") > -1) {
 			bam.showingPlayButton = div.children[ic];
 			break;
@@ -2330,7 +2454,7 @@ bam.slideUpOptions = function (div, callback, target) {
 	}
 
 	div.showing = true;
-	
+
 	div.style.top = window.innerHeight + "px";
 	div.style.display = "block";
 
@@ -2340,10 +2464,10 @@ bam.slideUpOptions = function (div, callback, target) {
 	else
 		targetY = 400;
 	var originalY = window.innerHeight;
-	
+
 	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
+
+	var interval = setInterval(function() {
 		var now = Date.now() - startedAt;
 		now = Math.min(1, now / bam.animLength);
 
@@ -2354,51 +2478,74 @@ bam.slideUpOptions = function (div, callback, target) {
 			if (callback)
 				callback();
 		}
-	}, 1000/60);	
+	}, 1000 / 60);
 };
 
-bam.fadeOut = function (divs, callback) {
-	
+bam.fadingOut = [];
+bam.fadeOut = function(divs, callback) {
+
+	for (var ii = 0; ii < divs.length; ii++) {
+		bam.fadingOut.push(divs[ii]);
+		divs[ii].cancelFadeOut = false;
+	}
+
 	var startedAt = Date.now();
-	
-	var interval = setInterval(function () {
+
+	var interval = setInterval(function() {
 
 		var now = Date.now() - startedAt;
 		now = Math.min(1, now / bam.animLength);
 
 		for (var ii = 0; ii < divs.length; ii++) {
-			divs[ii].style.opacity = 1 - now;				
+			if (!divs[ii].cancelFadeOut) {
+				divs[ii].style.opacity = 1 - now;				
+			}
 		}
-		
 
 		if (now == 1) {
+			var foI;
 			for (var ii = 0; ii < divs.length; ii++) {
-				divs[ii].style.display = "none";				
+				if (!divs[ii].cancelFadeOut) {
+					divs[ii].style.display = "none";					
+				}
+				
+				foI = bam.fadingOut.indexOf(divs[ii]);
+				if (foI > -1) {
+					bam.fadingOut.splice(foI, 1);
+				}
 			}
 
 			clearInterval(interval);
 			if (callback)
 				callback();
 		}
-	}, 1000/60);	
+	}, 1000 / 60);
 };
 
-bam.fadeIn = function (divs, callback) {
-	
+bam.fadeIn = function(divs, callback) {
+
+	var fadingOutI;
 	var startedAt = Date.now();
 	var div;
 	for (var ii = 0; ii < divs.length; ii++) {
 		div = divs[ii];
 		div.style.opacity = 0
 		div.style.display = "block";
+
+		//quick way to avoid a fadeout display=none'ing a div
+		// a fadeout finishing mid fadein
+		fadingOutI = bam.fadingOut.indexOf(div);
+		if (fadingOutI > -1) {
+			div.cancelFadeOut = true;
+		}
 	}
-	
-	var interval = setInterval(function () {
+
+	var interval = setInterval(function() {
 		var now = Date.now() - startedAt;
 		now = Math.min(1, now / bam.animLength);
 
 		for (var ii = 0; ii < divs.length; ii++) {
-			divs[ii].style.opacity = now;				
+			divs[ii].style.opacity = now;
 		}
 
 		if (now == 1) {
@@ -2406,60 +2553,65 @@ bam.fadeIn = function (divs, callback) {
 			if (callback)
 				callback();
 		}
-	}, 1000/60);	
+	}, 1000 / 60);
 };
 
-
-
-bam.createElementOverElement = function (classname, button) {
+bam.createElementOverElement = function(classname, button) {
 	var offsets = omg.util.totalOffsets(button)
 
 	var newPartDiv = document.createElement("div");
 	newPartDiv.className = classname;
 	newPartDiv.style.left = offsets.left + "px";
-	newPartDiv.style.top  = offsets.top + "px";
+	newPartDiv.style.top = offsets.top + "px";
 	newPartDiv.style.width = button.clientWidth + "px";
 	newPartDiv.style.height = button.clientHeight + "px";
 
 	return newPartDiv;
 };
 
-bam.copySection = function (section) {
-	var newDiv = bam.createElementOverElement("section", omg.rearranger.addSectionButton);
+bam.copySection = function(section) {
+	var newDiv = bam.createElementOverElement("section",
+			omg.rearranger.addSectionButton);
 
 	bam.song.div.appendChild(newDiv);
-	
+
 	var newSection = new OMGSection(newDiv);
+	bam.fadeIn([newDiv]);
 	
 	var newPartDiv;
 	var newPart;
-	
+
 	for (var ip = 0; ip < section.parts.length; ip++) {
 		newPartDiv = document.createElement("div");
 		newPartDiv.className = "part2";
-				
+		newPartDiv.style.display = "block";
 		newDiv.appendChild(newPartDiv);
 
-		targets = bam.setTargetsSmallParts(null, ip, section.parts.length, 
+		targets = bam.setTargetsSmallParts(null, ip, section.parts.length,
 				newDiv.clientWidth, newDiv.clientHeight);
 
 		newPart = new OMGPart(newPartDiv);
 		newSection.parts.push(newPart);
 
 		bam.reachTarget(newPartDiv, targets);
-		
+
 		newPart.data = JSON.parse(JSON.stringify(section.parts[ip].data));
 	}
 
+
 	bam.setupSectionDiv(newSection);
-	
+
 	bam.song.sections.push(newSection);
-	
+
 };
 
-bam.setTargetsSmallParts = function (targets, partNo, partCount, w, h) {
+bam.setTargetsSmallParts = function(targets, partNo, partCount, w, h) {
 	if (!targets)
 		targets = {};
+
+	//imma just do this
+	w = 100;
+	h = 300;
 	
 	targets.targetX = 15;
 	targets.targetY = 15 + partNo * h / partCount;
@@ -2468,144 +2620,212 @@ bam.setTargetsSmallParts = function (targets, partNo, partCount, w, h) {
 	return targets;
 }
 
-bam.reachTarget = function (div, target) {
+bam.reachTarget = function(div, target) {
 	div.style.left = target.targetX + "px";
-	div.style.top  = target.targetY + "px";
+	div.style.top = target.targetY + "px";
 	div.style.width = target.targetW + "px";
 	div.style.height = target.targetH + "px";
 };
 
-bam.setupSectionDiv = function (section) {
-	var addButton = omg.rearranger.addSectionButton;
+bam.setupSectionDiv = function(section) {
 	
+	section.setup = true;
+	
+	var addButton = omg.rearranger.addSectionButton;
+
 	var downTimeout;
 	var doClick = false;
-	var lastXY = [-1, -1];
+	var lastXY = [ -1, -1 ];
 	var overCopy = false;
-	section.div.onmousedown = function (event) {
-		
+	section.div.onmousedown = function(event) {
+
 		if (bam.zones[bam.zones.length - 1] != bam.song.div) {
 			return;
 		}
 
 		event.preventDefault;
-		
+
 		doClick = true;
-		downTimeout = setTimeout(function () {
-			doClick = false;
-			section.dragging = true;
-			section.div.style.zIndex = "1";
-			
-			addButton.innerHTML = "Copy Section";
-			
-			bam.fadeOut([omg.rearranger.options]);
-			
-			section.doneDragging = function () {
-				addButton.innerHTML = "+ Add Section";
-				addButton.style.backgroundColor = section.div.style.backgroundColor;
-				section.dragging = false;
-				overCopy = false;
-				
-				bam.arrangeSections();
-				bam.fadeIn([omg.rearranger.options]);
-				
-				bam.song.div.onmousemove = undefined;
-			};
-			
-			bam.song.div.onmousemove = function (event) {
-				if (bam.zones[bam.zones.length - 1] != bam.song.div) {
-					return;
-				}
+		downTimeout = setTimeout(
+				function() {
+					doClick = false;
+					section.dragging = true;
+					section.div.style.zIndex = "1";
 
-				if (section.dragging) {
-					
-		    		var xy = [event.clientX, event.clientY];
-				
-		    		section.div.style.left = section.div.offsetLeft +
-		    			xy[0] - lastXY[0] + "px";
-		    		section.div.style.top = section.div.offsetTop +
-					xy[1] - lastXY[1] + "px";
-		    		lastXY = xy;
-		    		
-		    		var centerX = section.div.clientWidth / 2 + section.div.offsetLeft;
-		    		var centerY = section.div.clientHeight / 2 + section.div.offsetTop;
+					addButton.innerHTML = "(Copy Section)";
 
-		    		var offsets = omg.util.totalOffsets(addButton);
-		    		if (centerX > offsets.left && 
-		    				centerX < offsets.left + addButton.clientWidth && 
-		    				centerY > offsets.top && 
-		    				centerY < offsets.top + addButton.clientHeight) {
-		    			addButton.style.backgroundColor = "white";
-		    			overCopy = true;
-		    		}
-		    		else {
-		    			addButton.style.backgroundColor = section.div.style.backgroundColor;
-		    			overCopy = false;
-		    		}
-				}
-			};
-			
-		}, 400);
-		lastXY = [event.clientX, event.clientY];
+					bam.fadeOut([ omg.rearranger.options ]);
+
+					section.doneDragging = function() {
+						addButton.innerHTML = "+ Add Section";
+						addButton.style.backgroundColor = section.div.style.backgroundColor;
+						section.dragging = false;
+						overCopy = false;
+
+						bam.arrangeSections();
+						bam.fadeIn([ omg.rearranger.options ]);
+
+						bam.song.div.onmousemove = undefined;
+					};
+
+					bam.song.div.onmousemove = function(event) {
+						if (bam.zones[bam.zones.length - 1] != bam.song.div) {
+							return;
+						}
+
+						if (section.dragging) {
+
+							var xy = [ event.clientX, event.clientY ];
+
+							section.div.style.left = section.div.offsetLeft
+									+ xy[0] - lastXY[0] + "px";
+							section.div.style.top = section.div.offsetTop
+									+ xy[1] - lastXY[1] + "px";
+							lastXY = xy;
+
+							var centerX = section.div.clientWidth / 2
+									+ section.div.offsetLeft;
+							var centerY = section.div.clientHeight / 2
+									+ section.div.offsetTop;
+
+							var offsets = omg.util.totalOffsets(addButton);
+							if (centerX > offsets.left
+									&& centerX < offsets.left
+											+ addButton.clientWidth
+									&& centerY > offsets.top
+									&& centerY < offsets.top
+											+ addButton.clientHeight) {
+								addButton.style.backgroundColor = "white";
+								overCopy = true;
+							} else {
+								addButton.style.backgroundColor = section.div.style.backgroundColor;
+								overCopy = false;
+							}
+						}
+					};
+
+				}, 400);
+		lastXY = [ event.clientX, event.clientY ];
 	};
-	
-	section.div.onmouseup = function () {
+
+	section.div.onmouseup = function() {
 
 		if (bam.zones[bam.zones.length - 1] != bam.song.div) {
 			return;
 		}
-		
+
 		if (section.dragging) {
 			if (overCopy) {
 				bam.copySection(section);
-				
-				//bam.slideInOptions(addButton, null, section.parts.length * 120);
+
+				// bam.slideInOptions(addButton, null, section.parts.length *
+				// 120);
 			}
 			section.doneDragging();
 		}
 		section.dragging = false;
 		section.div.style.zIndex = "0";
-		
+
 		if (!doClick)
 			return;
-		
+
 		clearTimeout(downTimeout);
-		
+
 		var newSong = new OMGSong();
 		newSong.sections.push(bam.section);
 		newSong.loop = true;
 		omg.player.play(newSong);
-		
-    	var fadeOutList2 = [];
-    	var otherSectionList = bam.song.div.getElementsByClassName("section");
-    	for (var ii = 0; ii < otherSectionList.length; ii++) {
-    		if (otherSectionList.item(ii) != section.div)
-    			fadeOutList2.push(otherSectionList.item(ii));
-    		else
-    			section.position = ii;
-    	}
-    	fadeOutList2.push(omg.rearranger);
+
+		var fadeOutList2 = [];
+		var otherSectionList = bam.song.div.getElementsByClassName("section");
+		for (var ii = 0; ii < otherSectionList.length; ii++) {
+			if (otherSectionList.item(ii) != section.div)
+				fadeOutList2.push(otherSectionList.item(ii));
+			else
+				section.position = ii;
+		}
+		fadeOutList2.push(omg.rearranger);
 
 		bam.slideDownOptions(omg.rearranger.options);
-		bam.fadeOut(fadeOutList2, function () {
-    		bam.grow(section.div, function () {
-    			bam.section = section;
- 
-    	        var fadeInList = [omg.remixer];
-    	        var controls;
-    	        for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
-    	        	controls = bam.section.parts[ip].controls;
-    	        	if (!controls) {
-    	        		setupPartDiv(bam.section.parts[ip]);
-    	        	}
-    	        	fadeInList.push(bam.section.parts[ip].controls);        	
-    	    	}
-    			bam.fadeIn(fadeInList);
-    			
-    			bam.slideInOptions(omg.remixer.options);
-    			omg.remixer.refresh();
-    		});            			
+		bam.fadeOut(fadeOutList2, function() {
+			bam.grow(section.div, function() {
+				bam.section = section;
+
+				var fadeInList = [ omg.remixer ];
+				var controls;
+				for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
+					controls = bam.section.parts[ip].controls;
+					if (!controls) {
+						setupPartDiv(bam.section.parts[ip]);
+					}
+					fadeInList.push(bam.section.parts[ip].controls);
+				}
+				bam.fadeIn(fadeInList);
+
+				bam.slideInOptions(omg.remixer.options);
+				omg.remixer.refresh();
+			});
 		});
 		section.div.onclick = null;
 	};
 }
+
+bam.makePart = function (data) {
+	
+	var newDiv = document.createElement("div");
+	newDiv.className = "part2";
+	newDiv.style.display = "block";
+	bam.section.div.appendChild(newDiv);
+	
+	var part;
+	if (data.type == "DRUMBEAT") {
+		part = new OMGDrumpart(newDiv);
+	} 
+	else if (data.type == "MELODY" || data.type == "BASSLINE") {
+		part = new OMGPart(newDiv);
+	}
+	part.data = data;
+	bam.section.parts.push(part);
+	
+	setupPartDiv(part);
+	return part;
+};
+
+bam.makeSection = function (data, small) {
+	
+	var newDiv = document.createElement("div");
+	newDiv.className = "section";
+	newDiv.style.display = "block";
+	bam.song.div.appendChild(newDiv);
+
+	var section = new OMGSection(newDiv);
+	section.data = data;
+	bam.song.sections.push(section);
+
+	//I think makeParts() wants this
+	bam.section = section;
+	
+	var newPart;
+	var newParts = [];
+	var newPartDiv;
+	for (var ip = 0; ip < data.parts.length; ip++) {
+		newPart = bam.makePart(data.parts[ip]);
+		newPartDiv = newPart.div;
+		newParts.push(newPartDiv);	
+
+		//if (small) {
+			newPart.controls.style.display = "none";
+			targets = bam.setTargetsSmallParts(null, ip, data.parts.length,
+					newDiv.clientWidth, newDiv.clientHeight);
+			
+			bam.reachTarget(newPartDiv, targets);
+
+		//}
+	}
+	//bam.arrangeParts();
+	
+	bam.setupSectionDiv(section);
+	
+	bam.fadeIn(newParts);
+	return section;
+};
