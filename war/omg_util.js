@@ -1,6 +1,11 @@
 if (typeof omg != "object")
 	omg = {};
 
+if (omg.beats == undefined)
+	omg.beats = 8;
+if (omg.subbeats == undefined)
+	omg.subbeats = 4;
+
 if (typeof omg.util != "object")
 	omg.util = {};
 
@@ -226,3 +231,6 @@ omg.util.setCookie = function (c_name,value,exdays) {
     document.cookie=c_name + "=" + c_value;
 };
 
+omg.util.getScrollTop = function () {
+	return document.body.scrollTop + document.documentElement.scrollTop;
+};

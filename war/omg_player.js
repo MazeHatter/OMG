@@ -60,6 +60,15 @@ if (typeof omg != "object")
             p.playBeat(p.song.sections[p.song.playingSection], 
             		p.iSubBeat);
 
+            for (var il = 0; il < p.onBeatPlayedListeners.length; il++) {
+            	try {
+            		p.onBeatPlayedListeners[il].call(null, p.iSubBeat, p.song.playingSection);	
+            	}
+                catch (ex) {
+                	console.log(ex);
+                }
+            }
+            
             p.iSubBeat++;
             if (p.iSubBeat == beatsPerSection) {
             
@@ -277,9 +286,6 @@ if (typeof omg != "object")
             p.playBeatForPart(iSubBeat, section.parts[ip]);
         }
         
-        for (var il = 0; il < p.onBeatPlayedListeners.length; il++) {
-            p.onBeatPlayedListeners[il].call(null, iSubBeat);
-        }
 
     };
 
@@ -467,7 +473,8 @@ if (typeof omg != "object")
         var key = sound;
         var url = sound;
         if (sound.indexOf("PRESET_") == 0) {
-            url = "audio/" + sound.substring(7).toLowerCase() + ".mp3";
+        	var preseturl = "https://dl.dropboxusercontent.com/u/24411900/omg/drums/"
+            url = preseturl + sound.substring(7).toLowerCase() + ".mp3";
         }
         
         omg.player.loadedSounds[key] = "loading";
@@ -723,31 +730,39 @@ OMGSection.prototype.getData = function () {
 	return this.data;
 };
 
-function OMGDrumpart(div) {
+function OMGDrumpart(div, data) {
 	this.div = div;	
 	
-	this.data = {"type":"DRUMBEAT","bpm":120,"kit":0,
-		    isNew: true,
-			"tracks":[{"name":"kick","sound":"PRESET_HH_KICK",
-			"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-			        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-	        {"name":"snare","sound":"PRESET_HH_CLAP",
-        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-	        {"name":"closed hi-hat","sound":"PRESET_ROCK_HIHAT_CLOSED",
-        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-	        {"name":"open hi-hat","sound":"PRESET_HH_HIHAT",
-        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-	        {"name":"tambourine","sound":"PRESET_HH_TAMB",
-        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-	        {"name":"scratch","sound":"PRESET_HH_SCRATCH",
-        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
-	      ]};
-	
+	if (data) {
+		this.data = data;
+	}
+	else {
+		this.data = {"type":"DRUMBEAT","bpm":120,"kit":0,
+			    isNew: true,
+				"tracks":[{"name":"kick","sound":"PRESET_HH_KICK",
+				"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+				        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"snare","sound":"PRESET_HH_CLAP",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"closed hi-hat","sound":"PRESET_ROCK_HIHAT_CLOSED",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"open hi-hat","sound":"PRESET_HH_HIHAT",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"tambourine","sound":"PRESET_HH_TAMB",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"scratch","sound":"PRESET_HH_SCRATCH",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+		      ]};
+	}
+	omg.player.loadPart(this, this.data);
+	console.log("drum part loaded");
+
+	//not used i dont think, should be soon
 	this.loadSoundSet = function (soundSet) {
 		var emptyBeat = {"type":"DRUMBEAT","bpm":120,"kit":soundSet.id,
 				    isNew: true, data: []};
@@ -769,14 +784,29 @@ function OMGDrumpart(div) {
 	
 }
 
-function OMGPart(div) {
+function OMGPart(div, data) {
 	this.div = div;
-	this.data = {type: "MELODY", notes: []};
+	if (data) {
+		this.data = data;
+		omg.player.loadPart(this, data);
+	}
+	else {
+		this.data = {type: "MELODY", notes: []};	
+	}
+	
 		
 	// key? tempo? we need it here too, I guess
 	
 }
 
+OMGPart.prototype.play = function () {
+	var newSong = new OMGSong();
+	var newSection = new OMGSection();
+	newSection.parts.push(this);
+	newSong.sections.push(newSection);
+	omg.player.play(newSong);
+
+};
 
 //this is cuz a way early bug in OMG Drums not using the right sound names
 // but its not being called (as of press time)

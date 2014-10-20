@@ -29,7 +29,8 @@ public class OMGServlet extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		resp.setContentType("text/plain");
-
+		resp.addHeader("Access-Control-Allow-Origin", "http://omgbam.com");
+		  
 		String userId = "";
 		String collection = req.getParameter("collection");
 		if (collection == null || collection.length() == 0) {
@@ -174,13 +175,20 @@ public class OMGServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 
+		resp.addHeader("Access-Control-Allow-Origin", "http://omgbam.com");
 
 		String type = req.getParameter("type");
 		if (type == null) {
 			type = "SECTION";
 		}
 
-		final int resultsPerPage = 10; 
+		int resultsPerPage = 10;
+		String resultsPerPageParameter = req.getParameter("results");
+		if (resultsPerPageParameter != null) {
+			resultsPerPage = Integer.parseInt(resultsPerPageParameter);
+		}
+		
+		
 		resp.setContentType("text/plain");
 
 		String page = req.getParameter("page");

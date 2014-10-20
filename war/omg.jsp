@@ -27,523 +27,131 @@ if (user.isLoggedIn()){
 <link rel="stylesheet" href="omg.css" type="text/css" />
 </head>
 
+	<!-- example part, which is made dynamically in the script
+	<h2>Loading...</h2>
+	<div class="part">
+	<div class="part_votes">0</div>
+	<div class="part_caption">
+	<span class="part_type_caption">Type:</span>
+	<span class="part_type">TYPE</span>
+	</div>
+	<div class="part_votes_caption">votes</div>
+	<div class="part_time">111</div>
+	</div>
+	-->
+
 <body>
+
+<div id="topbar">
+
+	<span id="omg-title"><b>o</b>pen<b>m</b>usic<b>g</b>allery.net</span>
+
+	<div id="topbarright">
+	<a href="http://reddit.com/r/openmusic">feeback&dicussion</a>
+	</div>
+
+</div>
 
 <div id="bbody">
 
-<div id="left-panel">
-	<div id="left-panel-heading">Main Controls</div>
-	<div id="left-panel-go-back">
-		<a href="javascript:void(0)">
-			Go Back To Main Controls
-		</a>
-	</div>
-	<hr class="left-panel-dividor"/>
-	<div id="main-controls">
-		<div class="create-button" id="show-remixer">
-			<img class="create-image2" src="img/browse.png">
-			<em>re</em><b>mixer</b>
-		</div>
-		<div class="create-button" id="show-rearranger">
-			<img class="create-image2" src="img/browse.png">
-			<em>re</em><b>arranger</b>
-		</div>
-	
-		<hr class="left-panel-dividor"/>
-
-		<span class="main-controls-section">CREATE A NEW</span>
-		<div class="create-button" id="create-melody">
-			<img class="create-image2" src="img/add2.png">
-			Melody
-		</div>
-		<div class="create-button" id="create-drumbeat">
-			<img class="create-image2" src="img/add2.png">
-			Drumbeat
-		</div>
-		<div class="create-button" id="create-bassline">
-			<img class="create-image2" src="img/add2.png">
-			Bassline
-		</div>
-		<div class="create-button" id="create-instrument">
-			<img class="create-image2" src="img/add2.png">
-			Instrument / Drumkit
-		</div>
-		<hr class="left-panel-dividor"/>
-		<span class="main-controls-section">THE GALLERY:</span>
-		<div class="browse-button" id="browse-melodies">
-			<img class="create-image2" src="img/browse.png">
-			Browse Melodies
-		</div>
-		<div class="browse-button" id="browse-drumbeats">
-			<img class="create-image2" src="img/browse.png">
-			Browse Drumbeats
-		</div>
-		<div class="browse-button" id="browse-basslines">
-			<img class="create-image2" src="img/browse.png">
-			Browse Basslines
-		</div>
-		<div class="browse-button" id="browse-sections">
-			<img class="create-image2" src="img/browse.png">
-			Browse Sections
-		</div>
-		<div class="browse-button" id="browse-songs">
-			<img class="create-image2" src="img/browse.png">
-			Browse Songs
-		</div>
-
-		<hr class="left-panel-dividor"/>
-		<span class="main-controls-section">SAVED:</span>
-		<div class="browse-button" id="my-saved">
-			<img class="create-image2" src="img/browse.png">
-			My Saved
-		</div>
+	<div class="explanation">A library of musical building blocks. Select a melody, bassline, and drumbeat!</div> 
+	<hr/>
+	<div class="result-area" id="melodies">
 		
-		<div class="nodata">(you should <em>totally</em> make something)</div>
-		<hr class="left-panel-dividor"/>
-		<div class="about">
-		<a id="about-hyperlink" href="javascript:void(0)">About</a>
-		</div>
+		<div class="area-caption">Melodies</div>
+		<div class="area-count"></div>	
+		
+		<table class="results-table">
+			<tr class="column-caption">
+				<td>Newest</td>
+				<td>Highest Rated</td>
+			</tr>
+			<tr>
+				<td>
+					<div class="newest-column"></div>
+				</td>
+				<td>
+					<div class="most-votes-column"></div>
+				</td>
+			</tr>			
+		</table>
+		
+	</div>
+	
+	<div class="result-area" id="basslines">
+	
+		<div class="area-caption">Basslines</div>
+		<div class="area-count"></div>	
+		
+		<table class="results-table">
+			<tr class="column-caption">
+				<td>Newest</td>
+				<td>Highest Rated</td>
+			</tr>
+			<tr>
+				<td>
+					<div class="newest-column"></div>
+				</td>
+				<td>
+					<div class="most-votes-column"></div>
+				</td>
+			</tr>			
+		</table>	
+	</div>
+	<div class="result-area" id="drumbeats">
+		<div class="area-caption">Drumbeats</div>
+		<div class="area-count"></div>	
+		
+		<table class="results-table">
+			<tr class="column-caption">
+				<td>Newest</td>
+				<td>Highest Rated</td>
+			</tr>
+			<tr>
+				<td>
+					<div class="newest-column"></div>
+				</td>
+				<td>
+					<div class="most-votes-column"></div>
+				</td>
+			</tr>			
+		</table>
 	</div>
   
-	<div id="browse-list-view" class="list-view">
-	
-		<div class="relative-container">
-			<table class="filter-controls">
-				<tr>
-					<td>
-						<select class="select-list-filter" id="select-part-type">
-						<option>Melodies</option>
-						<option>Drumbeats</option>
-						<option>Basslines</option>
-						<option>Sections</option>
-						<option>Songs</option>
-						</select>
-					</td>
-					<td>
-						<select class="select-list-filter" id="select-browse-order">
-						<option value="newest">Newest</option>
-						<option value="mostvotes">Most Votes</option>
-						</select>
-					</td>
-				</tr>
-			</table>
-
-			<!--
-			<h1 class="list-caption">Browsing:</h1>
-			
-			<div class="list-view-rightbar">
-				<div id="newest-button" class="order-button">Newest</div>
-				<div id="most-votes-button" class="order-button">Most Votes</div>
-			</div>
-			-->
-		
-			<div id="parts-list">
-				<h2>Loading...</h2>
-				<!-- example part, made dynamically
-				<div class="part">
-				<div class="part_votes">0</div>
-				<div class="part_caption">
-				<span class="part_type_caption">Type:</span>
-				<span class="part_type">TYPE</span>
-				</div>
-				<div class="part_votes_caption">votes</div>
-				<div class="part_time">111</div>
-				</div>
-				-->
-			</div>
-	
-		</div>
-	</div>
-
-
-	<div id="create-panel">
-
-		<h1 class="list-caption">Create:</h1>
-		
-		<div class="panel-box">
-			<!-- 
-			<span class="create-button">
-			<img class="create-image" src="img/add2.png">Random Drumbeat
-			</span>
-			-->
-		</div>
-		
-		<p>These apps <i>write</i> to OMG:</p>
-		<div class="panel-box">
-			<div class="app" onclick="gotoURL('apps.htm#omgdrums')">
-				<img class="applogo" src="img/omgdrums48.png">
-				<div class="appname">OMG Drums</div>
-				<div class="appdesc">Open Source drum machine for Android</div> 
-			</div>
-			<hr/>
-			<div class="app" onclick="gotoURL('apps.htm#tonezart')">
-				<img class="applogo" src="img/tonezart48.png">
-				<div class="appname">Tonezart</div>
-				<div class="appdesc">Make unique, one-of-a-kind ringtones interactively!</div>
-			</div>
-			<hr/>
-			<div class="app" onclick="gotoURL('apps.htm#omgbananas')">
-				<img class="applogo" src="img/banana48.png">
-				<div class="appname">OMG Bananas</div>
-				<div class="appdesc">Need a collaborator? This app learns what you like and helps create more!</div>
-			</div>
-			<hr/>
-			<div class="app" onclick="gotoURL('apps.htm#sketchatune')">
-				<img class="applogo" src="img/sketchatune48.png">
-				<div class="appname">Sketch a Tune</div>
-				<div class="appdesc">You doodle. Music is created. It's that simple.</div> 
-			</div>
-			<hr/>
-			<div class="app" onclick="gotoURL('apps.htm#drawmusic')">
-				<img class="applogo" src="img/drawmusic48.png">
-				<div class="appname">Draw Music MonadPad</div>
-				<div class="appdesc">The original!</div>
-			</div> 
-		</div>
-		
-		
-		<p>These apps <i>read</i> from OMG:</p>
-		<div class="panel-box">
-			<div class="app" onclick="gotoURL('apps.htm#bitar')">
-				<img class="applogo" src="img/bitar48.png">
-				<div class="appname">Bitar</div>
-				<div class="appdesc">The touchscreen digital guitar!</div>
-			</div>
-		</div>  
-		
-		
-		<p>Contact/Info:</p>
-		<div class="panel-box" id="contact-box">
-			<a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a>
-			<hr/>
-			<a href="https://github.com/MazeHatter/OMGDrums/blob/master/LICENSE.md">
-			The OMG License</a>
-			<hr/>
-			<div id="image-credits">
-				Image Credits:<br/>
-				OMG, OMG Drums, OMG Bananas, and Tonezart images<br/> by Wes Golinski 
-			</div>
-		</div>  
+  	<div class="explanation">(Melodies, Basslines, and Drumbeats are <b>Parts</b>. 
+  		</b>Parts</b> are combined into <b>Sections</b>. <b>Sections</b> are arranged into <b>Songs</b>
+  		
+  		Double click a part to edit it.)</div>
 	
 	
-	</div>
+	<hr />
+	<div class="explanation">Create new parts with OMGBam! or OMG Bananas or Tonezart, or Bitar, or one of many other apps!</div>
 	
-	<div id="saved-panel" class="list-view">
-
-		<% if (!hasUser) {%>
-		<div class="login-area" >
-			<br/>
-			<br/>
-			Login with Google to save your creations!<br/> 
-			<a href="<%=loginUrl%>"><img class="signingoogle" src="img/signingoogle.png"></a>
-			<br/>
-			<br/>
-		</div>
-		<% } %>
-
+	<div id="create-canvases">
+	<canvas id="melody-maker-canvas">
+	</canvas>
 	
-		<div id="saved-toolbar" class="relative-container">
-
-			<h1 class="list-caption">My Saved:</h1>
-			
-			<!--<div class="list-view-rightbar">
-				<select id="select-collection" class="select-list-filter">
-				<option>Saved</option>
-				</select>
-				<div id="newest-button" class="order-button">Newest</div>
-				<div id="most-votes-button" class="order-button">Most Votes</div>
-			</div>-->
-		</div>
-
-		<div id="saved-list">
-		</div>
-
-	</div>
-</div>
-
-<div id="right-panel">
-
-	<div id="remixer">
-
-		<div class="remixer-zone" id="remixer-zone">
-			<div class="remixer-caption" id="remixer-caption"><i>re</i><b>mixer</b></div>
-			<div class="remixer-caption-bar" id="current-section">
-				<div class="remixer-button-row" id="section-button-row">
-					<div class="remixer-button" id="save-button">Save</div>
-					<div class="remixer-button" id="share-button">Share</div>
-					<div class="remixer-button" id="add-to-rearranger"><i>+re</i><b>arranger</b></div>
-					
-					<div class="remixer-button" id="clear-remixer">
-					Clear
-					</div>
-				</div>
-			</div>
-		
-			<div class="remixer-area" id="remixer-current-section">
-		
-				<div class="remixer-message" id="no-web-audio">
-					<span class="old-browser">
-					Your browser doesn't support Web Audio API.</span> 
-					<br/>
-					To hear sound, try the latest versions of Chrome, Safari, or FireFox
-				</div> 
-				
-				<div class="remixer-message" id="no-section-message">
-
-					<p class="nodata">The <em>re</em><b>mixer</b> combines melodies, beats, basslines and more into <em>sections</em>.</p> 
-					<p class="nodata">Choose something from the gallery, or <a href="javascript:void(0)" id="create-drumbeat-hyperlink">create a drumbeat</a>.</p> 
-					
-				</div>
-		
-			</div>
-		
-		</div>
-
-		<div class="remixer-bottom-bar">
-		</div>			
-
-	</div>
-
-	<div id="rearranger">
-
-		<div class="remixer-zone">
-			<div class="remixer-caption"><i>re</i><b>arranger</b></div>
-			<div class="remixer-caption-bar">
-				<div class="remixer-button-row" id="rearranger-tools">
-					<div class="remixer-button" id="rearranger-save-button">Save</div>
-					<div class="remixer-button" id="rearranger-share-button">Share</div>
-					
-					<div class="remixer-button" id="clear-rearranger">
-					Clear
-					</div>
-				</div>
-			</div>
-		
-			<div class="remixer-area" id="rearranger-area">
-						
-				<div class="remixer-message" id="rearranger-is-empty">
-
-					<p class="nodata">The <em>re</em><b>arranger</b> combines <em>sections</em> into a <em>song</em>.</p> 
-
-				</div>
-		
-			</div>
-		
-			<canvas id="rearranger-canvas">
-			</canvas>
-		</div>
-
-		<div class="remixer-bottom-bar">
-		</div>			
-
-	</div>
-
-
-	<div id="melody-maker" class="remixer-zone">
-
-		<div class="remixer-caption" id="melody-maker-caption">Melody Maker</div>
-		<div class="remixer-caption-bar" id="melody-maker-toolbar">
-			<div class="mm-tools">
-			<div class="remixer-button" id="save-mm">Save</div>
-			<div class="remixer-button" id="play-mm">Play</div>
-			<div class="remixer-button" id="remixer-mm"><i>+re</i><b>mixer</b></div>
-			</div>
-			<div class="remixer-button" id="clear-mm">
-				Clear
-			</div>
-		</div>
-
-		<div class="remixer-area" >
-
-			<div class="remixer-button-row" id="melody-maker-button-row">
-				
-			    <div class="part-key">
-				    Key:
-					<select id="select-root-note-mm">
-					    <option>C</option><option>C#</option><option>D</option><option>Eb</option>
-					    <option>E</option><option>F</option><option>F#</option><option>G</option>
-					    <option>G#</option><option>A</option><option>Bb</option><option>B</option>
-				    </select>
+	<div id="intercanvas"></div>
 	
-				    <select id="melody-maker-scale">
-				    	<option value="0,2,4,5,7,9,11">Major</option>
-				    	<option value="0,2,3,5,7,8,10">Minor</option>
-				    	<option value="0,2,4,7,9">Pentatonic</option>
-				    	<option value="0,3,5,6,7,10">Blues</option>
-				    	<option value="0,1,2,3,4,5,6,7,8,9,10,11">Chromatic</option>
-				    </select>
-			    </div>
-
-			    <div class="part-advanced-mm">
-				Bottom Note: <select id="melody-maker-bottom-note" >
-				<option>A0</option><option>Bb0</option><option>B0</option>
-				<option>C1</option><option>C#1</option><option>D1</option><option>Eb1</option><option>E1</option><option>F1</option><option>F#1</option><option>G1</option><option>G#1</option><option>A1</option><option>Bb1</option><option>B1</option>
-				<option>C2</option><option>C#2</option><option>D2</option><option>Eb2</option><option>E2</option><option>F2</option><option>F#2</option><option>G2</option><option>G#2</option><option>A2</option><option>Bb2</option><option>B2</option>
-				<option>C3</option><option>C#3</option><option>D3</option><option>Eb3</option><option>E3</option><option>F3</option><option>F#3</option><option>G3</option><option>G#3</option><option>A3</option><option>Bb3</option><option>B3</option>
-				<option selected="selected">C4</option><option>C#4</option><option>D4</option><option>Eb4</option><option>E4</option><option>F4</option><option>F#4</option><option>G4</option><option>G#4</option><option>A4</option><option>Bb4</option><option>B4</option>
-				<option>C5</option><option>C#5</option><option>D5</option><option>Eb5</option><option>E5</option><option>F5</option><option>F#5</option><option>G5</option><option>G#5</option><option>A5</option><option>Bb5</option><option>B5</option>
-				<option>C6</option><option>C#6</option><option>D6</option><option>Eb6</option><option>E6</option><option>F6</option><option>F#6</option><option>G6</option><option>G#6</option><option>A6</option><option>Bb6</option><option>B6</option>
-				<option>C7</option><option>C#7</option><option>D7</option><option>Eb7</option><option>E7</option><option>F7</option><option>F#7</option><option>G7</option><option>G#7</option><option>A7</option><option>Bb7</option><option>B7</option>
-				<option>C8</option>
-				</select>
-				Top note: 
-				<select id="melody-maker-top-note">
-				<option>A0</option><option>Bb0</option><option>B0</option>
-				<option>C1</option><option>C#1</option><option>D1</option><option>Eb1</option><option>E1</option><option>F1</option><option>F#1</option><option>G1</option><option>G#1</option><option>A1</option><option>Bb1</option><option>B1</option>
-				<option>C2</option><option>C#2</option><option>D2</option><option>Eb2</option><option>E2</option><option>F2</option><option>F#2</option><option>G2</option><option>G#2</option><option>A2</option><option>Bb2</option><option>B2</option>
-				<option>C3</option><option>C#3</option><option>D3</option><option>Eb3</option><option>E3</option><option>F3</option><option>F#3</option><option>G3</option><option>G#3</option><option>A3</option><option>Bb3</option><option>B3</option>
-				<option>C4</option><option>C#4</option><option>D4</option><option>Eb4</option><option>E4</option><option>F4</option><option>F#4</option><option>G4</option><option>G#4</option><option>A4</option><option>Bb4</option><option>B4</option>
-				<option>C5</option><option>C#5</option><option>D5</option><option>Eb5</option><option>E5</option><option>F5</option><option>F#5</option><option>G5</option><option>G#5</option><option>A5</option><option>Bb5</option><option>B5</option>
-				<option selected="selected">C6</option><option>C#6</option><option>D6</option><option>Eb6</option><option>E6</option><option>F6</option><option>F#6</option><option>G6</option><option>G#6</option><option>A6</option><option>Bb6</option><option>B6</option>
-				<option>C7</option><option>C#7</option><option>D7</option><option>Eb7</option><option>E7</option><option>F7</option><option>F#7</option><option>G7</option><option>G#7</option><option>A7</option><option>Bb7</option><option>B7</option>
-				<option>C8</option>
-				</select>
-				</div>
-				
-			</div>
-	
-			<canvas id="melody-maker-canvas">
-			</canvas>
-
-			<div id="add-rests-mm">
-			Add:
-			</div>
-
-		</div>
+	<canvas id="beat-maker-canvas">
+	</canvas>
 	</div>
 
-	<div id="welcome" class="remixer-zone">
-		<p class="headline"><em>You</em> can make <b>beats</b>, <b>melodies</b>, <b>mixes</b>, and <b>songs</b>!</p>	
-		
-		<p class="app-desc">Music created with OMG can be used freely and without royalties for any purpose,
-		including soundtracks for games, films, videos, commercials, TV and radio, events, parties, restaurants, clubs
-		and anything else you want!</p>
-
-		<p class="getting-started">
-			<span id="getting-started-whitespace">
-				<br/>
-				<br/>
-				<br/>
-			</span>
-			<span class="getting-started-subtext">to create music</span>
-			<br/>
-			Draw Here
-			<br/>
-			<!--
-			<span class="getting-started-subtext">for <span id="seconds-to-go">4</span> Seconds</span>
-			-->
-		</p>	
-		
-	</div>
-
-
-	<div id="about" class="remixer-zone">
-		<div class="remixer-caption">About OMG</div>
-		<div class="remixer-caption-bar">
-		</div>
-
-		<div class="remixer-area" >
-
-		<p class="app-desc">Open Music Gallery forms the basis of a digital network that replaces record labels and other channels of copyrighted "closed" music.</p>
-
-		<% if (!hasUser) {%>
-		<div class="login-area" >
-			Login with Google for more features:<br/> 
-			<a href="<%=loginUrl%>"><img class="signingoogle" src="img/signingoogle.png"></a>
-		</div>
-		<% } else { %>
-		<div id="logout-area">
-			<h3>
-			Logged in as <span id="login-name"><%=userName%></span> - 
-			<a id="logout-link" href="<%=logoutUrl%>">Log Out</a>
-			</h3>
-		</div>
-		<% } %>
-
-
-		<p class="getting-started">
-		
-			<div class="getting-started-subtext">
-			Have a Question?
-			</div>
-			<div> 
-			<a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a>
-			</div>
-			<br/>
-			<div class="getting-started-subtext">
-				<a target="_blank" href="https://github.com/MazeHatter/OMG/blob/master/LICENSE.md">OMG License</a>
-				<br/>
-				<br/> 
-				<a target="_blank" href="https://github.com/MazeHatter/OMG">OMG Source Code</a>
-			</div>
-			<br/>
-			<div class="getting-started-subtext">
-				OMG Logo by Wes <span id="golinski">Golinski</span>
-			</div>
-		
-		</p>	
-		</div>
-
-		<div class="remixer-bottom-bar">
-		</div>			
-		
-	</div>
-
-</div>
-	
-	
-<div id="topbar">
-	<div id="topbar-inner">
-
-	<a href="/"><img id="omg48topbar" src="img/omg48.png"></a>
-	<img  src="img/menu.png" id="top-bar-view-button"/>
-	<span id="omg-title">open music gallery</span>
-	<div id="top-bar-view-buttons">
-		<div class="top-bar-button" id="browse-button">Browse</div>
-		<div class="top-bar-button" id="create-button">Create</div>
-		<div class="top-bar-button" id="my-saved-button">My Saved</div>
-		<div class="top-bar-button" id="player-button"><i>re</i><b>mixer</b></div>
-	</div>
-	
-	<div id="topbarright">
-		<div id="remixer-pause-button">pause</div>
-	</div>
-	</div>
-</div>
-
-<div id="dialog-border"></div>
-
-<div id="share-dialog">
-	<h2>Share!</h2>
 	<hr/>
-	<img id="facebook-button" src="img/f_logo.png">
-	<img id="twitter-button" src="img/twitter_logo.png">
-	<img id="email-button" src="img/email.png">
-	<br/>
-	url: <input type="text" id="share-url"></input>
-</div>
-
-<div id="add-to-remixer-hint">
-	This melody can be combined with drumbeats, basslines, 
-	and more in the <em>re</em><b>mixer</b> 
-	<hr/>
-	<div class="remixer-button" id="add-to-remixer-from-hint">
-		+<em>re</em><b>mixer</b>
-	</div> 
-	Add Melody to <em>re</em><b>mixer</b>
 	
-	<div class="remixer-button" id="add-to-remixer-hint-got-it">Got it</div> 
-</div>
-
-
-<div id="demo-mode">
-	<div id="press-to-stop">(press to stop demo)</div>
-	<div id="demo-text"></div>
-</div>
-
+	<div class="explanation">
+		Like the sound of your guitar? Or drums? Or your voice? Create a SoundSet! 
+	</div>
+	<div>
+		Melodies, basslines, and drumbeats can be played back in any instrument, 
+		even your own voice if you create a soundset for it!
+	</div>
 </div> <!--bbody-->
+
 <script src="omg.js"></script>
-<script src="omgdraw.js"></script>
+<script src="omg_util.js"></script>
+<script src="omg_player.js"></script>
+<script src="omg_partsui.js"></script>
 
 </body>
 </html>

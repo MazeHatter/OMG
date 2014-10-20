@@ -54,6 +54,15 @@ body {
 	display:none;
 }
 
+.share {
+	background-color:#FFFFFF;
+	position:absolute;	
+	overflow-x:hidden;	
+	overflow-y:hidden;
+	border-radius:8px;
+	border:2px solid black;
+}
+
 
 h1 {
 	font-size: 24px;
@@ -315,17 +324,8 @@ h1 {
 }
    
 
-#share-dialog {
-	padding:50px;
-	padding-top:0px;
-	position:absolute;
-	top:100px;
-	left:100px;
-	border:1px solid gray;
-	border-radius:2px;
-	background-color:#D0D0D0;
+#share-zone {
 	display:none;
-	text-align:center;
 }
 
 #dialog-border {
@@ -340,6 +340,7 @@ h1 {
 }
 
 #twitter-button {
+	padding:20px;
 	background-color:white;
 	border:1px solid gray;
 	border-radius:4px;
@@ -347,14 +348,18 @@ h1 {
 }
 
 #email-button {
+	padding:20px;
 	background-color:#FF80FF;
     border:1px solid gray;
     border-radius:4px;
-    padding-right:2px;
+    /*padding-right:2px;*/
     cursor:pointer;
 }
 
 #facebook-button {
+	margin-left:27px;
+	border:1px solid gray;
+	padding:20px;
 	cursor:pointer;
 }
 
@@ -368,7 +373,7 @@ h1 {
 
 #melody-maker {
 	display:none;
-	visibility:hidden;
+	/*visibility:hidden;*/
 }
 
 #melody-maker-canvas {
@@ -560,10 +565,10 @@ h1 {
 	display:none;
 }
 
-#next-mm, #remixer-next {
+#next-mm, #remixer-next, #finish-share {
 	background-color:#99FF99;
 }
-#next-mm:hover, #remixer-next:hover {
+#next-mm:hover, #remixer-next:hover, #finish-share:hover {
 	background-color:#33FF33;
 }
 #next-song {
@@ -591,7 +596,7 @@ h1 {
 
 #add-section {
 	left:130px;
-	top:78px;
+	top:103px;
 	width:60px;
 	height:14px;
 	padding:133px 20px 153px 20px;
@@ -619,4 +624,9 @@ h1 {
 	z-index:1;
 	position:absolute;
 	display:none;
+}
+
+.part-controls {
+	height:94px;
+	width:650px;
 }

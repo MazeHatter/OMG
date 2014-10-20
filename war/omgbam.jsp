@@ -174,11 +174,11 @@ if (user.isLoggedIn()){
 		</div>
 			
 		<div class="remixer-area" id="remixer-add-buttons">
-			<div class="remixer-add-button" id="remixer-add-bassline">
-				+ Add Bassline
-			</div>
 			<div class="remixer-add-button" id="remixer-add-melody">
 				+ Add Melody
+			</div>
+			<div class="remixer-add-button" id="remixer-add-bassline">
+				+ Add Bassline
 			</div>
 			<div class="remixer-add-button" id="remixer-add-drumbeat">
 				+ Add Drumbeat
@@ -224,17 +224,22 @@ if (user.isLoggedIn()){
 
 	</div>
 
+	
+	
+	<div id="share-zone" class="area">
+		<div class="remixer-caption">Share!</div>
+		
+		url: <input type="text" id="share-url"></input>
+		<br/>
+		<br/>
+		<a target="_blank" href="" id="facebook-link"><img id="facebook-button" src="img/f_logo.png"></a>
+		<a target="_blank" href="" id="twitter-link"><img id="twitter-button" src="img/twitter_logo.png"></a>
+		<a target="_blank" href="" id="email-link"><img id="email-button" src="img/email.png"></a>
 
-
-<div id="share-dialog">
-	<h2>Share!</h2>
-	<hr/>
-	<img id="facebook-button" src="img/f_logo.png">
-	<img id="twitter-button" src="img/twitter_logo.png">
-	<img id="email-button" src="img/email.png">
-	<br/>
-	url: <input type="text" id="share-url"></input>
-</div>
+		<div class="panel-option" id="finish-share">Back</div>
+				
+		
+	</div>
 
 
 <div id="demo-mode">
