@@ -59,10 +59,10 @@ window.onload = function() {
 			
 			bam.songZoneBeatPlayed(isubbeat, isection);
 		}
-		else if (bam.zones[bam.zones.length - 1] == bam.part.div) {
+		else if (bam.part && bam.zones[bam.zones.length - 1] == bam.part.div) {
 			bam.partZoneBeatPlayed(isubbeat);
 		}
-		else if (bam.zones[bam.zones.length - 1] == bam.section.div) {
+		else if (bam.section && bam.zones[bam.zones.length - 1] == bam.section.div) {
 			bam.sectionZoneBeatPlayed(isubbeat);
 		}
 
@@ -860,7 +860,7 @@ bam.load = function (params)  {
 				bam.part = new OMGPart(newDiv, result.data);
 				
 				bam.fadeIn([bam.part.div, bam.mm], restoreColors);
-				bam.mm.ui.setPart(result);
+				bam.mm.ui.setPart(bam.part);
 				
 				bam.slideInOptions(bam.mm.options);			
 			});
@@ -1128,9 +1128,7 @@ bam.setupMelodyMaker = function () {
 	var canvas = document.getElementById("melody-maker-canvas");
 	bam.mm.canvas = canvas;
 
-	
-	var offsetTop = 90;
-	canvas.style.height = window.innerHeight - offsetTop - 50 + "px";
+	canvas.style.height = window.innerHeight - 150 + "px";
 	
 	bam.mm.ui = new OMGMelodyMaker(canvas);
 	bam.mm.ui.hasDataCallback = function () {
@@ -2141,7 +2139,6 @@ bam.partZoneBeatPlayed = function (isubbeat) {
 };
 
 bam.sectionZoneBeatPlayed = function (isubbeat) {
-	console.log("section zone beat played");
 	bam.section.parts.forEach(function (part) {
 		if (part.canvas)
 			part.canvas.update(isubbeat);

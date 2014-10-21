@@ -81,78 +81,11 @@ if (user.isLoggedIn()){
 
 	<div id="melody-maker" class="area">
 	
-		<div class="remixer-caption" id="melody-maker-caption">Melody</div>
-	
-
-		<div id="welcome" class="remixer-zone">
-	
-			<p class="getting-started">
-			
-			<br/><br/><br/><br/><br/>
-			<span class="getting-started-subtext">You Can Make Music!</span>
-			<br/>
-				Draw Here
-			</p>	
-			
-		</div>
-	
+		<div class="remixer-caption" id="melody-maker-caption">Melody</div>	
 	
 		<canvas id="melody-maker-canvas">
 		</canvas>
 
-		<div>
-			<span id="add-rests-mm" ">
-			Add:
-			</span>
-	
-			<div class="remixer-button-row" id="melody-maker-button-row">
-				
-			    <div class="part-key">
-				    Key:
-					<select id="select-root-note-mm">
-					    <option>C</option><option>C#</option><option>D</option><option>Eb</option>
-					    <option>E</option><option>F</option><option>F#</option><option>G</option>
-					    <option>G#</option><option>A</option><option>Bb</option><option>B</option>
-				    </select>
-	
-				    <select id="melody-maker-scale">
-				    	<option value="0,2,4,5,7,9,11">Major</option>
-				    	<option value="0,2,3,5,7,8,10">Minor</option>
-				    	<option value="0,2,4,7,9">Pentatonic</option>
-				    	<option value="0,3,5,6,7,10">Blues</option>
-				    	<option value="0,1,2,3,4,5,6,7,8,9,10,11">Chromatic</option>
-				    </select>
-			    </div>
-	
-			    <div class="part-advanced-mm">
-				Bottom Note: <select id="melody-maker-bottom-note" >
-				<option>A0</option><option>Bb0</option><option>B0</option>
-				<option>C1</option><option>C#1</option><option>D1</option><option>Eb1</option><option>E1</option><option>F1</option><option>F#1</option><option>G1</option><option>G#1</option><option>A1</option><option>Bb1</option><option>B1</option>
-				<option>C2</option><option>C#2</option><option>D2</option><option>Eb2</option><option>E2</option><option>F2</option><option>F#2</option><option>G2</option><option>G#2</option><option>A2</option><option>Bb2</option><option>B2</option>
-				<option>C3</option><option>C#3</option><option>D3</option><option>Eb3</option><option>E3</option><option>F3</option><option>F#3</option><option>G3</option><option>G#3</option><option>A3</option><option>Bb3</option><option>B3</option>
-				<option selected="selected">C4</option><option>C#4</option><option>D4</option><option>Eb4</option><option>E4</option><option>F4</option><option>F#4</option><option>G4</option><option>G#4</option><option>A4</option><option>Bb4</option><option>B4</option>
-				<option>C5</option><option>C#5</option><option>D5</option><option>Eb5</option><option>E5</option><option>F5</option><option>F#5</option><option>G5</option><option>G#5</option><option>A5</option><option>Bb5</option><option>B5</option>
-				<option>C6</option><option>C#6</option><option>D6</option><option>Eb6</option><option>E6</option><option>F6</option><option>F#6</option><option>G6</option><option>G#6</option><option>A6</option><option>Bb6</option><option>B6</option>
-				<option>C7</option><option>C#7</option><option>D7</option><option>Eb7</option><option>E7</option><option>F7</option><option>F#7</option><option>G7</option><option>G#7</option><option>A7</option><option>Bb7</option><option>B7</option>
-				<option>C8</option>
-				</select>
-				Top note: 
-				<select id="melody-maker-top-note">
-				<option>A0</option><option>Bb0</option><option>B0</option>
-				<option>C1</option><option>C#1</option><option>D1</option><option>Eb1</option><option>E1</option><option>F1</option><option>F#1</option><option>G1</option><option>G#1</option><option>A1</option><option>Bb1</option><option>B1</option>
-				<option>C2</option><option>C#2</option><option>D2</option><option>Eb2</option><option>E2</option><option>F2</option><option>F#2</option><option>G2</option><option>G#2</option><option>A2</option><option>Bb2</option><option>B2</option>
-				<option>C3</option><option>C#3</option><option>D3</option><option>Eb3</option><option>E3</option><option>F3</option><option>F#3</option><option>G3</option><option>G#3</option><option>A3</option><option>Bb3</option><option>B3</option>
-				<option>C4</option><option>C#4</option><option>D4</option><option>Eb4</option><option>E4</option><option>F4</option><option>F#4</option><option>G4</option><option>G#4</option><option>A4</option><option>Bb4</option><option>B4</option>
-				<option>C5</option><option>C#5</option><option>D5</option><option>Eb5</option><option>E5</option><option>F5</option><option>F#5</option><option>G5</option><option>G#5</option><option>A5</option><option>Bb5</option><option>B5</option>
-				<option selected="selected">C6</option><option>C#6</option><option>D6</option><option>Eb6</option><option>E6</option><option>F6</option><option>F#6</option><option>G6</option><option>G#6</option><option>A6</option><option>Bb6</option><option>B6</option>
-				<option>C7</option><option>C#7</option><option>D7</option><option>Eb7</option><option>E7</option><option>F7</option><option>F#7</option><option>G7</option><option>G#7</option><option>A7</option><option>Bb7</option><option>B7</option>
-				<option>C8</option>
-				</select>
-				</div>
-				
-			</div>
-
-		</div>
 	</div>
 
 	<div class="option-panel" id="remixer-option-panel">

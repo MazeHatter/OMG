@@ -30,7 +30,7 @@ body {
 
 
 #bbody {
-	padding-top: 24px;
+	padding-top: 34px;
 	width:1024px;
 	margin:auto;
 }
@@ -196,10 +196,15 @@ hr {
 }
 
 .explanation {
-	padding:20px;
+	padding:15px;
 	color:#707070;
 	font:15pt Helvetica, arial, freesans, clean, sans-serif;
 	text-align:center;
+}
+
+.try-details {
+	padding:15px;
+	font:15pt Helvetica, arial, freesans, clean, sans-serif;
 }
 
 .column-caption {
@@ -227,4 +232,56 @@ hr {
 #intercanvas {
 	display:inline-block;
 	width:8%;
+}
+
+#login-p {
+	text-align:center;
+}
+
+#bottom {
+	text-align:right;
+	padding:15px;
+	color:#707070;
+	font-size:12pt;
+}
+
+.panel-option, .horizontal-panel-option {
+	border-radius:6px;
+	text-align:center;
+	padding:18px;
+	margin:18px;
+	width:240px;
+	border-bottom:2px solid #0F0F0F;
+	border-top:1px solid #FFFFFF;
+	background-color:#F0F0F0;
+	
+	font:14pt Helvetica, arial, freesans, clean, sans-serif;
+	cursor:pointer;
+	
+}
+
+.song {
+	position: relative;
+	display:inline-block;
+	background-color: #CCFFCC;
+	border-width: 0px;
+	border: 1px solid #808080;
+	border-radius:3px;
+	padding: 4px;
+	height: 50px;
+	width:130px;
+	cursor: pointer;
+}
+
+.song-selected {
+	position: relative;
+	display:inline-block;
+	background-color: #99FF99;
+	border-width: 0px;
+	border: 1px solid #808080;
+	border-radius:3px;
+	padding: 4px;
+	height: 50px;
+	width:130px;
+	cursor: pointer;
 }

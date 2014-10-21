@@ -104,7 +104,9 @@ public class SoundSetServlet extends HttpServlet {
 */
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 
+		resp.addHeader("Access-Control-Allow-Origin", "http://omgbam.com");
 		resp.setContentType("text/plain");
+		
 		UserService userService = UserServiceFactory.getUserService();
 		String id = req.getParameter("id");
 

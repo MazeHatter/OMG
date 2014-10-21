@@ -690,10 +690,21 @@ if (typeof omg != "object")
 
 })();
 
-function OMGSong(div) {
+function OMGSong(div, data) {
 	this.div = div;
-	this.data = {type: "SONG"};
 	this.sections = [];
+	
+	if (data) {
+		this.data = data;
+		
+		for (var i = 0; i < data.sections.length; i++) {
+			this.sections.push(new OMGSection(null, data.sections[i]));
+		}
+	}
+	else {
+		this.data = {type: "SONG"};		
+	}
+
 	
 	// key? tempo? yes, we need that shit
 };
@@ -705,20 +716,22 @@ OMGSong.prototype.getData = function () {
 	return this.data;
 };
 
-function OMGSection(div) {
+function OMGSection(div, data) {
 	this.div = div;
-	this.data = {type: "SECTION"};
+	
 	this.parts = [];
 	
 	// key? tempo? we need it here too, I guess
 	
-	
-	if (div) {
-		this.controls = document.createElement("div");
-		this.controls.className = "section-controls";
-		div.appendChild(this.controls);
+	if (data) {
+		this.data = data;
 		
-		//?
+		for (var ip = 0; ip < data.parts.length; ip++) {
+			this.parts.push(new OMGPart(null, data.parts[ip]));
+		}
+	}
+	else {
+		this.data = {type: "SECTION"};
 	}
 }
 

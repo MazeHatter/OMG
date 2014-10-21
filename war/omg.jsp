@@ -25,6 +25,7 @@ if (user.isLoggedIn()){
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 <title>OMG - Open Music Gallery</title>   
 <link rel="stylesheet" href="omg.css" type="text/css" />
+<link rel="stylesheet" href="overview.css" type="text/css" />
 </head>
 
 	<!-- example part, which is made dynamically in the script
@@ -47,6 +48,7 @@ if (user.isLoggedIn()){
 	<span id="omg-title"><b>o</b>pen<b>m</b>usic<b>g</b>allery.net</span>
 
 	<div id="topbarright">
+	<a href="http://github.com/MazeHatter/OMG">source_code</a>
 	<a href="http://reddit.com/r/openmusic">feeback&dicussion</a>
 	</div>
 
@@ -54,7 +56,76 @@ if (user.isLoggedIn()){
 
 <div id="bbody">
 
-	<div class="explanation">A library of musical building blocks. Select a melody, bassline, and drumbeat!</div> 
+<div id="overview-screen">
+		<div id="overview-skip" class="metal linear button">
+			Skip Overview
+		</div>
+
+		<div class="explanation">OMG is a growing library of musical building blocks and songs created from them.</div> 
+
+		<div id="overview-step1" class="overview-step">Melodies, drumbeats, and basslines are <b>parts</b></div>
+		<div id="overview-step2" class="overview-step">Music apps read and write parts to the OMG</div>
+		<div id="overview-step3" class="overview-step"><b>Parts</b> are combined into <b>sections</b></div>
+		<div id="overview-step4" class="overview-step"><b>Sections</b> are arranged to make <b>songs</b></div> 
+
+		<div id="overview-parts" class="overview-graphics"> 
+			<img class="overview-graphic" src="img/trebleclef48.png" /> 
+			<img class="overview-graphic" src="img/trebleclef48.png" /> 
+			<img class="overview-graphic" src="img/drumsbw48.png" />
+			<img class="overview-graphic" src="img/bassclef48.png" /> 
+			<img class="overview-graphic" src="img/trebleclef48.png" /> 
+			<img class="overview-graphic" src="img/drumsbw48.png" />
+		</div>
+		<div class="overview-graphics" id="overview-song">
+			<br/>
+			<div class="overview-section-graphics" id="overview-section-a"> 
+				<img height="20" width="40" class="overview-graphic" src="img/trebleclef48.png" /><br/> 
+				<img height="20" width="40" class="overview-graphic" src="img/bassclef48.png" /><br/>
+				<img height="20" width="40" class="overview-graphic" src="img/drumsbw48.png" />
+			</div>
+			<div class="overview-section-graphics" id="overview-section-b"> 
+				<img height="20" width="40" class="overview-graphic" src="img/trebleclef48.png" /><br/> 
+				<img height="20" width="40" class="overview-graphic" src="img/bassclef48.png" /><br/>
+				<img height="20" width="40" class="overview-graphic" src="img/drumsbw48.png" />
+			</div>
+			<div class="overview-section-graphics" id="overview-section-c"> 
+				<img height="20" width="40" class="overview-graphic" src="img/trebleclef48.png" /><br/> 
+				<img height="20" width="40" class="overview-graphic" src="img/bassclef48.png" /><br/>
+				<img height="20" width="40" class="overview-graphic" src="img/drumsbw48.png" />
+			</div>
+			<div class="overview-section-graphics" id="overview-section-d"> 
+				<img height="20" width="40" class="overview-graphic" src="img/trebleclef48.png" /><br/> 
+				<img height="20" width="40" class="overview-graphic" src="img/bassclef48.png" /><br/>
+				<img height="20" width="40" class="overview-graphic" src="img/drumsbw48.png" />
+			</div>
+			<div class="overview-section-graphics" id="overview-section-e"> 
+				<img height="20" width="40" class="overview-graphic" src="img/trebleclef48.png" /><br/> 
+				<img height="20" width="40" class="overview-graphic" src="img/bassclef48.png" /><br/>
+				<img height="20" width="40" class="overview-graphic" src="img/drumsbw48.png" />
+			</div>
+		</div>
+		
+		<div id="overview-step5" class="overview-step">
+			<span class="overview-try">Try:</span> Select a Melody, Bassline, and Drumbeat to create a Section.
+			<br/>
+			<span class="overview-try">Try:</span> Remix a Song.
+			<br/>
+			<span class="overview-try">Try:</span> Create a new Melody and Drumbeat.
+			<br/>
+			<span class="overview-try">Try:</span> Record your voice and upload it as a SoundSet.
+			<br/>
+			<span class="overview-try">Try:</span> Apps that read and write to OMG. 
+
+			<p id="login-p">To save what you make, please login!
+			<br/>
+			<img src="img/signingoogle.png"/>
+			</p>
+		</div>
+		
+	</div>
+	
+	<hr/>
+	<div class="try-details"><span class="overview-try">Try:</span> Select a a Melody, Bassline, and Drumbeat to create a Section.</div>
 	<hr/>
 	<div class="result-area" id="melodies">
 		
@@ -118,14 +189,24 @@ if (user.isLoggedIn()){
 		</table>
 	</div>
   
-  	<div class="explanation">(Melodies, Basslines, and Drumbeats are <b>Parts</b>. 
-  		</b>Parts</b> are combined into <b>Sections</b>. <b>Sections</b> are arranged into <b>Songs</b>
-  		
-  		Double click a part to edit it.)</div>
+  	<div >(Double click a part to edit it.)</div>
 	
 	
 	<hr />
-	<div class="explanation">Create new parts with OMGBam! or OMG Bananas or Tonezart, or Bitar, or one of many other apps!</div>
+	<div class="try-details">
+		<span class="overview-try">Try:</span> Remix a Song.
+	</div>
+	<hr/>
+	<p>
+		Choose a song and start remixing and rearranging. If you've created a SoundSet for your voice,
+		you can use that too!
+	</p>
+		<div id="song-results"></div>
+	<hr/>
+
+
+	<div class="try-details"><span class="overview-try">Try:</span> Create new Melody and Drumbeat</div>
+	<hr/>
 	
 	<div id="create-canvases">
 	<canvas id="melody-maker-canvas">
@@ -138,13 +219,33 @@ if (user.isLoggedIn()){
 	</div>
 
 	<hr/>
-	
-	<div class="explanation">
-		Like the sound of your guitar? Or drums? Or your voice? Create a SoundSet! 
+	<div class="try-details">
+		<span class="overview-try">Try:</span> Record your voice and upload it as a SoundSet.
 	</div>
-	<div>
+	<hr/>
+	<p>
 		Melodies, basslines, and drumbeats can be played back in any instrument, 
 		even your own voice if you create a soundset for it!
+	</p>
+
+	<hr/>
+	<div class="try-details">
+		<span class="overview-try">Try:</span> Apps that read and write to OMG.
+	</div>
+	<hr/>
+	<div>
+	<ul>
+		<li><a href="http://omgbam.com">OMG Bam!</a></li>
+		<li><a href="http://omgbananas.com">OMG Bananas!</a></li>
+		<li><a href="http://tonezart.com">Tonezart</a></li>
+		<li><a href="http://sketchatune.com">Sketch a Tune</a></li>
+		<li><a href="apps.htm#drawmusic">Draw Music MonadPad</a></li>
+		<li><a href="http://playbitar.com">Bitar</a></li>
+	</div>
+
+	<hr/>
+	<div id="bottom">
+	omg@openmusicgallery.net
 	</div>
 </div> <!--bbody-->
 

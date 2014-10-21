@@ -15,12 +15,17 @@ window.onload = function () {
     gallery.loadArea("BASSLINE", document.getElementById("basslines"));
     gallery.loadArea("DRUMBEAT", document.getElementById("drumbeats"));
 
+	gallery.getContributions("SONG", "mostvotes", 21, function (results) {
+        displaySongs(results);
+	});
+
 	gallery.song = new OMGSong();
 	gallery.section = new OMGSection();
 	gallery.song.sections.push(gallery.section);
 
 	gallery.song.loop = true;
-	
+
+	omg.util.startOverview();
 };
 
 gallery = {};
@@ -29,8 +34,12 @@ gallery.loadArea = function (type, div) {
 	var mostVotesColumn = div.getElementsByClassName("most-votes-column")[0];
 	var newestColumn = div.getElementsByClassName("newest-column")[0];
 
-	gallery.getContributions(type, "newest", newestColumn);
-	gallery.getContributions(type, "mostvotes", mostVotesColumn);
+	gallery.getContributions(type, "newest", 5, function (results) {
+        displayResults(newestColumn, results, 1);
+	});
+	gallery.getContributions(type, "mostvotes", 5, function (results) {
+		displayResults(mostVotesColumn, results, 1);
+	});
 };
 
 gallery.loadCounts = function () {
@@ -67,25 +76,19 @@ gallery.loadCounts = function () {
     xhr.send();
 };
 
-gallery.getContributions = function (type, order, div) {
+gallery.getContributions = function (type, order, results, callback) {
     var ooo;
-
-    if (div.currentPage == undefined) {
-    	div.currentPage = 1;
-    }
-    var page = div.currentPage; 
-    
-    //document.getElementById("parts-list").innerHTML = "<h2>Loading...</h2>";
+    var page = 1;
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "/omg?type=" + type + "&order=" + order +
-    		"&page=" + div.currentPage + "&results=8", true);
+    		"&page=" + page + "&results=" + results, true);
     xhr.onreadystatechange = function(){
         if (xhr.readyState == 4){
 
             ooo = JSON.parse(xhr.responseText);
-
-            displayResults(div, ooo, page);
+            if (callback)
+            	callback(ooo);
 
         }
     };
@@ -150,6 +153,23 @@ function displayResults(partList, results, page) {
     
 }
 
+function displaySongs(results) {
+    
+	var list = document.getElementById("song-results");
+    
+	if (results.list.length > 0) {
+        list.innerHTML = "";
+    }
+    else {
+    	list.innerHTML = "<div class='result-range'>Nothing on page " +
+    		page + "</div>";
+    }
+
+    for (var i = 0; i < results.list.length; i++) {
+    	setupSong(list, results.list[i]);
+    }
+    
+}
 
 function sendVote(entry, value) {
 
@@ -158,37 +178,16 @@ function sendVote(entry, value) {
     xhr.onreadystatechange = function(){
         if (xhr.readyState == 4){
 
-            debug(xhr.responseText);
+            console.log(xhr.responseText);
         }
-    }
+    };
     xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
     xhr.send("type=" + entry.type + "&id=" + entry.id + "&value=" + value);
 
 
 }
 
-function setupAsCurrentInList(searchResult, div) {
-
-    if (false && omg.currentDivInList) {
-        //omg.currentDivInList.style.backgroundColor = "#ffefd6";
-    	omg.currentDivInList.className = "part";
-    		
-        var child = omg.currentDivInList.getElementsByClassName("vote-up");
-        if (child.length > 0)
-            omg.currentDivInList.removeChild(child[0]);
-        child = omg.currentDivInList.getElementsByClassName("vote-down");
-        if (child.length > 0)
-            omg.currentDivInList.removeChild(child[0]);
-
-    }
-
-    //var div = searchResult.divInList;
-    //omg.currentDivInList = div;
-    div.className = "part-selected";
-    //div.style.backgroundColor = "#FFFFFF";
-
-    if (!omg.player.context)
-        return;
+function addVoteButtons(searchResult, div) {
 
     var arrowUp = document.createElement("div");
     arrowUp.className = "vote-up";
@@ -225,169 +224,6 @@ function setupAsCurrentInList(searchResult, div) {
     }
 
 }
-
-
-function addCurrentSectionToDefaultCollection(section) {
-
-    var outSection = section.data;
-    outSection.data = [];
-
-    for (var ip = 0; ip < section.parts.length; ip++) {
-
-        outSection.data.push(section.parts[ip].data);
-
-    }
-    section.isInCollection = true;
-
-    // do it on the server
-
-    // is this an existing section?
-
-    // for a new section, we upload
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/omg", true);
-    xhr.onreadystatechange = function(){
-        if (xhr.readyState == 4){
-
-            var results = JSON.parse(xhr.responseText);
-            if (results.result == "good") {
-                var favcount = document.getElementById("Favorites_section_count");
-                if (favcount != null) {
-                	favcount.innerHTML = 1 + parseInt(favcount.innerHTML); 
-                }
-                else {
-                	addCollectionDiv({name: "Favorites", section_count:1,
-                		part_count: 0});
-                    document.getElementById("no-collections-message").
-                    style.display = "none";
-
-                	
-                }
-                var btn = omg.remixer.btnAddToSection;
-                btn.innerHTML = "(Saved to Collection)";
-                btn.className = "remixer-button-disabled";
-            }
-
-        }
-    }
-    xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-    xhr.send("collection=Favorites&type=SECTION&tags=&data=" + encodeURIComponent(JSON.stringify(outSection)));
-
-
-}
-
-function addCollectionDiv(collection) {
-
-    var newDiv = document.createElement("div");
-    newDiv.className = "remixer-collection";
-    newDiv.innerHTML = collection.name + " <span class='collection-stats'> Sections (" +
-    "<span id='" + collection.name + "_section_count'>" +
-    collection.section_count + "</span>) - Parts (<span class='" +
-    "<span id='" + collection.name + "_part_count'>" +
-    collection.part_count + "</span>)</span>";
-    omg.remixer.collectionsDiv.appendChild(newDiv);
-    
-    newDiv.onclick = function () {
-    	getCollections();
-    };
-
-}
-
-
-function getCollections() {
-    var ooo;
-
-    document.getElementById("saved-list").innerHTML = "<h2>Loading...</h2>";
-
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/collection?name=Saved", true);
-    xhr.onreadystatechange = function(){
-        if (xhr.readyState == 4){
-
-            ooo = JSON.parse(xhr.responseText);
-
-            displayCollections(ooo);
-
-        }
-    }
-    xhr.send();        
-}
-
-function displayCollections(collections) {
-    omg.collections = collections;
-
-    var partList = document.getElementById("saved-list");
-    partList.innerHTML = "";
-
-    var part;
-    var partDetail;
-    var adata;
-    var data;
-    
-    var coll = collections.list[0];
-    
-    for (var i = coll.detail.length - 1; i > -1; i--) {
-
-        part = document.createElement("div");
-        part.className = "part";
-        adata = coll.detail[i].split(" ");
-        data = {
-        	type: adata[0],
-        	id: adata[1],
-        	time: parseInt(adata[2]),
-        	divInList: part
-        };
-
-        partDetail = document.createElement("div");
-        partDetail.className = "part-time";
-        partDetail.innerHTML = getTimeCaption(data.time);
-        part.appendChild(partDetail);
-
-        partDetail = document.createElement("div");
-        partDetail.className = "part-caption";
-        partDetail.innerHTML = "<span class='part-type-caption'>Type:</span>" +
-        " <span class='part-type'>" + data.type + "</span>";
-        part.appendChild(partDetail);
-
-        partList.appendChild(part);        
-
-        part.onclick = (function (part, data) {
-            return function () {        
-                // this is mostly for iPhones, requiring 
-                // audio to start in response to a click
-                if (!omg.playedSound && omg.player.context) 
-                    initSound();
-
-
-                var callback = function (result) {
-                    if (result.type == "SONG") {
-                        omg.rearranger.loadSong(result)
-                    }
-                    else if (result.type == "SECTION") {
-                        loadSection(result)
-                    }
-                    else {
-                        loadSinglePart(result);
-                    }
-                    setupAsCurrentInList(result, part)
-                	
-                };
-                
-                if (!data.data) {
-                	getOMG(data, callback);
-                }
-                else {
-                	callback(data)
-                }
-                
-
-            };
-        })(part, data);
-
-    }
-
-}
-
 
 
 
@@ -442,7 +278,8 @@ function setupPart(parentDiv, searchResult) {
     }
 
 
-    part.onclick = function () {        
+    part.onclick = function () {    
+    	console.log("click!")
         // this is mostly for iPhones, requiring 
         // audio to start in response to a click
         //if (!omg.playedSound && omg.player.context) {
@@ -468,37 +305,83 @@ function setupPart(parentDiv, searchResult) {
     		return;
     	}
     	
-        if (searchResult.type == "SONG") {
-            omg.rearranger.loadSong(data3);
-        }
-        else if (searchResult.type == "SECTION") {
-            loadSection(data3);
-        }
-        else {
 
-        	var newPart = new OMGPart(part, partData);
+    	var newPart = new OMGPart(part, partData);
 
-        	for (var ip = 0; ip < parts.length; ip++) {
-        		if (parts[ip].data.type == searchResult.type) {
-        			if (parts.length == 1 && omg.player.playing) {
-        				omg.player.stop();
-        			}
+    	for (var ip = 0; ip < parts.length; ip++) {
+    		if (parts[ip].data.type == searchResult.type) {
+    			if (parts.length == 1 && omg.player.playing) {
+    				omg.player.stop();
+    			}
 
-        			parts[ip].div.className = "part";
-        			parts.splice(ip, 1);
-        			
-        			break;
-        		}
-        	}
-        	
-        	gallery.section.parts.push(newPart);
-        	omg.player.play(gallery.song);
-        }
+    			parts[ip].div.className = "part";
+    			parts.splice(ip, 1);
+    			
+    			break;
+    		}
+    	}
+    	
+    	gallery.section.parts.push(newPart);
+    	omg.player.play(gallery.song);
 
-
-        setupAsCurrentInList(searchResult, part);
+    	part.className = "part-selected";
+        addVoteButtons(searchResult, part);
 
         part.playing = true;
+    };
+    
+    part.ondblclick = function () {
+    	window.location = "/omgbam.jsp?share=" + searchResult.type + "-" + searchResult.id; 
+    };
+    
+}
+
+function setupSong(parentDiv, searchResult) {
+
+	var div = document.createElement("div");
+    div.className = "song";
+    parentDiv.appendChild(div);
+    
+    var detail;
+    detail = document.createElement("div");
+    detail.className = "part-votes";
+    
+    detail.innerHTML = "<span class='part-votes-count'>" + searchResult.votes + 
+    	"</span><span class='part-votes-caption'> votes</span>";
+    div.appendChild(detail);
+
+    detail = document.createElement("div");
+    detail.className = "part-time";
+    detail.innerHTML = omg.util.getTimeCaption(searchResult.time);
+    div.appendChild(detail);
+
+
+    
+    div.onclick = function () {    
+    	console.log("click!")
+        // this is mostly for iPhones, requiring 
+        // audio to start in response to a click
+        //if (!omg.playedSound && omg.player.context) {
+        //    initSound();
+        //}
+
+    	if (omg.player.playing)
+    		omg.player.stop();
+    	
+        div.playing = true;
+        
+        omg.player.play(new OMGSong(null, JSON.parse(searchResult.json)));
+        
+        div.className = "song-selected";
+        addVoteButtons(searchResult, div);
+        
+        if (parentDiv.playingSong)
+        	parentDiv.playingSong.className = "song";
+        parentDiv.playingSong = div;
+    };
+    
+    div.ondblclick = function () {
+    	window.location = "/omgbam.jsp?share=" + searchResult.type + "-" + searchResult.id; 
     };
     
 }
