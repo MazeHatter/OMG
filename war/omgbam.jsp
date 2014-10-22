@@ -22,7 +22,7 @@ if (user.isLoggedIn()){
 <link rel="apple-touch-icon" href="http://openmusicgallery.appspot.com/img/omg256.png" />
 
 <meta property="og:image" content="http://openmusicgallery.appspot.com/img/omg256.png"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=1024, initial-scale=1" />
 <title>OMG - Open Music Gallery</title>   
 <link rel="stylesheet" href="omgbam.css" type="text/css" />
 </head>
@@ -170,7 +170,6 @@ if (user.isLoggedIn()){
 		<a target="_blank" href="" id="email-link"><img id="email-button" src="img/email.png"></a>
 
 		<div class="panel-option" id="finish-share">Back</div>
-				
 		
 	</div>
 

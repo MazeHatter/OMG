@@ -1,20 +1,20 @@
 window.onload = function () {
-
-	var drummachineCanvas = document.getElementById("beat-maker-canvas");
-	drummachineCanvas.width = drummachineCanvas.clientWidth;
-	drummachineCanvas.height = drummachineCanvas.clientHeight;
-	omg.drummachine = new OMGDrumMachine(drummachineCanvas, new OMGDrumpart());
-	omg.drummachine.drawLargeCanvas(0);
 	
-	omg.mm = new OMGMelodyMaker(document.getElementById("melody-maker-canvas"), new OMGPart());
-	omg.mm.drawCanvas();
-
+	gallery.setupMelodyMaker();
     gallery.loadCounts();
 
     gallery.loadArea("MELODY", document.getElementById("melodies"));
     gallery.loadArea("BASSLINE", document.getElementById("basslines"));
     gallery.loadArea("DRUMBEAT", document.getElementById("drumbeats"));
 
+    gallery.makeSectionButton = document.getElementById("make-section-button");
+    gallery.makeSectionButton.onclick = function () {
+    	if (gallery.section.parts.length == 3) {
+    		omg.postOMG("SECTION", gallery.section.getData(), function (result) {
+    			window.location = "/omgbam.jsp?share=SECTION-" + result.id;
+    		});
+    	}
+    };
 	gallery.getContributions("SONG", "mostvotes", 21, function (results) {
         displaySongs(results);
 	});
@@ -25,7 +25,18 @@ window.onload = function () {
 
 	gallery.song.loop = true;
 
-	omg.util.startOverview();
+	if (typeof(loggedIn) == "boolean") {
+		document.getElementById("overview-screen").style.display = "none";		
+	}
+	else {
+		omg.util.startOverview();		
+	}
+	
+    //stupid hacks to get the canvas's offsets correct after parts load
+	window.onscroll = function () {
+		omg.mm.redoOffsets = true;
+	};    
+
 };
 
 gallery = {};
@@ -58,7 +69,7 @@ gallery.loadCounts = function () {
 
             }
             else {
-                omg.collections = {list: []};
+                /*omg.collections = {list: []};
                 omg.remixer.collectionsDiv = document.getElementById("remixer-collections");
                 for (var ic = 0; ic < ooo.collections.length; ic++) {
                     omg.collections.list.push(ooo.collections[ic]);
@@ -69,7 +80,7 @@ gallery.loadCounts = function () {
                     document.getElementById("no-collections-message").
                     style.display = "none";
                 }
-
+				*/
             }
         }
     }
@@ -146,11 +157,9 @@ function displayResults(partList, results, page) {
         
     }
     partList.appendChild(lastRow);
-
-    //stupid hacks to get the canvas's offsets correct after parts load
-    omg.drummachine.setPart(omg.drummachine.part);
-    omg.mm.setPart(omg.mm.part);
     
+    //hack cuz its position may have moved
+    omg.mm.redoOffsets = true;
 }
 
 function displaySongs(results) {
@@ -168,7 +177,10 @@ function displaySongs(results) {
     for (var i = 0; i < results.list.length; i++) {
     	setupSong(list, results.list[i]);
     }
-    
+
+    //hack cuz its position may have moved
+    omg.mm.redoOffsets = true;
+
 }
 
 function sendVote(entry, value) {
@@ -279,7 +291,6 @@ function setupPart(parentDiv, searchResult) {
 
 
     part.onclick = function () {    
-    	console.log("click!")
         // this is mostly for iPhones, requiring 
         // audio to start in response to a click
         //if (!omg.playedSound && omg.player.context) {
@@ -302,6 +313,8 @@ function setupPart(parentDiv, searchResult) {
         		}
         	}
     		part.playing = false;
+    		gallery.makeSectionButton.innerHTML = "Select One of Each";
+    		gallery.makeSectionButton.className = "horizontal-panel-option";
     		return;
     	}
     	
@@ -328,6 +341,11 @@ function setupPart(parentDiv, searchResult) {
         addVoteButtons(searchResult, part);
 
         part.playing = true;
+        
+        if (parts.length == 3) {
+        	gallery.makeSectionButton.className = "horizontal-panel-option-ready";
+        	gallery.makeSectionButton.innerHTML = "Make Section";
+        }
     };
     
     part.ondblclick = function () {
@@ -358,7 +376,6 @@ function setupSong(parentDiv, searchResult) {
 
     
     div.onclick = function () {    
-    	console.log("click!")
         // this is mostly for iPhones, requiring 
         // audio to start in response to a click
         //if (!omg.playedSound && omg.player.context) {
@@ -385,3 +402,72 @@ function setupSong(parentDiv, searchResult) {
     };
     
 }
+
+gallery.setupMelodyMaker = function () {
+	omg.mm = new OMGMelodyMaker(document.getElementById("melody-maker-canvas"));
+	omg.mm.options = document.getElementById("mm-options");
+	omg.mm.setPart(new OMGPart(), true);
+	omg.mm.drawCanvas();
+	
+	omg.mm.playButton = document.getElementById("play-mm");
+	omg.mm.playButton.onclick = function () {
+		if (omg.player.playing) {
+			omg.player.stop();
+			omg.mm.playButton.innerHTML = "Play";
+			return;
+		}
+		omg.mm.playButton.innerHTML = "Stop";
+		omg.mm.part.play();
+	};
+
+	omg.mm.clearButton = document.getElementById("clear-mm");
+	omg.mm.clearButton.onclick = function () {
+		if (omg.player.playing) {
+			omg.player.stop();
+			omg.mm.playButton.innerHTML = "Play";
+			return;
+		}
+		omg.mm.setPart(new OMGPart(), true);
+		omg.mm.options.style.display = "none";
+	};
+
+    omg.mm.nextButton = document.getElementById("next-mm");
+    omg.mm.nextButton.onclick = function () {
+		omg.postOMG("MELODY", omg.mm.part.data, function (result) {
+			var newSection = new OMGSection();
+			newSection.parts.push(omg.mm.part);
+			omg.postOMG("SECTION", newSection.getData(), function (result) {
+				window.location = "/omgbam.jsp?share=SECTION-" + result.id;
+			});
+		});
+    };
+    omg.mm.shareZone = document.getElementById("mm-share-zone");
+    omg.mm.finishShareButton = document.getElementById("finish-share");
+    omg.mm.finishShareButton.onclick = function () {
+    	omg.mm.shareZone.style.display = "none";
+    };
+    var facebookButton = document.getElementById("facebook-link");
+    var twitterButton = document.getElementById("twitter-link");
+    var emailButton = document.getElementById("email-link");
+    omg.mm.shareUrl = document.getElementById("share-url");
+    omg.mm.shareButton = document.getElementById("share-mm");
+    omg.mm.shareButton.onclick = function () {
+		omg.postOMG("MELODY", omg.mm.part.data, function (result) {
+			var url = "http://omgbam.com/?share=MELODY-" + result.id;
+			omg.mm.shareUrl.value = url;
+			
+			twitterButton.href = 'http://twitter.com/home?status=' + encodeURIComponent(url);
+			facebookButton.href = "http://www.facebook.com/sharer/sharer.php?t=OMGBAM.com&u="
+						+ encodeURIComponent(url);
+			emailButton.href = "mailto:?subject=OMGBAM.com&body=" + url;
+
+			omg.mm.shareZone.style.display = "block";
+		});
+    };
+
+	omg.mm.hasDataCallback = function () {
+		omg.mm.options.style.display = "block";
+	};
+	
+
+};

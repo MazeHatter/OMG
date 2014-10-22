@@ -334,8 +334,10 @@ omg.util.startOverview = function (callback) {
 			
 			if (percent == 255) {
 				clearInterval(screenInterval);
-				omg.util.fade({div:step1text, fadeIn: true});		
-				omg.util.fade({div: partsGraphics, fadeIn: true}); 
+				setTimeout(function () {
+					omg.util.fade({div:step1text, fadeIn: true});		
+					omg.util.fade({div: partsGraphics, fadeIn: true}); 					
+				}, 2000);
 			}
 		}, 1000/60);
 	}, 500);
@@ -355,7 +357,7 @@ omg.util.startOverview = function (callback) {
 		//		omg.util.fade({div: sectionC, fadeIn: true});		
 		//	}});
 			
-	}, 4200);
+	}, 6200);
 			
 	setTimeout(function () {
 		
@@ -372,7 +374,7 @@ omg.util.startOverview = function (callback) {
 				omg.util.fade({div: sectionC, fadeIn: true});		
 			}});
 			
-	}, 8200);
+	}, 10200);
 	
 	setTimeout(function () {
 		if (!playingOverview)
@@ -395,7 +397,7 @@ omg.util.startOverview = function (callback) {
 				length: 3000, callback: phase2});
 
 		}, 1000);
-	}, 14400);
+	}, 16400);
 
 	
 	/*var button;
@@ -434,4 +436,28 @@ omg.util.startOverview = function (callback) {
 		browser.slideIn();
 	};*/
 
+};
+
+omg.postOMG = function (type, data, callback) {
+
+	if (typeof(omg.url) != "string")
+		omg.url = "";
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", omg.url + "/omg", true);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
+
+			var results = JSON.parse(xhr.responseText);
+			if (results.result == "good") {
+				data.id = results.id;
+				if (callback)
+					callback(results);
+			}
+
+		}
+	}
+	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhr.send("type=" + type + "&tags=&data="
+			+ encodeURIComponent(JSON.stringify(data)));
 };

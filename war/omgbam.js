@@ -706,26 +706,6 @@ function getOMG(data, callback) {
 	xhr.send();
 }
 
-function postOMG(type, data, callback) {
-
-	var xhr = new XMLHttpRequest();
-	xhr.open("POST", omg.url + "/omg", true);
-	xhr.onreadystatechange = function() {
-		if (xhr.readyState == 4) {
-
-			var results = JSON.parse(xhr.responseText);
-			if (results.result == "good") {
-				data.id = results.id;
-				if (callback)
-					callback(results);
-			}
-
-		}
-	}
-	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xhr.send("type=" + type + "&tags=&data="
-			+ encodeURIComponent(JSON.stringify(data)));
-}
 
 function sendVote(entry, value) {
 
@@ -1210,7 +1190,7 @@ bam.setupMelodyMaker = function () {
 						});
 
 						if (typeof (part.id) != "number" || part.id <= 0) {
-							postOMG(type, part.data, function(response) {
+							omg.postOMG(type, part.data, function(response) {
 								if (response && response.result == "good") {
 									part.id = response.id;
 								}
@@ -2077,7 +2057,7 @@ bam.setupSharer = function () {
 			bam.sharer.setLinks(newUrl);
 		};
 
-		postOMG(type, params.data, function(response) {
+		omg.postOMG(type, params.data, function(response) {
 			if (response && response.result == "good") {
 				goToId(response.id);
 			}

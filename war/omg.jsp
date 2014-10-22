@@ -26,6 +26,12 @@ if (user.isLoggedIn()){
 <title>OMG - Open Music Gallery</title>   
 <link rel="stylesheet" href="omg.css" type="text/css" />
 <link rel="stylesheet" href="overview.css" type="text/css" />
+
+<% if (hasUser) { %>
+<script>
+var loggedIn = true;
+</script>
+<% } %>
 </head>
 
 	<!-- example part, which is made dynamically in the script
@@ -64,7 +70,7 @@ if (user.isLoggedIn()){
 		<div class="explanation">OMG is a growing library of musical building blocks and songs created from them.</div> 
 
 		<div id="overview-step1" class="overview-step">Melodies, drumbeats, and basslines are <b>parts</b></div>
-		<div id="overview-step2" class="overview-step">Music apps read and write parts to the OMG</div>
+		<div id="overview-step2" class="overview-step">Music apps read and write <b>parts</b> to OMG</div>
 		<div id="overview-step3" class="overview-step"><b>Parts</b> are combined into <b>sections</b></div>
 		<div id="overview-step4" class="overview-step"><b>Sections</b> are arranged to make <b>songs</b></div> 
 
@@ -106,26 +112,27 @@ if (user.isLoggedIn()){
 		</div>
 		
 		<div id="overview-step5" class="overview-step">
-			<span class="overview-try">Try:</span> Select a Melody, Bassline, and Drumbeat to create a Section.
+			<span class="overview-try">Try:</span> <a class="try-link" href="#make_a_section">Select a Melody, Bassline, and Drumbeat to create a Section</a>.
 			<br/>
-			<span class="overview-try">Try:</span> Remix a Song.
+			<span class="overview-try">Try:</span> <a class="try-link" href="#remix_a_song">Remix a Song</a>.
 			<br/>
-			<span class="overview-try">Try:</span> Create a new Melody and Drumbeat.
+			<span class="overview-try">Try:</span> <a class="try-link" href="#draw_a_melody">Draw a Melody</a>!
 			<br/>
-			<span class="overview-try">Try:</span> Record your voice and upload it as a SoundSet.
+			<span class="overview-try">Try:</span> <a class="try-link" href="#make_a_soundset">Record your voice and upload it as a SoundSet</a>.
 			<br/>
-			<span class="overview-try">Try:</span> Apps that read and write to OMG. 
+			<span class="overview-try">Try:</span> <a class="try-link" href="#apps">Apps that read and write to OMG.</a> 
 
 			<p id="login-p">To save what you make, please login!
 			<br/>
-			<img src="img/signingoogle.png"/>
+			<a href="<%=loginUrl%>"><img src="img/signingoogle.png"/></a>
 			</p>
 		</div>
 		
 	</div>
 	
 	<hr/>
-	<div class="try-details"><span class="overview-try">Try:</span> Select a a Melody, Bassline, and Drumbeat to create a Section.</div>
+	<div class="try-details"><span class="overview-try">Try:</span> <a name="make_a_section"></a>
+		Select a Melody, Bassline, and Drumbeat to create a Section.</div>
 	<hr/>
 	<div class="result-area" id="melodies">
 		
@@ -189,37 +196,55 @@ if (user.isLoggedIn()){
 		</table>
 	</div>
   
-  	<div >(Double click a part to edit it.)</div>
+  	<div class="horizontal-panel-option" id="make-section-button">Select One of Each</div>
 	
 	
 	<hr />
 	<div class="try-details">
+		<a name="remix_a_song"></a>
 		<span class="overview-try">Try:</span> Remix a Song.
 	</div>
 	<hr/>
 	<p>
-		Choose a song and start remixing and rearranging. If you've created a SoundSet for your voice,
-		you can use that too!
+		Click a song to preview it. Double click to edit it.
 	</p>
 		<div id="song-results"></div>
 	<hr/>
 
 
-	<div class="try-details"><span class="overview-try">Try:</span> Create new Melody and Drumbeat</div>
+	<div class="try-details"><a name="draw_a_melody"></a><span class="overview-try">Try:</span> Draw a Melody!</div>
 	<hr/>
 	
-	<div id="create-canvases">
-	<canvas id="melody-maker-canvas">
-	</canvas>
-	
-	<div id="intercanvas"></div>
-	
-	<canvas id="beat-maker-canvas">
-	</canvas>
-	</div>
+	<div id="mm-area">
+		<canvas id="melody-maker-canvas">
+		</canvas>
+		
+		<div id="mm-options" class="option-panel">		
+			<div class="panel-option" id="play-mm">Play</div>
+			<div class="panel-option" id="share-mm">Share</div>
+			<!--<div class="melody-maker-option" id="save-mm">Save</div>-->
+			<div class="panel-option" id="next-mm">Next</div>
+			<div class="panel-option" id="clear-mm">Clear</div>
+		</div>
 
+		<div id="mm-share-zone" class="area">
+			<div id="mm-share-controls">
+				<h1>Share!</h1>
+				url: <input type="text" id="share-url"></input>
+				<br/>
+				<br/>
+				<a target="_blank" href="" id="facebook-link"><img id="facebook-button" src="img/f_logo.png"></a>
+				<a target="_blank" href="" id="twitter-link"><img id="twitter-button" src="img/twitter_logo.png"></a>
+				<a target="_blank" href="" id="email-link"><img id="email-button" src="img/email.png"></a>
+		
+				<div class="panel-option" id="finish-share">Done</div>
+			</div>			
+		</div>
+
+	</div>	
+	
 	<hr/>
-	<div class="try-details">
+	<div class="try-details"><a name="make_a_soundset"></a>
 		<span class="overview-try">Try:</span> Record your voice and upload it as a SoundSet.
 	</div>
 	<hr/>
@@ -227,9 +252,11 @@ if (user.isLoggedIn()){
 		Melodies, basslines, and drumbeats can be played back in any instrument, 
 		even your own voice if you create a soundset for it!
 	</p>
-
+	<ul>
+		<li><a href="newinstrument.jsp">Make new SoundSet</a></li>
+	</ul>
 	<hr/>
-	<div class="try-details">
+	<div class="try-details"><a name="apps"></a>
 		<span class="overview-try">Try:</span> Apps that read and write to OMG.
 	</div>
 	<hr/>

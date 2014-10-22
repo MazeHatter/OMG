@@ -192,7 +192,7 @@ hr {
 .result-area {
 	display:inline-block;
 	text-align:center;
-	margin-left:30px;
+	margin-left:35px;
 }
 
 .explanation {
@@ -214,7 +214,7 @@ hr {
 }
 
 #melody-maker-canvas {
-	width:45%;
+	width:60%;
 	height:400px;	
 }
 
@@ -245,7 +245,7 @@ hr {
 	font-size:12pt;
 }
 
-.panel-option, .horizontal-panel-option {
+.panel-option, .horizontal-panel-option, .horizontal-panel-option-ready {
 	border-radius:6px;
 	text-align:center;
 	padding:18px;
@@ -257,7 +257,14 @@ hr {
 	
 	font:14pt Helvetica, arial, freesans, clean, sans-serif;
 	cursor:pointer;
-	
+}
+
+#next-mm, .horizontal-panel-option-ready {
+
+	background-color:#99FF99;
+}
+#next-mm:hover, .horizontal-panel-option-ready:hover {
+	background-color:#33FF33;
 }
 
 .song {
@@ -284,4 +291,82 @@ hr {
 	height: 50px;
 	width:130px;
 	cursor: pointer;
+}
+
+#make-section-button {
+	margin:auto;
+}
+
+#mm-options {
+	position:absolute;
+	right:0px;
+	top:0px;
+	display:none;
+}
+
+#mm-area {
+	position:relative;
+	width:800px;
+	margin:auto;
+}
+
+#play-mm {
+	border-radius:120px;
+	padding:40px;
+	width:30px;
+	margin-left:95px;
+
+}
+#clear-mm {
+	position:relative;
+	top:40px;
+}
+
+.try-link {
+	color:#000000;
+}
+
+#mm-share-zone {
+	position:absolute;
+	top:0px;
+	left:0px;
+	height:100%;
+	width:100%;
+	background-color:#CCCCCC;
+	display:none;
+}
+#mm-share-controls {
+	top:0px;
+	left:0px;
+	width:350px;
+	background-color:#CCCCCC;
+	margin:auto;
+	margin-top:80px;
+}
+
+#share-url {
+	width:300px;
+}
+#twitter-button {
+	padding:20px;
+	background-color:white;
+	border:1px solid gray;
+	border-radius:4px;
+	cursor:pointer;
+}
+
+#email-button {
+	padding:20px;
+	background-color:#FF80FF;
+    border:1px solid gray;
+    border-radius:4px;
+    /*padding-right:2px;*/
+    cursor:pointer;
+}
+
+#facebook-button {
+	margin-left:27px;
+	border:1px solid gray;
+	padding:20px;
+	cursor:pointer;
 }

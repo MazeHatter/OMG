@@ -417,25 +417,30 @@ if (typeof omg != "object")
     
     p.initSound = function () {
         p.playedSound = true;
-        var osc = p.context.createOscillator();
-        osc.connect(p.context.destination);
-        osc.frequency.setValueAtTime(0, 0);
-        if (osc.start) {
-            osc.start(0);
-        }
-        else {
-            osc.noteOn(0);
-        }
-        setTimeout(function () {
-            if (osc.stop) {
-                osc.stop(0);
+        try {
+            var osc = p.context.createOscillator();
+            osc.connect(p.context.destination);
+            osc.frequency.setValueAtTime(0, 0);
+            if (osc.start) {
+                osc.start(0);
             }
             else {
-                osc.noteOff(0);
+                osc.noteOn(0);
             }
-            osc.disconnect(p.context.destination);
+            setTimeout(function () {
+                if (osc.stop) {
+                    osc.stop(0);
+                }
+                else {
+                    osc.noteOff(0);
+                }
+                osc.disconnect(p.context.destination);
 
-        }, 500);
+            }, 500);
+        }
+        catch (ex) {
+        	console.log("error initializing web audio api");
+        }
     };
 
     p.playSound = function (sound, volume) {
