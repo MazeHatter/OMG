@@ -1,12 +1,21 @@
-body {
+html, body {
 	margin: 0px;
 	padding: 0px;
 	overflow-x:hidden;
 	overflow-y:hidden;
 	height:100%;
-	min-height:590px;
 }
 
+#bbody {
+	width:1024px;
+	margin:auto;
+	position:relative;
+	margin-top:22px;
+	/*overflow-x:hidden;
+	overflow-y:hidden;
+	height:100%;*/
+		
+}
 .master {
 	position:absolute;
 	top:0px;
@@ -271,10 +280,17 @@ h1 {
 
 #no-web-audio {
 	display:none;
+	position:absolute;
+	top:0px;
+	left:0px;
+	width:100%;
+	text-align:center;
+	z-index:-1;
 }
-
 .old-browser {
-		color:red;
+	color:red;
+	font-size:16pt;
+	text-align:center;
 }
 
 
@@ -315,13 +331,7 @@ h1 {
 
 
 
-#bbody {
-	width:1024px;
-	margin:auto;
-	position:relative;
-	margin-top:22px;
-	
-}
+
    
 
 #share-zone {
@@ -628,4 +638,19 @@ h1 {
 .part-controls {
 	height:94px;
 	width:650px;
+}
+
+#song-edit-panel {
+	display:none;
+	position:absolute;
+	left:0px;
+	top:445px;
+	width:100%;
+	text-align:center;
+}
+
+#remove-section-button {
+	width:200px;
+	height:80px
+	background-color:#FFCCCC;
 }

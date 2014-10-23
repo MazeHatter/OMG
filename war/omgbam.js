@@ -293,7 +293,7 @@ function setupMelodyDiv(part) {
 			bam.grow(part.div, function() {
 				bam.fadeIn([ bam.mm ]);
 
-				bam.mm.ui.setPart(part);
+				bam.mm.setPart(part);
 
 				bam.slideInOptions(bam.mm.options);
 			});
@@ -357,7 +357,7 @@ function setupRemixer() {
 				//bam.fadeIn([ bam.mm, omg.mm.canvas ]);
 				bam.fadeIn([ bam.mm]);
 
-				bam.mm.ui.setPart(newPart);
+				bam.mm.setPart(newPart);
 
 			});
 		});
@@ -391,7 +391,7 @@ function setupRemixer() {
 			bam.grow(newPart.div, function() {
 				bam.fadeIn([ bam.mm ]);
 
-				bam.mm.ui.setPart(newPart);
+				bam.mm.setPart(newPart);
 
 			});
 		});
@@ -556,6 +556,15 @@ function setupRearranger() {
 	omg.rearranger.shareButton = document.getElementById("share-song");
 	omg.rearranger.shareButton.onclick = function() {
 
+		if (omg.player.playing) {
+			omg.player.stop();
+		}
+		for (var isect = 0; isect < bam.song.sections.length; isect++) {
+			if (bam.song.sections[isect].beatmarker) {
+				bam.song.sections[isect].beatmarker.style.width = "0px";
+			}
+		}
+		
 		var shareParams = {};
 		shareParams.type = "SONG";
 		shareParams.button = omg.rearranger.shareButton;
@@ -840,7 +849,7 @@ bam.load = function (params)  {
 				bam.part = new OMGPart(newDiv, result.data);
 				
 				bam.fadeIn([bam.part.div, bam.mm], restoreColors);
-				bam.mm.ui.setPart(bam.part);
+				bam.mm.setPart(bam.part);
 				
 				bam.slideInOptions(bam.mm.options);			
 			});
@@ -848,7 +857,7 @@ bam.load = function (params)  {
 		else {
 			bam.part = new OMGPart(newDiv);
 			bam.fadeIn([bam.part.div, bam.mm], restoreColors);
-			bam.mm.ui.setPart(bam.part, true);
+			bam.mm.setPart(bam.part, true);
 		}
 	}
 
@@ -1103,6 +1112,7 @@ bam.setupBeatMaker = function() {
 
 bam.setupMelodyMaker = function () {
 	bam.mm = document.getElementById("melody-maker");
+	bam.mm.caption = document.getElementById("melody-maker-caption");
 	bam.mm.options = document.getElementById("mm-options");
 	
 	var canvas = document.getElementById("melody-maker-canvas");
@@ -1112,8 +1122,25 @@ bam.setupMelodyMaker = function () {
 	
 	bam.mm.ui = new OMGMelodyMaker(canvas);
 	bam.mm.ui.hasDataCallback = function () {
-		if (!bam.mm.options.showing)
+		if (!bam.mm.options.showing){
 			bam.slideInOptions(bam.mm.options);
+			bam.fadeIn([bam.mm.caption]);
+		}
+	};
+
+	bam.mm.setPart = function (part, welcomeStyle) {
+		if (part.data.type == "BASSLINE") {
+			bam.mm.caption.innerHTML = "Bassline";
+		}
+		else {
+			bam.mm.caption.innerHTML = "Melody";
+		}
+		if (welcomeStyle)
+			bam.mm.caption.style.opacity = 0;
+		else
+			bam.mm.caption.style.opacity = 1;
+		
+		bam.mm.ui.setPart(part, welcomeStyle);
 	};
 	
 	bam.mm.playButton = document.getElementById("play-mm");
@@ -1216,6 +1243,7 @@ bam.setupMelodyMaker = function () {
 		} else {
 			bam.part.data.notes = [];
 			bam.mm.lastNewNote = 0;
+			bam.mm.ui.canvas.mode = "APPEND";
 			bam.mm.ui.drawCanvas();
 			
 			bam.slideOutOptions(bam.mm.options);
@@ -1467,21 +1495,26 @@ bam.arrangeSections = function(callback) {
 	
 	var div = bam.song.div;
 
+	if (!div.slidLeft)
+		div.slidLeft = 0;	
+
 	var children;
 	var child;
 
 	children = [];
-	var parts = div.getElementsByClassName("section");
-	for (var ip = 0; ip < parts.length; ip++) {
+	//var parts = div.getElementsByClassName("section");
+	var sections = bam.song.sections;
+	for (var ip = 0; ip < sections.length; ip++) {
+		sections[ip].position = ip; 
 		child = {
-			div : parts.item(ip)
+			div : sections[ip].div
 		};
 		child.originalH = child.div.clientHeight;
 		child.originalW = child.div.clientWidth;
 		child.originalX = child.div.offsetLeft;
 		child.originalY = child.div.offsetTop;
 
-		child.targetX = bam.offsetLeft + ip * 110;
+		child.targetX = bam.offsetLeft + ip * 110 - div.slidLeft;
 		child.targetY = 125;
 		child.targetW = 100;
 		child.targetH = 300;
@@ -1496,7 +1529,7 @@ bam.arrangeSections = function(callback) {
 	child.originalW = 60; // padding does the rest;
 	child.originalX = child.div.offsetLeft;
 	child.originalY = child.div.offsetTop;
-	child.targetX = 5 + bam.song.sections.length * 110;
+	child.targetX = 5 + bam.song.sections.length * 110 - div.slidLeft;
 	child.targetY = child.originalY;
 	child.targetW = child.originalW;
 	child.targetH = child.originalH;
@@ -1816,82 +1849,140 @@ bam.setupSectionDiv = function(section) {
 	section.setup = true;
 	
 	var addButton = omg.rearranger.addSectionButton;
-
+	var removeButton = document.getElementById("remove-section-button");
+	var editPanel = document.getElementById("song-edit-panel");
+	
 	var downTimeout;
 	var doClick = false;
 	var lastXY = [ -1, -1 ];
 	var overCopy = false;
+	var overRemove = false;
 	section.div.onmousedown = function(event) {
+		event.preventDefault();
+		section.div.ondown(event.clientX, event.clientY);
+	};
+	section.div.ontouchstart = function(event) {
+		event.preventDefault();
+		section.div.ondown(event.targetTouches[0].pageX, event.targetTouches[0].pageY);
+	};
 
+	section.div.ondown = function (x, y) {
 		if (bam.zones[bam.zones.length - 1] != bam.song.div) {
 			return;
 		}
-
-		event.preventDefault;
+		
+		var firstX = x;
+		var lastX = firstX;
 		
 		doClick = true;
-		downTimeout = setTimeout(
-				function() {
-					doClick = false;
-					section.dragging = true;
-					section.div.style.zIndex = "1";
 
-					addButton.innerHTML = "(Copy Section)";
+		omg.util.setOnMove(bam.song.div, function (moveX, moveY) {
+			lastX = moveX;
+		});
+		
+		downTimeout = setTimeout(function () {
+			
+			if (Math.abs(lastX - firstX) > 15) {
+				doClick = false;
+				bam.song.div.sliding = true;
 
-					bam.fadeOut([ omg.rearranger.options ]);
+				omg.util.setOnMove(bam.song.div, function (x_move, y_move) {
+					if (!bam.song.div.slidLeft)
+						bam.song.div.slidXLeft = 0;
+					bam.song.div.slidLeft += lastX - x_move;
+					bam.song.div.slidLeft = Math.max(0, bam.song.div.slidLeft);
+					
+					lastX = x_move;
+					bam.arrangeSections();
+				});
+				omg.util.setOnUp(bam.song.div, function () {
+					bam.song.div.sliding = false;
+					omg.util.setOnMove(bam.song.div, undefined);
+					omg.util.setOnUp(bam.song.div, undefined);
+				});
+			}
+			else {
+				bam.song.div.onmousemove = undefined;
+				downTimeout = setTimeout(dragOneSection, 200);
+			}
+			
+		}, 200);
+		
+		var dragOneSection = function() {
+			doClick = false;
+			section.dragging = true;
+			section.div.style.zIndex = "1";
 
-					section.doneDragging = function() {
-						addButton.innerHTML = "+ Add Section";
+			addButton.innerHTML = "(Copy Section)";
+
+			bam.fadeOut([ omg.rearranger.options ]);
+			bam.fadeIn([ editPanel ]);
+
+			section.doneDragging = function() {
+				addButton.innerHTML = "+ Add Section";
+				addButton.style.backgroundColor = section.div.style.backgroundColor;
+				section.dragging = false;
+				overCopy = false;
+
+				bam.arrangeSections(function () {
+					section.div.style.zIndex = "0";
+				});
+				bam.fadeIn([ omg.rearranger.options ]);
+				bam.fadeOut([ editPanel ]);
+				bam.song.div.onmousemove = undefined;
+			};
+
+			bam.song.div.onmousemove = function(event) {
+				if (bam.zones[bam.zones.length - 1] != bam.song.div) {
+					return;
+				}
+
+				if (section.dragging) {
+
+					var xy = [ event.clientX, event.clientY ];
+
+					section.div.style.left = section.div.offsetLeft
+							+ xy[0] - lastXY[0] + "px";
+					section.div.style.top = section.div.offsetTop
+							+ xy[1] - lastXY[1] + "px";
+					lastXY = xy;
+
+					var centerX = section.div.clientWidth / 2
+							+ section.div.offsetLeft;
+					var centerY = section.div.clientHeight / 2
+							+ section.div.offsetTop;
+
+					var addOffsets = omg.util.totalOffsets(addButton);
+					var removeOffsets = omg.util.totalOffsets(removeButton);
+					if (centerX > addOffsets.left
+							&& centerX < addOffsets.left
+									+ addButton.clientWidth
+							&& centerY > addOffsets.top
+							&& centerY < addOffsets.top
+									+ addButton.clientHeight) {
+						addButton.style.backgroundColor = "white";
+						overCopy = true;
+					} else {
 						addButton.style.backgroundColor = section.div.style.backgroundColor;
-						section.dragging = false;
 						overCopy = false;
+					}
+					if (centerX > removeOffsets.left
+							&& centerX < removeOffsets.left
+									+ removeButton.clientWidth
+							&& centerY > removeOffsets.top
+							&& centerY < removeOffsets.top
+									+ removeButton.clientHeight * 2) { 
+						removeButton.style.backgroundColor = "red";
+						overRemove = true;
+					} else {
+						removeButton.style.backgroundColor = "#FFCCCC";
+						overRemove = false;
+					}
+				}
+			};
 
-						bam.arrangeSections(function () {
-							section.div.style.zIndex = "0";
-						});
-						bam.fadeIn([ omg.rearranger.options ]);
-
-						bam.song.div.onmousemove = undefined;
-					};
-
-					bam.song.div.onmousemove = function(event) {
-						if (bam.zones[bam.zones.length - 1] != bam.song.div) {
-							return;
-						}
-
-						if (section.dragging) {
-
-							var xy = [ event.clientX, event.clientY ];
-
-							section.div.style.left = section.div.offsetLeft
-									+ xy[0] - lastXY[0] + "px";
-							section.div.style.top = section.div.offsetTop
-									+ xy[1] - lastXY[1] + "px";
-							lastXY = xy;
-
-							var centerX = section.div.clientWidth / 2
-									+ section.div.offsetLeft;
-							var centerY = section.div.clientHeight / 2
-									+ section.div.offsetTop;
-
-							var offsets = omg.util.totalOffsets(addButton);
-							if (centerX > offsets.left
-									&& centerX < offsets.left
-											+ addButton.clientWidth
-									&& centerY > offsets.top
-									&& centerY < offsets.top
-											+ addButton.clientHeight) {
-								addButton.style.backgroundColor = "white";
-								overCopy = true;
-							} else {
-								addButton.style.backgroundColor = section.div.style.backgroundColor;
-								overCopy = false;
-							}
-						}
-					};
-
-				}, 400);
-		lastXY = [ event.clientX, event.clientY ];
+			lastXY = [ x, y ];
+		};
 	};
 
 	section.div.onmouseup = function() {
@@ -1904,6 +1995,13 @@ bam.setupSectionDiv = function(section) {
 			if (overCopy) {
 				bam.song.sections.push(bam.copySection(section));
 			}
+			if (overRemove) {
+				console.log(section.position);
+				bam.song.sections.splice(section.position, 1);
+				bam.song.div.removeChild(section.div);
+				bam.arrangeSections();
+			}
+
 			section.doneDragging();
 		}
 

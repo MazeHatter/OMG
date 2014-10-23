@@ -9,7 +9,20 @@
 
 <meta property="og:image" content="http://openmusicgallery.appspot.com/img/omg256.png"/>
 <!-- <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />-->
-<title>OMG BAM .com</title>   
+
+<?php
+$share = $_GET['share'];
+if ($share) {
+	$pieces = explode("-", $share);
+	echo "<title>A Shared ";
+	echo ucfirst(strtolower($pieces[0]));
+	echo " (via OMG Bam!)</title>";
+}
+else { 
+	echo "<title>OMG Bam!</title>";
+}
+?>
+   
 <link rel="stylesheet" href="omgbam.css" type="text/css" />
 </head>
 
@@ -18,6 +31,13 @@
 
 <div id="topbar">
 
+	<div  id="no-web-audio">
+		<span class="old-browser">
+		<b>This browser doesn't support Web Audio API.</b></span> 
+		
+		(Try an updated Chrome, Safari, or FireFox for sound.)
+	</div> 
+
 	<span id="omg-title"><a href="/">omgbam.com</a> by 
 		<a href="http://openmusicgallery.net">openmusicgallery.net</a></span>
 
@@ -25,14 +45,6 @@
 	<a href="http://github.com/MazeHatter/OMG">source_code</a>
 	<a href="http://reddit.com/r/openmusic">feeback&dicussion</a>
 	</div>
-
-
-	<div class="remixer-message" id="no-web-audio">
-		<span class="old-browser">
-		Your browser doesn't support Web Audio API.</span> 
-		<br/>
-		To hear sound, try the latest versions of Chrome, Safari, or FireFox
-	</div> 
 
 </div>
 
@@ -116,6 +128,10 @@
 
 		<div class="horizontal-panel-option" id="clear-song">Clear</div>
 
+	</div>
+
+	<div id="song-edit-panel">
+		<div class="horizontal-panel-option" id="remove-section-button">Remove</div>
 	</div>
 
 	<div id="rearranger">

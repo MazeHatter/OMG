@@ -30,6 +30,7 @@
 	color:#808080;
 	font-size:10pt;
 	text-align:right;
+	display:none;
 	}
 .timebar {
 	position:absolute;

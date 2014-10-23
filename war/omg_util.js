@@ -282,7 +282,7 @@ omg.util.startOverview = function (callback) {
 		step1text.style.display = "none";
 		step2text.style.display = "none";
 		step3text.style.display = "none";
-		step4text.style.display = "none";
+//		step4text.style.display = "none";
 
 		overviewSong.style.display = "none";
 		partsGraphics.style.display = "none";
@@ -312,7 +312,7 @@ omg.util.startOverview = function (callback) {
 		omg.util.fade({div: step1text, remove: true});
 		omg.util.fade({div: step2text, remove: true});
 		omg.util.fade({div: step3text, remove: true});
-		omg.util.fade({div: step4text, remove: true});
+		//omg.util.fade({div: step4text, remove: true});
 		
 		omg.util.fade({div: sectionA, remove: true});
 		omg.util.fade({div: sectionB, remove: true});
@@ -347,40 +347,24 @@ omg.util.startOverview = function (callback) {
 		if (!playingOverview)
 			return;
 
-		//omg.util.fade({div: partsGraphics, remove: true, length:2000, 
-		//	callback: function () {
-				
-				if (!playingOverview)
-					return;
-
-				omg.util.fade({div:step2text, fadeIn: true});
-		//		omg.util.fade({div: sectionC, fadeIn: true});		
-		//	}});
-			
-	}, 6200);
-			
-	setTimeout(function () {
-		
-		if (!playingOverview)
-			return;
-
 		omg.util.fade({div: partsGraphics, remove: true, length:2000, 
 			callback: function () {
 				
 				if (!playingOverview)
 					return;
 
-				omg.util.fade({div:step3text, fadeIn: true});
+				omg.util.fade({div:step2text, fadeIn: true});
 				omg.util.fade({div: sectionC, fadeIn: true});		
 			}});
 			
-	}, 10200);
+	}, 6200);
+			
 	
 	setTimeout(function () {
 		if (!playingOverview)
 			return;
 
-		omg.util.fade({div:step4text, fadeIn: true});
+		omg.util.fade({div:step3text, fadeIn: true});
 		omg.util.fade({div:sectionA, fadeIn: true, length: 1500});
 		omg.util.fade({div:sectionB, fadeIn: true, length: 1500});
 		omg.util.fade({div:sectionD, fadeIn: true, length: 1500});
@@ -397,7 +381,7 @@ omg.util.startOverview = function (callback) {
 				length: 3000, callback: phase2});
 
 		}, 1000);
-	}, 16400);
+	}, 10400);
 
 	
 	/*var button;
@@ -460,4 +444,47 @@ omg.postOMG = function (type, data, callback) {
 	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xhr.send("type=" + type + "&tags=&data="
 			+ encodeURIComponent(JSON.stringify(data)));
+};
+
+omg.util.setOnMove = function (element, callback) {
+
+	if (callback) {
+		element.onmousemove = function(event) {
+			event.preventDefault();
+			callback(event.clientX, event.clientY);
+		};
+		element.ontouchmove = function(event) {
+			event.preventDefault();
+			callback(event.targetTouches[0].pageX,
+						event.targetTouches[0].pageY);
+		};
+	}
+	else {
+		element.onmousemove = callback;
+		element.ontouchmove = callback;
+	}
+
+};
+omg.util.setOnUp = function (element, callback) {
+
+	if (callback) {
+		/*element.onmouseout = function(event) {
+			event.preventDefault();
+			callback(-1, -1);
+		};*/
+		element.onmouseup = function(event) {
+			event.preventDefault();
+			callback(event.clientX, event.clientY);
+		};
+		element.ontouchend = function(event) {
+			event.preventDefault();
+			callback(-1, -1);
+		};
+	}
+	else {
+		element.onmouseup = undefined;
+		element.ontouchend = undefined;
+		element.onmouseout = undefined;
+	}
+
 };

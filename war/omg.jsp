@@ -51,7 +51,15 @@ var loggedIn = true;
 
 <div id="topbar">
 
-	<span id="omg-title"><b>o</b>pen<b>m</b>usic<b>g</b>allery.net</span>
+	<span id="omg-title"><a href="/"><b>o</b>pen<b>m</b>usic<b>g</b>allery.net</a></span>
+
+	<div  id="no-web-audio">
+		<span class="old-browser">
+		<b>This browser doesn't support Web Audio API.</b></span> 
+		
+		(Try an updated Chrome, Safari, or FireFox for sound.)
+	</div> 
+
 
 	<div id="topbarright">
 	<a href="http://github.com/MazeHatter/OMG">source_code</a>
@@ -70,9 +78,9 @@ var loggedIn = true;
 		<div class="explanation">OMG is a growing library of musical building blocks and songs created from them.</div> 
 
 		<div id="overview-step1" class="overview-step">Melodies, drumbeats, and basslines are <b>parts</b></div>
-		<div id="overview-step2" class="overview-step">Music apps read and write <b>parts</b> to OMG</div>
-		<div id="overview-step3" class="overview-step"><b>Parts</b> are combined into <b>sections</b></div>
-		<div id="overview-step4" class="overview-step"><b>Sections</b> are arranged to make <b>songs</b></div> 
+		<!--<div id="overview-step2" class="overview-step">Music apps read and write <b>parts</b> to OMG</div>-->
+		<div id="overview-step2" class="overview-step"><b>Parts</b> are combined into <b>sections</b></div>
+		<div id="overview-step3" class="overview-step"><b>Sections</b> are arranged to make <b>songs</b></div> 
 
 		<div id="overview-parts" class="overview-graphics"> 
 			<img class="overview-graphic" src="img/trebleclef48.png" /> 

@@ -16,8 +16,10 @@ if (typeof omg != "object")
 
     }
     catch (e) {
-        document.getElementById("no-web-audio").style.display = "block";
-        return;
+    	var nowebaudio = document.getElementById("no-web-audio");
+    	if (nowebaudio)
+    		nowebaudio.style.display = "inline-block";
+        //return;
     }
 
     p.onBeatPlayedListeners = [];
@@ -32,6 +34,9 @@ if (typeof omg != "object")
     
     p.play = function (song) {
 
+    	if (!p.context)
+    		return;
+    	
     	p.prepareSong(song);
 
     	if (p.playing) {
@@ -56,6 +61,10 @@ if (typeof omg != "object")
         var beatsPerSection = p.beats * p.subbeats;
     	p.subbeatLength = song.subbeatMillis || 125; 
     	
+    	var lastSection;
+    	var nextSection;
+    	
+    	
     	p.playingIntervalHandle = setInterval(function() {
             p.playBeat(p.song.sections[p.song.playingSection], 
             		p.iSubBeat);
@@ -72,6 +81,8 @@ if (typeof omg != "object")
             p.iSubBeat++;
             if (p.iSubBeat == beatsPerSection) {
             
+            	lastSection = p.song.sections[p.song.playingSection];
+            	
                 p.iSubBeat = 0;
                 p.loopStarted = Date.now();
                 p.song.playingSection++;
@@ -82,12 +93,36 @@ if (typeof omg != "object")
                 	p.nextUp = null;
                 }
                 
+                nextSection = p.song.sections[p.song.playingSection];
+                
                 if (p.song.playingSection >= p.song.sections.length) {
                 	if (p.song.loop) {
                 		p.song.playingSection = 0;
+                		nextSection = p.song.sections[p.song.playingSection];
                 	}
                 	else {
                 		p.stop();
+                		nextSection = undefined;
+                	}
+                }
+                
+                //cancel all oscilators that aren't used next section
+                var usedAgain;
+                for (var ils = 0; ils < lastSection.parts.length; ils++) {
+                	if (!lastSection.parts[ils].osc)
+                		continue;
+                	
+                	usedAgain = false;
+                	if (nextSection) {
+                    	for (var ins = 0; ins < nextSection.parts.length; ins++) {
+                    		if (lastSection.parts[ils] == nextSection.parts[ins]) {
+                    			usedAgain = true;
+                    			break;
+                    		}
+                    	}                		
+                	}
+                	if (!usedAgain) {
+                		lastSection.parts[ils].osc.finishPart();
                 	}
                 }
             }
@@ -111,6 +146,17 @@ if (typeof omg != "object")
         if (typeof(p.onStop) == "function") {
         	p.onStop();
         }
+        
+        if (p.song.sections[p.song.playingSection]) {
+        	var parts = p.song.sections[p.song.playingSection].parts;
+            for (var ip = 0; ip < parts.length; ip++) {
+            	if (parts[ip].osc) {
+            		parts[ip].osc.finishPart();
+            	}
+            		
+            }
+        }
+
 
     };
     
@@ -374,8 +420,13 @@ if (typeof omg != "object")
     };
     
     p.makeOsc = function (part) {
-    		
+
+    	if (!p.context) {
+    		return;
+    	}
+    	
 		if (part.osc) {
+			console.log("makeOsc, already exists");
 			try {
 				part.osc.stop(0);
 				part.osc.disconnect(part.gain);
@@ -405,8 +456,23 @@ if (typeof omg != "object")
 	    part.osc.frequency.setValueAtTime(0, 0);
 	    if (part.osc.start)
 	        part.osc.start(0);
-	    else 
-	        part.osc.noteOn(0);
+	    else {
+	    	part.osc.noteOn(0);
+	    	part.osc.stop = function (iii) {
+	    		part.osc.noteOff(iii);
+	    	};
+	    }
+	    
+	    part.osc.finishPart = function () {
+			part.osc.stop(0);
+			part.osc.disconnect(part.gain);
+			part.gain.disconnect(p.context.destination);
+			
+			part.oscStarted = false;
+			part.osc = null;
+			part.gain = null;
+	    };
+	        
 	    part.oscStarted = true;
 
     };
@@ -440,32 +506,6 @@ if (typeof omg != "object")
         }
         catch (ex) {
         	console.log("error initializing web audio api");
-        }
-    };
-
-    p.playSound = function (sound, volume) {
-        if (omg.player.loadedSounds[sound] && 
-        		omg.player.loadedSounds[sound] !== "loading") {
-        	    	
-            var source = omg.player.context.createBufferSource();
-            source.buffer = omg.player.loadedSounds[sound];                   
-            //source.connect(omg.player.context.destination);
-            if (source.start)
-                source.start(0);
-            else {
-            	source.noteOn(0);
-            	source.stop = function () {
-            		source.noteOff(0);
-            	};
-            } 
-
-            source.gain2 = omg.player.context.createGain();
-            source.connect(source.gain2);
-            source.gain2.connect(omg.player.context.destination);
-            
-            source.gain2.gain.value = volume; 
-
-            return source;
         }
     };
 
@@ -666,6 +706,7 @@ if (typeof omg != "object")
         	part.currentAudio = audio;
     };
 
+    
 
     p.playSound = function (sound, volume) {
         if (p.loadedSounds[sound] && 
