@@ -62,18 +62,17 @@ if (shareParam != null) {
 
 
 <div id="master" class="master">
+	<div class="artist">
+		<div class="album">
 			<div class="song">
 				<!--<div class="section">			
 					<div id="part2" class="part2"></div>
 				</div>-->	
 			</div>
-</div>
-	
-<!--	<div class="artist">
-		<div class="album">
 		</div>
 	</div>
--->
+</div>
+	
 
 
 <div id="bbody">
@@ -174,7 +173,42 @@ if (shareParam != null) {
 
 	</div>
 
+	<div id="album-option-panel" class="option-panel">
+
+		<div class="panel-option" id="play-album">Play</div>	
+		<div class="panel-option" id="share-album">Share</div>
+		<div class="panel-option" id="next-album">Next</div>				
+
+	</div>
+
+	<div id="album-editor" class="area">
+
+		<div class="remixer-caption">Album</div>
+
+		<div class="song" id="add-song-button"><br/><br/>+ Add Song</div>	
+		
+	</div>
 	
+	<div id="artist-view">
+
+		<div class="remixer-caption">Artist</div>
+
+		<div class="login-area">
+		<p>You aren't logged in. Don't lose your progess! Creating an account is easy.
+		
+		<a class="login-google-link" href=""><img align="middle" style="padding-bottom:10px;" src="img/signingoogle.png"/></a></p>
+		</div>
+
+		<div>Albums:</div>
+
+		<br/><br/><br/><br/><br/><br/><br/><br/>
+
+		<div>SoundSets:</div>
+		
+		<div class="album" id="add-album-button"><br/><br/>+ Add Album</div>	
+		<div class="soundset" id="add-soundset-button"><br/><br/>+ Add SoundSet</div>
+		
+	</div>
 	
 	<div id="share-zone" class="area">
 		<div class="remixer-caption">Share!</div>

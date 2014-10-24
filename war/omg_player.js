@@ -66,6 +66,10 @@ if (typeof omg != "object")
     	
     	
     	p.playingIntervalHandle = setInterval(function() {
+    		
+    		if (!p.playing)
+    			return;
+    		
             p.playBeat(p.song.sections[p.song.playingSection], 
             		p.iSubBeat);
 
@@ -405,7 +409,7 @@ if (typeof omg != "object")
                 	part.playingI = part.currentI;
                 	var playingI = part.playingI;
                 	setTimeout(function () {
-                		if (part.playingI == playingI) {
+                		if (part.osc && part.playingI == playingI) {
                 			part.osc.frequency.setValueAtTime(0, 0);
                 		}
                 	}, p.subbeats * note.beats * p.subbeatLength * 0.85);
@@ -736,6 +740,22 @@ if (typeof omg != "object")
 
 })();
 
+function OMGAlbum(div, data) {
+	this.div = div;
+	this.songs = [];
+	
+	if (data) {
+		this.data = data;
+		
+		for (var i = 0; i < data.songs.length; i++) {
+			this.songs.push(new OMGSong(null, data.songs[i]));
+		}
+	}
+	else {
+		this.data = {type: "ALBUM"};		
+	}
+}
+
 function OMGSong(div, data) {
 	this.div = div;
 	this.sections = [];
@@ -754,6 +774,7 @@ function OMGSong(div, data) {
 	
 	// key? tempo? yes, we need that shit
 };
+
 OMGSong.prototype.getData = function () {
 	this.data.sections = [];
 	for (var ip = 0; ip < this.sections.length; ip++) {
@@ -887,3 +908,10 @@ omg.player.fixSound  = function (tracks, kit) {
         tracks[0].sound = "PRESET_ROCK_KICK";        
     }
 };
+
+function OMGArtist(div, data) {
+	this.div = div;
+	
+	this.soundSets = [];
+	this.albums = [];
+}

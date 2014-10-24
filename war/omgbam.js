@@ -35,6 +35,9 @@ window.onload = function() {
 
 	bam.setupMelodyMaker();
 	bam.setupBeatMaker();
+
+	bam.setupAlbumEditor();
+	bam.setupArtistView();
 	
 	bam.setupSharer();
 	
@@ -501,14 +504,16 @@ function setupRemixer() {
 			// keep it rolling? maybe preference
 			// omg.remixer.stop();
 
-			bam.shrink(bam.section.div, bam.offsetLeft + position * 110, 125, 100, 300,
+			//bam.shrink(bam.section.div, bam.offsetLeft + position * 110, 125, 100, 300,
+			bam.section.partsAreClean = false;
+			bam.shrink(bam.section.div, bam.arrangeSections, null, null, null,
 					function() {
-						addButton.style.left = window.innerWidth + "px";
+						//addButton.style.left = window.innerWidth + "px";
 
-						bam.slideInOptions(omg.rearranger.addSectionButton,
-								null, 5 + sections * 110);
+						//bam.slideInOptions(omg.rearranger.addSectionButton,
+						//		null, 5 + sections * 110);
 						bam.slideUpOptions(omg.rearranger.options);
-						bam.fadeIn([ omg.rearranger ]);
+						bam.fadeIn([ omg.rearranger, omg.rearranger.addSectionButton ]);
 						bam.fadeIn(otherSections);
 
 						omg.player.play(bam.song);
@@ -639,6 +644,62 @@ function setupRearranger() {
 
 	};
 
+	omg.rearranger.nextButton = document.getElementById("next-song");
+	omg.rearranger.nextButton.onclick = function() {
+
+		if (omg.player.playing)
+			omg.player.stop();
+
+		if (typeof(bam.song.position) != "number") {
+			bam.album.songs.push(bam.song);
+		}
+		
+		omg.rearranger.hide(function () {
+			bam.shrink(bam.song.div, bam.arrangeSongs, null, null, null, function () {
+				bam.albumEditor.show(bam.song.div);
+				var song = bam.song;
+				song.div.onclick = function () {
+					bam.song = song;
+					song.div.onclick = undefined;
+					bam.albumEditor.hide(song.div, function () {
+						bam.grow(song.div, function () {
+							omg.rearranger.show();
+							omg.player.play(song);
+						});
+					});
+				};
+			});
+		});
+
+	};
+
+	omg.rearranger.hide = function (callback) {
+		bam.slideDownOptions(omg.rearranger.options);
+		var fadeOutList = [omg.rearranger]; 
+		bam.song.sections.forEach(function (section) {
+			if (section.beatMarker) {
+				section.div.removeChild(section.beatMarker);
+				section.beatMarker = undefined;
+			}
+			fadeOutList.push(section.div);
+		});
+		bam.fadeOut(fadeOutList, callback);
+		
+	};
+
+	omg.rearranger.show = function (callback) {
+		bam.slideUpOptions(omg.rearranger.options);
+		var fadeInList = [omg.rearranger]; 
+		bam.song.sections.forEach(function (section) {
+			if (section.beatMarker) {
+				//
+			}
+			fadeInList.push(section.div);
+		});
+		bam.fadeIn(fadeInList, callback);
+		bam.arrangeSections();
+	};
+
 }
 
 function cancelPart(part) {
@@ -760,13 +821,45 @@ bam.load = function (params)  {
 
 	var type = params ? params.type : "MELODY";
 
+	// to make the beginning as pretty as possible (no weird flickers)
+	// we whiteout the container divs and add their color after 
+	// the current zone is setup
+	var artistBG;
+	var songBG;
+	var sectionBG;
+	var albumBG;
+	var restoreColors = function () {
+		bam.artist.div.style.backgroundColor = artistBG;
+		bam.album.div.style.backgroundColor = albumBG;
+		if (bam.song)
+			bam.song.div.style.backgroundColor = songBG;
+		if (bam.section)
+			bam.section.div.style.backgroundColor = sectionBG;
+	};
+
+	var artistDiv = bam.div.getElementsByClassName("artist")[0];
+	bam.artist = new OMGArtist(artistDiv);
+	bam.zones.push(artistDiv);
+	
+	artistBG = window.getComputedStyle(bam.artist.div, null).backgroundColor;
+	bam.artist.div.style.backgroundColor = "white";
+	bam.artist.div.style.display = "block";
+	
+	var albumDiv = bam.div.getElementsByClassName("album")[0];
+	bam.album = new OMGAlbum(albumDiv);
+	bam.zones.push(albumDiv);
+	
+	albumBG = window.getComputedStyle(bam.album.div, null).backgroundColor;
+	bam.album.div.style.backgroundColor = "white";
+	bam.album.div.style.display = "block";
+
 	var songDiv = bam.div.getElementsByClassName("song")[0];
 	bam.song = new OMGSong(songDiv);
 	bam.song.loop = true;
 	bam.zones.push(songDiv);
 	
 	if (type == "SONG") {
-		bam.fadeIn([songDiv, omg.rearranger, omg.rearranger.addSectionButton]);
+		bam.fadeIn([songDiv, omg.rearranger, omg.rearranger.addSectionButton], restoreColors);
 		bam.slideUpOptions(omg.rearranger.options);
 		getOMG(params, function(result) {
 			var newSection;
@@ -785,26 +878,15 @@ bam.load = function (params)  {
 	newDiv.className = "section";
 	bam.song.div.appendChild(newDiv);
 	bam.section = new OMGSection(newDiv);
-	//bam.song.sections.push(bam.section);
 	bam.zones.push(newDiv);
 
-	// to make the beginning as pretty as possible (no weird flickers)
-	// we whiteout the container divs and add their color after 
-	// the current zone is setup
-	var songBG = window.getComputedStyle(bam.song.div, null).backgroundColor;
-	var sectionBG = window.getComputedStyle(bam.section.div, null).backgroundColor;
+	songBG = window.getComputedStyle(bam.song.div, null).backgroundColor;
 	bam.song.div.style.backgroundColor = "white";
 	bam.song.div.style.display = "block";
-	var restoreColors = function () {
-		bam.song.div.style.backgroundColor = songBG;
-		bam.section.div.style.backgroundColor = sectionBG;
-	};
-	
+
 	if (type == "SECTION") {
 		
-		bam.fadeIn([bam.section.div, omg.remixer], function () {
-			bam.song.div.style.backgroundColor = songBG;
-		});
+		bam.fadeIn([bam.section.div, omg.remixer], restoreColors);
 		getOMG(params, function(result) {
 			var newPart;
 			var newParts = [];
@@ -820,6 +902,7 @@ bam.load = function (params)  {
 		return;
 	}
 
+	sectionBG = window.getComputedStyle(bam.section.div, null).backgroundColor;
 	bam.section.div.style.backgroundColor = "white";
 	bam.section.div.style.display = "block";
 	
@@ -1282,32 +1365,21 @@ bam.shrink = function(div, x, y, w, h, callback) {
 	// remove us from the zone hierarchy
 	bam.zones.pop();
 
+	div.style.borderWidth = "2px";
+	div.style.borderRadius = "8px";
+	div.style.cursor = "pointer";
+	
+	if (typeof(x) == "function") {
+		x(callback);
+		return;
+	}
+	
 	var originalH = div.clientHeight;
 	var originalW = div.clientWidth;
 	var originalX = div.offsetLeft;
 	var originalY = div.offsetTop;
 
 	var startedAt = Date.now();
-
-	var children;
-	var child;
-	if (div.className === "section") {
-		children = [];
-		var parts = div.getElementsByClassName("part2");
-		for (var ip = 0; ip < parts.length; ip++) {
-			child = {
-				div : parts.item(ip)
-			};
-			child.originalH = child.div.clientHeight;
-			child.originalW = child.div.clientWidth;
-			child.originalX = child.div.offsetLeft;
-			child.originalY = child.div.offsetTop;
-
-			bam.setTargetsSmallParts(child, ip, parts.length, w, h);
-
-			children.push(child);
-		}
-	}
 
 	var interval = setInterval(function() {
 		var now = Date.now() - startedAt;
@@ -1318,21 +1390,6 @@ bam.shrink = function(div, x, y, w, h, callback) {
 
 		div.style.width = originalW + (w - originalW) * now + "px";
 		div.style.height = originalH + (h - originalH) * now + "px";
-
-		if (children) {
-			for (ip = 0; ip < children.length; ip++) {
-				child = children[ip];
-				child.div.style.left = child.originalX
-						+ (child.targetX - child.originalX) * now + "px";
-				child.div.style.top = child.originalY
-						+ (child.targetY - child.originalY) * now + "px";
-				child.div.style.width = child.originalW
-						+ (child.targetW - child.originalW) * now + "px";
-				child.div.style.height = child.originalH
-						+ (child.targetH - child.originalH) * now + "px";
-
-			}
-		}
 
 		if (now == 1) {
 			clearInterval(interval);
@@ -1346,7 +1403,7 @@ bam.shrink = function(div, x, y, w, h, callback) {
 bam.grow = function(div, callback) {
 
 	bam.zones.push(div);
-
+	
 	var originalH = div.clientHeight;
 	var originalW = div.clientWidth;
 	var originalX = div.offsetLeft;
@@ -1383,12 +1440,12 @@ bam.grow = function(div, callback) {
 		var now = Date.now() - startedAt;
 		var now = Math.min(1, now / bam.animLength);
 
-		div.style.left = originalX + (-5 - originalX) * now + "px";
-		div.style.top = originalY + (-5 - originalY) * now + "px";
+		div.style.left = originalX + (0 - originalX) * now + "px";
+		div.style.top = originalY + (0 - originalY) * now + "px";
 
-		div.style.width = originalW + (window.innerWidth + 10 - originalW)
+		div.style.width = originalW + (window.innerWidth - originalW)
 				* now + "px";
-		div.style.height = originalH + (window.innerHeight + 10 - originalH)
+		div.style.height = originalH + (window.innerHeight - originalH)
 				* now + "px";
 
 		if (children) {
@@ -1408,6 +1465,8 @@ bam.grow = function(div, callback) {
 
 		if (now == 1) {
 			clearInterval(interval);
+			div.style.borderWidth = "0px";
+			div.style.borderRadius = "0px";
 			div.style.cursor = "auto";
 			if (callback)
 				callback();
@@ -1486,53 +1545,49 @@ bam.arrangeParts = function(callback) {
 	}, 1000 / 60);
 };
 
-bam.arrangeSectionsHandle = -1;
-bam.arrangeSections = function(callback) {
+bam.arrangeSongsHandle = -1;
+bam.arrangeSongs = function(callback) {
 
-	if (bam.arrangeSectionsHandle > 0) {
-		clearInterval(bam.arrangeSectionsHandle);
+	if (bam.arrangeSongsHandle > -1) {
+		clearInterval(bam.arrangeSongsHandle);
 	}
-	
-	var div = bam.song.div;
-
-	if (!div.slidLeft)
-		div.slidLeft = 0;	
+	var div = bam.album.div;
 
 	var children;
 	var child;
 
 	children = [];
-	//var parts = div.getElementsByClassName("section");
-	var sections = bam.song.sections;
-	for (var ip = 0; ip < sections.length; ip++) {
-		sections[ip].position = ip; 
+	var songs = div.getElementsByClassName("song");
+	for (var isong = 0; isong < songs.length; isong++) {
 		child = {
-			div : sections[ip].div
+			div : songs.item(isong)
 		};
-		child.originalH = child.div.clientHeight;
-		child.originalW = child.div.clientWidth;
+		child.originalH = child.div.clientHeight - 8; // 8 for padding
+		child.originalW = child.div.clientWidth - 8; // 8 for padding
 		child.originalX = child.div.offsetLeft;
 		child.originalY = child.div.offsetTop;
 
-		child.targetX = bam.offsetLeft + ip * 110 - div.slidLeft;
-		child.targetY = 125;
-		child.targetW = 100;
-		child.targetH = 300;
+		child.targetX = bam.offsetLeft - div.offsetLeft;
+		child.targetY = 88 + isong * 96;
+		child.targetW = 600;
+		child.targetH = 80;
 
 		children.push(child);
+
+		// hide sections?
 	}
 
 	child = {
-		div : omg.rearranger.addSectionButton
+		div : bam.albumEditor.addButton
 	};
-	child.originalH = 14; // padding does the rest;
-	child.originalW = 60; // padding does the rest;
-	child.originalX = child.div.offsetLeft;
+	child.originalH = child.div.clientHeight;
+	child.originalW = 640;
+	child.originalX = 4;
 	child.originalY = child.div.offsetTop;
-	child.targetX = 5 + bam.song.sections.length * 110 - div.slidLeft;
-	child.targetY = child.originalY;
-	child.targetW = child.originalW;
-	child.targetH = child.originalH;
+	child.targetX = 0;
+	child.targetY = 64 + Math.max(0.6, songs.length) * 96;
+	child.targetW = 600;
+	child.targetH = 80;
 	children.push(child);
 
 	var startedAt = Date.now();
@@ -1558,12 +1613,199 @@ bam.arrangeSections = function(callback) {
 
 		if (now == 1) {
 			clearInterval(interval);
+			bam.arrangeSongsHandle = -1;
+			if (callback)
+				callback();
+		}
+	}, 1000 / 60);
+	bam.arrangeSongsHandle = interval;
+
+};
+
+
+bam.arrangeSectionsHandle = -1;
+bam.arrangeSections = function(callback) {
+
+	if (bam.arrangeSectionsHandle > 0) {
+		clearInterval(bam.arrangeSectionsHandle);
+	}
+	
+	var div = bam.song.div;
+
+	if (!div.slidLeft)
+		div.slidLeft = 0;	
+
+	var children;
+	var child;
+	var grandchild;
+
+	children = [];
+	var parts ;
+	var sections = bam.song.sections;
+	for (var ip = 0; ip < sections.length; ip++) {
+		sections[ip].position = ip; 
+		child = {
+			div : sections[ip].div
+		};
+		child.originalH = child.div.clientHeight;
+		child.originalW = child.div.clientWidth;
+		child.originalX = child.div.offsetLeft;
+		child.originalY = child.div.offsetTop;
+
+		child.targetX = bam.offsetLeft + ip * 110 - div.slidLeft;
+		child.targetY = 125;
+		child.targetW = 100;
+		child.targetH = 300;
+
+		children.push(child);
+
+		if (!sections[ip].partsAreClean) {
+			sections[ip].partsAreClean = true;
+			
+			child.children = [];
+			parts = child.div.getElementsByClassName("part2");
+			for (var ipp = 0; ipp < parts.length; ipp++) {
+				grandchild = {
+					div : parts.item(ipp)
+				};
+				grandchild.originalH = grandchild.div.clientHeight;
+				grandchild.originalW = grandchild.div.clientWidth;
+				grandchild.originalX = grandchild.div.offsetLeft;
+				grandchild.originalY = grandchild.div.offsetTop;
+
+				bam.setTargetsSmallParts(grandchild, ipp, parts.length, child.targetW, child.targetH);
+
+				child.children.push(grandchild);
+			}
+		}
+	}
+
+	child = {
+		div : omg.rearranger.addSectionButton
+	};
+	child.originalH = 14; // padding does the rest;
+	child.originalW = 60; // padding does the rest;
+	child.originalX = child.div.offsetLeft;
+	child.originalY = child.div.offsetTop;
+	child.targetX = 5 + bam.song.sections.length * 110 - div.slidLeft;
+	child.targetY = 103; //child.originalY;
+	child.targetW = child.originalW;
+	child.targetH = child.originalH;
+	children.push(child);
+
+	var startedAt = Date.now();
+
+	var interval = setInterval(function() {
+		var now = Date.now() - startedAt;
+		var now = Math.min(1, now / bam.animLength);
+
+		for (var ip = 0; ip < children.length; ip++) {
+			child = children[ip];
+			child.div.style.left = child.originalX
+					+ (child.targetX - child.originalX) * now + "px";
+			child.div.style.top = child.originalY
+					+ (child.targetY - child.originalY) * now + "px";
+			child.div.style.width = child.originalW
+					+ (child.targetW - child.originalW) * now + "px";
+			child.div.style.height = child.originalH
+					+ (child.targetH - child.originalH) * now + "px";
+		
+			if (child.children) {
+				var gchild;
+				for (var ipp = 0; ipp < child.children.length; ipp++) {
+					gchild = child.children[ipp];
+					gchild.div.style.left = gchild.originalX
+							+ (gchild.targetX - gchild.originalX) * now + "px";
+					gchild.div.style.top = gchild.originalY
+							+ (gchild.targetY - gchild.originalY) * now + "px";
+					gchild.div.style.width = gchild.originalW
+							+ (gchild.targetW - gchild.originalW) * now + "px";
+					gchild.div.style.height = gchild.originalH
+							+ (gchild.targetH - gchild.originalH) * now + "px";
+
+				}
+				
+			}
+		}
+
+		if (now == 1) {
+			clearInterval(interval);
 			if (callback)
 				callback();
 		}
 	}, 1000 / 60);
 	bam.arrangeSectionsHandle = interval;
 };
+
+
+bam.arrangeArtistViewHandle = -1;
+bam.arrangeArtistView = function(callback) {
+
+	if (bam.arrangeArtistViewHandle > 0) {
+		clearInterval(bam.arrangeArtistViewHandle);
+	}
+	
+	var div = bam.artist.div;
+
+	var albums = bam.artist.albums;
+
+	var albumTargets = bam.makeTargets(albums, function (target, ia) {
+		console.log(ia);
+		target.targetX = bam.offsetLeft + ia * 185;
+		target.targetY = 272;
+		target.targetW = 175;
+		target.targetH = 90;		
+	});
+
+	var soundSetTargets = bam.makeTargets(bam.artist.soundSets, function (target, ia) {
+		target.targetX = bam.offsetLeft + ia * 110;
+		target.targetY = 325;
+		target.targetW = 100;
+		target.targetH = 300;		
+	});
+
+	var children = albumTargets.concat(soundSetTargets);
+
+	var child = {div : bam.artistView.addAlbumButton};
+	
+	child.originalH = 14; // padding does the rest;
+	child.originalW = 60; // padding does the rest;
+	child.originalX = child.div.offsetLeft;
+	child.originalY = child.div.offsetTop;
+	child.targetX = albumTargets.length * 185;
+	child.targetY = 250; //child.originalY;
+	child.targetW = 175;
+	child.targetH = 90;
+	children.push(child);
+
+	var startedAt = Date.now();
+
+	var interval = setInterval(function() {
+		var now = Date.now() - startedAt;
+		var now = Math.min(1, now / bam.animLength);
+
+		for (var ip = 0; ip < children.length; ip++) {
+			child = children[ip];
+			child.div.style.left = child.originalX
+					+ (child.targetX - child.originalX) * now + "px";
+			child.div.style.top = child.originalY
+					+ (child.targetY - child.originalY) * now + "px";
+			child.div.style.width = child.originalW
+					+ (child.targetW - child.originalW) * now + "px";
+			child.div.style.height = child.originalH
+					+ (child.targetH - child.originalH) * now + "px";
+		
+		}
+
+		if (now == 1) {
+			clearInterval(interval);
+			if (callback)
+				callback();
+		}
+	}, 1000 / 60);
+	bam.arrangeArtistViewHandle = interval;
+};
+
 
 bam.slideOutOptions = function(div, callback) {
 
@@ -1618,7 +1860,7 @@ bam.slideInOptions = function(div, callback, target) {
 	if (target != undefined)
 		targetLeft = target;
 	else
-		targetLeft = 680;
+		targetLeft = 670;
 	var originalX = window.innerWidth;
 
 	var startedAt = Date.now();
@@ -1779,6 +2021,7 @@ bam.createElementOverElement = function(classname, button) {
 
 	var newPartDiv = document.createElement("div");
 	newPartDiv.className = classname;
+	console.log(button.parentElement);
 	newPartDiv.style.left = offsets.left + "px";
 	newPartDiv.style.top = offsets.top + "px";
 	newPartDiv.style.width = button.clientWidth + "px";
@@ -1847,6 +2090,8 @@ bam.reachTarget = function(div, target) {
 bam.setupSectionDiv = function(section) {
 	
 	section.setup = true;
+	
+	section.div.style.cursor = "pointer";
 	
 	var addButton = omg.rearranger.addSectionButton;
 	var removeButton = document.getElementById("remove-section-button");
@@ -1996,7 +2241,6 @@ bam.setupSectionDiv = function(section) {
 				bam.song.sections.push(bam.copySection(section));
 			}
 			if (overRemove) {
-				console.log(section.position);
 				bam.song.sections.splice(section.position, 1);
 				bam.song.div.removeChild(section.div);
 				bam.arrangeSections();
@@ -2221,4 +2465,113 @@ bam.sectionZoneBeatPlayed = function (isubbeat) {
 		if (part.canvas)
 			part.canvas.update(isubbeat);
 	});
+};
+
+bam.setupAlbumEditor = function () {
+	bam.albumEditor = document.getElementById("album-editor");
+
+	bam.albumEditor.options = document.getElementById("album-option-panel");
+	
+	bam.albumEditor.addButton = document.getElementById("add-song-button");
+	bam.albumEditor.addButton.onclick = function () {
+		var songDiv = bam.createElementOverElement("song", bam.albumEditor.addButton);
+		songDiv.style.display = "block";
+		bam.album.div.appendChild(songDiv);
+		bam.albumEditor.hide(songDiv, function () {
+
+			songDiv.style.borderWidth = "2px";
+			songDiv.style.borderRadius = "8px";
+
+			bam.song = new OMGSong(songDiv);
+			
+			bam.grow(songDiv, function () {
+				omg.rearranger.show();
+			});
+		});
+	};
+	
+	bam.albumEditor.show = function (exceptSong, callback) {
+		var fadeInList = [bam.albumEditor, bam.albumEditor.addButton];
+		bam.album.songs.forEach(function (song) {
+			if (!exceptSong || exceptSong != song.div) {
+				fadeInList.push(song.div);				
+			}
+		});
+		bam.fadeIn(fadeInList, callback);
+		bam.slideInOptions(bam.albumEditor.options);
+		bam.arrangeSongs();
+	};
+	bam.albumEditor.hide = function (exceptSong, callback) {
+		var fadeOutList = [bam.albumEditor, bam.albumEditor.addButton];
+		bam.album.songs.forEach(function (song) {
+			if (!exceptSong || exceptSong != song.div) {
+				fadeOutList.push(song.div);				
+			}
+		});
+		
+		bam.fadeOut(fadeOutList, callback);
+		bam.slideOutOptions(bam.albumEditor.options);
+	};
+
+	bam.albumEditor.nextButton = document.getElementById("next-album");
+	bam.albumEditor.nextButton.onclick = function () {
+		if (!bam.album.position)
+			bam.artist.albums.push(bam.album);
+		
+		bam.albumEditor.hide(null, function () {
+			bam.shrink(bam.album.div, bam.arrangeArtistView, 0, 0, 0, function () {
+				bam.fadeIn([bam.artistView]);
+			});
+
+		});
+	};
+	
+};
+
+bam.setupArtistView = function () {
+	bam.artistView = document.getElementById("artist-view");
+	
+	bam.artistView.addAlbumButton = document.getElementById("add-album-button");
+	bam.artistView.addAlbumButton.onclick = function () {
+		
+		var albumDiv = bam.createElementOverElement("album", 
+				bam.artistView.addAlbumButton);
+
+		bam.album = new OMGAlbum(albumDiv);
+		bam.artist.div.appendChild(albumDiv);
+		
+		albumDiv.style.display = "block";
+		albumDiv.style.borderRadius = "8px";
+		albumDiv.style.borderWidth = "2px";
+				
+		bam.artistView.hide(albumDiv, function () {
+			bam.grow(albumDiv, function () {
+				bam.albumEditor.show();
+			});			
+		});		
+	};
+	
+	bam.artistView.hide = function (except, callback) {
+		bam.fadeOut([bam.artistView], callback);
+	};
+};
+
+bam.makeTargets = function (thingsOfAType, setTarget) {
+	var children = []; 
+	thingsOfAType.forEach(function (thing, ii) {
+		thing.position = ii; 
+		
+		child = {div : thing.div};
+		
+		child.originalH = child.div.clientHeight;
+		child.originalW = child.div.clientWidth;
+		child.originalX = child.div.offsetLeft;
+		child.originalY = child.div.offsetTop;
+		
+		setTarget(child, ii);
+		
+		children.push(child);
+	});
+	
+	return children;
 };

@@ -26,14 +26,44 @@ html, body {
 	overflow-y:hidden;
 }
 
+.artist {	
+	position:absolute;
+	background-color:white;
+	height:100%;
+	width:100%;
+	left:0px;
+	top:0px;
+	overflow-x:hidden;	
+	overflow-y:hidden;
+	display:none;
+	border:0px solid black;
+	
+}
+
+.album {	
+	position:absolute;
+	background-color:#CC99FF;
+	height:100%;
+	width:100%;
+	left:0px;
+	top:0px;
+	overflow-x:hidden;	
+	overflow-y:hidden;
+	display:none;
+	border:0px solid black;
+	
+}
 .song {	
 	position:absolute;
 	background-color:#99FF99;
 	height:100%;
 	width:100%;
+	left:0px;
+	top:0px;
 	overflow-x:hidden;	
 	overflow-y:hidden;
 	display:none;
+	border:0px solid black;	
 }
 .section {
 	background-color:#99AAFF;
@@ -181,20 +211,7 @@ h1 {
 }
 
 
-#remixer-add-buttons {
-	position:absolute;
-	left:9px;
-}
-.remixer-add-button {
-	background-color:#FFFF99;
-	display:inline-block;
-	padding:40px 20px;
-	width:160px;
-	border-radius:8px;
-	border:2px solid black;
-	text-align:center;
-	margin:0px;
-}
+
 
 
 
@@ -557,11 +574,11 @@ h1 {
 }
 
 
-#rearranger {
+#artist-view, #album-editor, #rearranger {
 	display:none;
 }
 
-#play-section, #play-mm, #play-song {
+#play-album, #play-section, #play-mm, #play-song {
 	border-radius:120px;
 	padding:40px;
 	width:30px;
@@ -570,14 +587,14 @@ h1 {
 }
 
 
-#mm-options {
+#mm-options, #album-option-panel {
 	display:none;
 }
 
-#next-mm, #remixer-next, #finish-share {
+#next-album, #next-mm, #remixer-next, #finish-share {
 	background-color:#99FF99;
 }
-#next-mm:hover, #remixer-next:hover, #finish-share:hover {
+#next-album:hover, #next-mm:hover, #remixer-next:hover, #finish-share:hover {
 	background-color:#33FF33;
 }
 #next-song {
@@ -609,8 +626,17 @@ h1 {
 	width:60px;
 	height:14px;
 	padding:133px 20px 153px 20px;
+	
+}
+
+#add-album-button, #add-soundset-button, #add-section, 
+	#add-song-button, #remixer-add-bassline, 
+	#remixer-add-melody, #remixer-add-drumbeat {
 	text-align:center;
 	cursor:pointer;
+	border-radius:8px;
+	border:2px dotted black;
+	display:block;
 }
 
 #clear-song {
@@ -651,6 +677,29 @@ h1 {
 
 #remove-section-button {
 	width:200px;
-	height:80px
+	/*height:80px;*/
 	background-color:#FFCCCC;
+}
+
+
+#remixer-add-buttons {
+	position:absolute;
+	left:0px;
+}
+.remixer-add-button {
+	background-color:#FFFF99;
+	display:inline-block !important;
+	padding:40px 20px;
+	width:160px;
+	margin:0px;
+}
+
+.login-area {
+	border:1px dotted red;
+	border-radius:8px;
+	background-color:#FFFF99;
+	padding:10px;
+	margin:10px;
+	text-align:center;
+	font-size:15pt;
 }

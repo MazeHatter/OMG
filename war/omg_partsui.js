@@ -1160,7 +1160,6 @@ OMGMelodyMaker.prototype.onDisplay = function () {
 			} else {
 				if (omgmm.hasDataCallback) {
 					omgmm.hasDataCallback();
-					//bam.slideInOptions(omgmm.options);
 				}
 			}
 
