@@ -63,7 +63,8 @@ html, body {
 	overflow-x:hidden;	
 	overflow-y:hidden;
 	display:none;
-	border:0px solid black;	
+	border:0px solid black;
+		
 }
 .section {
 	background-color:#99AAFF;
@@ -702,4 +703,17 @@ h1 {
 	margin:10px;
 	text-align:center;
 	font-size:15pt;
+}
+
+
+.artist-list-caption {
+	position:absolute;
+}
+
+#albums-list-caption {
+	top:220px;
+}
+
+#soundsets-list-caption {
+	top:350px;
 }

@@ -446,6 +446,27 @@ omg.postOMG = function (type, data, callback) {
 			+ encodeURIComponent(JSON.stringify(data)));
 };
 
+omg.util.getUser = function (callback) {
+
+	if (typeof(omg.url) != "string")
+		omg.url = "";
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", omg.url + "/artist", true);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
+			console.log(xhr.responseText);
+			var results = JSON.parse(xhr.responseText);
+			if (callback)
+				callback(results);
+
+		}
+	}
+	xhr.send();
+};
+
+
+//WTF is this? Arnold code?
 omg.util.setOnMove = function (element, callback) {
 
 	if (callback) {

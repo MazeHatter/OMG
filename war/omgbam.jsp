@@ -5,10 +5,12 @@ String loginUrl = "";
 String logoutUrl = "";
 UserHelper user = new UserHelper();
 loginUrl = user.getLoginUrl();
+String userId = "";
 if (user.isLoggedIn()){
 	hasUser = true;
 	userName = user.getName();
 	logoutUrl = user.getLogoutUrl();
+	userId = user.getUserId();
 }
 
 String shareParam = request.getParameter("share");
@@ -19,8 +21,7 @@ if (shareParam != null) {
 	String tempType = type.toUpperCase().substring(0, 1) + type.toLowerCase().substring(1);
 	type = tempType;
 }
-%>
-<!DOCTYPE html>
+%><!DOCTYPE html>
 
 <html>
 <head>
@@ -37,6 +38,16 @@ if (shareParam != null) {
 <% } else { %>
 <title>OMG Bam!</title>   
 <% } %>
+
+<script>
+
+<%if (hasUser) { %>
+//var omguser = {"userId": <%= userId%>};
+<% } else { %>
+//var omguser = {"loginUrl": "<%= loginUrl%>"};
+<% } %>
+
+</script>
 <link rel="stylesheet" href="omgbam.css" type="text/css" />
 </head>
 
@@ -199,14 +210,12 @@ if (shareParam != null) {
 		<a class="login-google-link" href=""><img align="middle" style="padding-bottom:10px;" src="img/signingoogle.png"/></a></p>
 		</div>
 
-		<div>Albums:</div>
+		<div id="albums-list-caption" class="artist-list-caption">Albums:</div>
 
-		<br/><br/><br/><br/><br/><br/><br/><br/>
-
-		<div>SoundSets:</div>
+		<!--<div id="soundsets-list-caption" class="artist-list-caption">SoundSets:</div>-->
 		
 		<div class="album" id="add-album-button"><br/><br/>+ Add Album</div>	
-		<div class="soundset" id="add-soundset-button"><br/><br/>+ Add SoundSet</div>
+		<!--<div class="soundset" id="add-soundset-button"><br/><br/>+ Add SoundSet</div>-->
 		
 	</div>
 	

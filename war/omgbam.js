@@ -96,7 +96,8 @@ window.onload = function() {
 		if (bam.zones[bam.zones.length - 1] == bam.song.div) {
 			bam.arrangeSections();
 		}
-		if (bam.zones[bam.zones.length - 1] == bam.section.div) {
+		if (bam.section && bam.section.div && 
+				bam.zones[bam.zones.length - 1] == bam.section.div) {
 			bam.arrangeParts();
 		}
 	};
@@ -1750,7 +1751,6 @@ bam.arrangeArtistView = function(callback) {
 	var albums = bam.artist.albums;
 
 	var albumTargets = bam.makeTargets(albums, function (target, ia) {
-		console.log(ia);
 		target.targetX = bam.offsetLeft + ia * 185;
 		target.targetY = 272;
 		target.targetW = 175;
@@ -2021,7 +2021,7 @@ bam.createElementOverElement = function(classname, button) {
 
 	var newPartDiv = document.createElement("div");
 	newPartDiv.className = classname;
-	console.log(button.parentElement);
+
 	newPartDiv.style.left = offsets.left + "px";
 	newPartDiv.style.top = offsets.top + "px";
 	newPartDiv.style.width = button.clientWidth + "px";
@@ -2515,12 +2515,39 @@ bam.setupAlbumEditor = function () {
 
 	bam.albumEditor.nextButton = document.getElementById("next-album");
 	bam.albumEditor.nextButton.onclick = function () {
-		if (!bam.album.position)
-			bam.artist.albums.push(bam.album);
 		
+		// if we don't have an artist loaded, now's the time to do that
+		
+		/*omg.postOMG("ALBUM", bam.albumEditor.getData(), function(response) {
+			if (response && response.result == "good") {
+				part.id = response.id;
+			}
+		});*/
+
+		
+		if (typeof(bam.album.position) != "number")
+			bam.artist.albums.push(bam.album);
+
+		var album = bam.album;
+
 		bam.albumEditor.hide(null, function () {
 			bam.shrink(bam.album.div, bam.arrangeArtistView, 0, 0, 0, function () {
 				bam.fadeIn([bam.artistView]);
+				
+
+				album.div.onclick = function() {
+					bam.album = album;
+					album.div.onclick = undefined;
+					
+					bam.artistView.hide(album.div, function () {
+						bam.grow(album.div, function () {
+							bam.albumEditor.show()
+							//omg.rearranger.show();
+							//omg.player.play(song);
+						});
+					});
+
+				};
 			});
 
 		});
@@ -2530,6 +2557,30 @@ bam.setupAlbumEditor = function () {
 
 bam.setupArtistView = function () {
 	bam.artistView = document.getElementById("artist-view");
+
+	var setupLoginArea = function () {
+		if (typeof(omguser.artistId) == "number" && omguser.artistId > 0) {
+			loginArea.style.display = "none";
+		}
+		else {
+			var googleLink = loginArea.getElementsByClassName("login-google-link")[0];
+			googleLink.href = omguser.loginUrl;
+		}
+	};
+	
+	
+	var loginArea = bam.artistView.getElementsByClassName("login-area")[0];
+	if (typeof(omguser) == "object") {
+		setupLoginArea();
+	} 
+	else {
+		omg.util.getUser(function (user) {
+			// um, this is a global variable right?
+			// good thing strict mode isn't on
+			omguser = user;
+			setupLoginArea();
+		});
+	}
 	
 	bam.artistView.addAlbumButton = document.getElementById("add-album-button");
 	bam.artistView.addAlbumButton.onclick = function () {
