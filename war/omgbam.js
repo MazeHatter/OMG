@@ -30,6 +30,8 @@ window.onload = function() {
 	bam.div = document.getElementById("master");
 	bam.zones = [];
 
+	bam.loginArea = document.getElementById("login-zone");
+
 	setupRemixer();
 	setupRearranger();
 
@@ -37,7 +39,6 @@ window.onload = function() {
 	bam.setupBeatMaker();
 
 	bam.setupAlbumEditor();
-	bam.setupArtistView();
 	
 	bam.setupSharer();
 	
@@ -83,7 +84,17 @@ window.onload = function() {
 		}
 	});
 
-	bam.load(getLoadParams());
+	omg.util.getUser(function (user) {
+		// um, this is a global variable right?
+		// good thing strict mode isn't on
+		//bam.artist.data = user;
+		
+		bam.setupArtistView();
+
+		bam.load(getLoadParams());
+		
+
+	});
 
 	window.onresize = function() {
 		bam.offsetLeft = document.getElementById("bbody").offsetLeft;
@@ -648,30 +659,76 @@ function setupRearranger() {
 	omg.rearranger.nextButton = document.getElementById("next-song");
 	omg.rearranger.nextButton.onclick = function() {
 
+		var callbackHasBeenCalled = false;
+		var callbackReady = false;
+		var saveCallback = 	function () {
+			
+			if (omg.util.hasRealAccount()) {
+				bam.shrink(bam.song.div, bam.arrangeSongs, null, null, null, function () {
+					bam.albumEditor.show(bam.song.div);
+					var song = bam.song;
+					song.div.onclick = function () {
+						bam.song = song;
+						song.div.onclick = undefined;
+						bam.albumEditor.hide(song.div, function () {
+							bam.grow(song.div, function () {
+								omg.rearranger.show();
+								omg.player.play(song);
+							});
+						});
+					};
+				});
+			}
+			else {
+			
+				omg.util.setCookie("unsavedsong", bam.song.id, 1);
+
+				// TODO this might need some work
+				bam.fadeIn([bam.loginArea]);
+				var googleLink = bam.loginArea.getElementsByClassName("login-google-link")[0];
+				googleLink.href = omg.util.user.loginUrl;
+
+				var cancelLink = bam.loginArea.getElementsByClassName("login-cancel")[0];
+				cancelLink.onclick = function () {
+					bam.fadeOut([bam.loginArea], function () {
+						omg.rearranger.show();	
+					});
+				};
+
+			}
+		};
+
+		
 		if (omg.player.playing)
 			omg.player.stop();
 
 		if (typeof(bam.song.position) != "number") {
 			bam.album.songs.push(bam.song);
+
+			//TODO this should update if it already exists
+			omg.postOMG("SONG", bam.song.getData(), function(response) {
+				if (response && response.result == "good") {
+					bam.song.id = response.id;
+					if (callbackReady) {
+						saveCallback();
+					}
+					else {
+						callbackReady = true;
+					}
+				}
+			});
+
 		}
 		
-		omg.rearranger.hide(function () {
-			bam.shrink(bam.song.div, bam.arrangeSongs, null, null, null, function () {
-				bam.albumEditor.show(bam.song.div);
-				var song = bam.song;
-				song.div.onclick = function () {
-					bam.song = song;
-					song.div.onclick = undefined;
-					bam.albumEditor.hide(song.div, function () {
-						bam.grow(song.div, function () {
-							omg.rearranger.show();
-							omg.player.play(song);
-						});
-					});
-				};
-			});
-		});
 
+		omg.rearranger.hide(function () {
+			if (callbackReady) {
+				saveCallback();
+			}			
+			else {
+				callbackReady = true;
+			}
+		});
 	};
 
 	omg.rearranger.hide = function (callback) {
@@ -841,6 +898,23 @@ bam.load = function (params)  {
 	var artistDiv = bam.div.getElementsByClassName("artist")[0];
 	bam.artist = new OMGArtist(artistDiv);
 	bam.zones.push(artistDiv);
+
+	bam.artist.data = omg.util.user;
+	
+	if (typeof(omg.util.hasRealAccount())) {
+		bam.fadeIn([artistDiv, bam.artistView]);
+		var newAlbum;
+		var newAlbums = [];
+		for (var ip = 0; ip < bam.artist.data.albums.length; ip++) {
+			newAlbums.push(bam.makeAlbum(bam.artist.data.albums[ip]).div);
+		};
+		bam.fadeIn(newAlbums);
+		bam.arrangeArtistView();
+			
+		return;
+		
+	}
+	
 	
 	artistBG = window.getComputedStyle(bam.artist.div, null).backgroundColor;
 	bam.artist.div.style.backgroundColor = "white";
@@ -2297,6 +2371,51 @@ bam.setupSectionDiv = function(section) {
 	};
 }
 
+bam.setupAlbumDiv = function(album) {
+	
+	album.setup = true;
+	
+	album.div.style.cursor = "pointer";
+	album.div.style.borderWidth = "2px";
+	album.div.style.borderRadius = "8px";
+	
+	album.div.onclick = function() {
+
+		var fadeOutList2 = [];
+		var otherSectionList = bam.artist.div.getElementsByClassName("album");
+		for (var ii = 0; ii < otherSectionList.length; ii++) {
+			if (otherSectionList.item(ii) != album.div)
+				fadeOutList2.push(otherSectionList.item(ii));
+			else
+				album.position = ii;
+		}
+		fadeOutList2.push(bam.artistView);
+
+		bam.slideDownOptions(omg.rearranger.options);
+		bam.fadeOut(fadeOutList2, function() {
+			bam.grow(album.div, function() {				
+
+				bam.album = album;
+
+				var fadeInList = [ bam.albumEditor ];
+				var controls;
+				/*for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
+					controls = bam.section.parts[ip].controls;
+					if (!controls) {
+						setupPartDiv(bam.section.parts[ip]);
+					}
+					fadeInList.push(bam.section.parts[ip].controls);
+				}*/
+				bam.fadeIn(fadeInList);
+
+				bam.slideInOptions(bam.albumEditor.options);
+				//omg.remixer.refresh();
+			});
+		});
+		album.div.onclick = null;
+	};
+};
+
 bam.makePart = function (data) {
 	
 	var newDiv = document.createElement("div");
@@ -2358,6 +2477,48 @@ bam.makeSection = function (data, small) {
 	bam.fadeIn(newParts);
 	return section;
 };
+
+bam.makeAlbum = function (data) {
+	
+	var newDiv = document.createElement("div");
+	newDiv.className = "album";
+	newDiv.style.display = "block";
+	bam.artist.div.appendChild(newDiv);
+
+	var album = new OMGAlbum(newDiv);
+	album.data = data;
+	bam.artist.albums.push(album);
+
+	//I think makeParts() wants this
+	bam.album = album;
+	
+	/* code copied from makeSectino()	 
+	 parts should be songs
+	 
+	var newPart;
+	var newParts = [];
+	var newPartDiv;
+	for (var ip = 0; ip < data.parts.length; ip++) {
+		newPart = bam.makePart(data.parts[ip]);
+		
+		if (newPart) {
+			newPartDiv = newPart.div;
+			newParts.push(newPartDiv);	
+
+			newPart.controls.style.display = "none";
+			targets = bam.setTargetsSmallParts(null, ip, data.parts.length,
+					newDiv.clientWidth, newDiv.clientHeight);
+			
+			bam.reachTarget(newPartDiv, targets);
+		}
+	}*/
+	
+	bam.setupAlbumDiv(album);
+	
+	//bam.fadeIn(newParts);
+	return album;
+};
+
 
 bam.setupSharer = function () {
 	
@@ -2517,16 +2678,19 @@ bam.setupAlbumEditor = function () {
 	bam.albumEditor.nextButton.onclick = function () {
 		
 		// if we don't have an artist loaded, now's the time to do that
-		
-		/*omg.postOMG("ALBUM", bam.albumEditor.getData(), function(response) {
-			if (response && response.result == "good") {
-				part.id = response.id;
-			}
-		});*/
 
-		
-		if (typeof(bam.album.position) != "number")
+		//TODO is based on position, should be id?
+		if (typeof(bam.album.position) != "number") {
 			bam.artist.albums.push(bam.album);
+			
+			omg.postAlbum({test: true} || bam.albumEditor.getData(), function(response) {
+				if (response && response.result == "good") {
+					console.log("good!?");
+					bam.album.data.id = response.id;
+				}
+			});
+
+		}
 
 		var album = bam.album;
 
@@ -2557,30 +2721,6 @@ bam.setupAlbumEditor = function () {
 
 bam.setupArtistView = function () {
 	bam.artistView = document.getElementById("artist-view");
-
-	var setupLoginArea = function () {
-		if (typeof(omguser.artistId) == "number" && omguser.artistId > 0) {
-			loginArea.style.display = "none";
-		}
-		else {
-			var googleLink = loginArea.getElementsByClassName("login-google-link")[0];
-			googleLink.href = omguser.loginUrl;
-		}
-	};
-	
-	
-	var loginArea = bam.artistView.getElementsByClassName("login-area")[0];
-	if (typeof(omguser) == "object") {
-		setupLoginArea();
-	} 
-	else {
-		omg.util.getUser(function (user) {
-			// um, this is a global variable right?
-			// good thing strict mode isn't on
-			omguser = user;
-			setupLoginArea();
-		});
-	}
 	
 	bam.artistView.addAlbumButton = document.getElementById("add-album-button");
 	bam.artistView.addAlbumButton.onclick = function () {

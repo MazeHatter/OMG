@@ -204,12 +204,6 @@ if (shareParam != null) {
 
 		<div class="remixer-caption">Artist</div>
 
-		<div class="login-area">
-		<p>You aren't logged in. Don't lose your progess! Creating an account is easy.
-		
-		<a class="login-google-link" href=""><img align="middle" style="padding-bottom:10px;" src="img/signingoogle.png"/></a></p>
-		</div>
-
 		<div id="albums-list-caption" class="artist-list-caption">Albums:</div>
 
 		<!--<div id="soundsets-list-caption" class="artist-list-caption">SoundSets:</div>-->
@@ -231,6 +225,17 @@ if (shareParam != null) {
 
 		<div class="panel-option" id="finish-share">Back</div>
 		
+	</div>
+
+
+	<div id="login-zone" class="area">
+		<div class="login-area">
+		<p>You aren't logged in. Don't lose your progess! Creating an account is easy.</p>
+		
+		<a class="login-google-link" href=""><img align="middle" style="padding-bottom:10px;" src="img/signingoogle.png"/></a>
+		
+		<p><a class="login-cancel" href="javascript:void(0)">Go back to playing...</a></p>
+		</div>
 	</div>
 
 

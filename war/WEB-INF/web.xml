@@ -23,6 +23,15 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	</servlet-mapping>
 
 	<servlet>
+		<servlet-name>Album</servlet-name>
+		<servlet-class>com.monadpad.omg.AlbumServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Album</servlet-name>
+		<url-pattern>/album</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
 		<servlet-name>MOTD</servlet-name>
 		<servlet-class>com.monadpad.omg.MOTDServlet</servlet-class>
 	</servlet>

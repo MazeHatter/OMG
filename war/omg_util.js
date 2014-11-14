@@ -455,14 +455,44 @@ omg.util.getUser = function (callback) {
 	xhr.open("GET", omg.url + "/artist", true);
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState == 4) {
-			console.log(xhr.responseText);
+			
 			var results = JSON.parse(xhr.responseText);
+			omg.util.user = results;
 			if (callback)
 				callback(results);
 
 		}
 	}
 	xhr.send();
+};
+
+omg.util.hasRealAccount = function () {
+	return omg.util.user && omg.util.user.isLoggedIn;
+};
+
+omg.postAlbum = function (data, callback) {
+
+	if (typeof(omg.url) != "string")
+		omg.url = "";
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", omg.url + "/album", true);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4) {
+
+			console.log(xhr.responseText);
+			var results = JSON.parse(xhr.responseText);
+			if (results.result == "good") {
+				data.id = results.id;
+				if (callback)
+					callback(results);
+			}
+
+		}
+	}
+	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhr.send("data="
+			+ encodeURIComponent(JSON.stringify(data)));
 };
 
 

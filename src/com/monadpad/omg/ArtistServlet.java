@@ -42,112 +42,88 @@ public class ArtistServlet extends HttpServlet {
 			isAdmin = userService.isUserAdmin();
 		}
 
-		// if no google user, maybe temp user in a cookie
-		boolean hasTempUser = false;
-		String tempUserId = "";
+	    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+
+		boolean hasUnsavedSong = false;
+		String tempSongId = "";
 		Cookie cookie = null;
 	    Cookie[] allcookies = req.getCookies();
 
 	    if (allcookies != null) {
 	        for(int i = 0; i < allcookies.length; i++){
                 cookie = allcookies[i];
-                if (cookie.getName().equals("tmpusr")) {
+                if (cookie.getName().equals("unsavedsong")) {
                 	if (!cookie.getValue().equals("-1")) {
-                		hasTempUser = true;
-                		tempUserId = cookie.getValue();
+                		hasUnsavedSong = true;
+                		tempSongId = cookie.getValue();
                 		break;
                 	}
                 }
             }
 	    }
 
-	    DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 
 	    long artistId = -1;
-	    String artistName = "temp_user";
-	    boolean isTempUser = false;
-	    
-	    if (!hasGoogleUser && !hasTempUser) {
-			Entity newUser = new Entity("ARTIST");
-			long newUserId = ds.put(newUser).getId();
-	    
-			Cookie userCookie = new Cookie("tmpusr", Long.toString(newUserId));
-			userCookie.setMaxAge(60*60*24*10); // 10 days 
-			resp.addCookie(userCookie);
-			
-			isTempUser = true;
-	    }
-	    else if (!hasGoogleUser && hasTempUser) {
-	    	Key artistKey = KeyFactory.createKey("ARTIST", Long.parseLong(tempUserId));
-	    	try {
-	    		Entity artist = ds.get(artistKey);
-	    	}
-	    	catch (EntityNotFoundException ectp) {
-	    		
-	    	}
-	    	
-	    	isTempUser = true;
-	    }
-	    else if (hasGoogleUser && hasTempUser) {
+	    String artistName = "unnamed";
+	    Entity artist = null;
+	    if (hasGoogleUser) {
 	    	String userid = userService.getCurrentUser().getUserId();
 	    	artistName = userService.getCurrentUser().getNickname();
-
-	    	// link the google user id with the tempuser and delete the cookie
-	    	Key tempArtistKey = KeyFactory.createKey("ARTIST", Long.parseLong(tempUserId));
-	    	Entity tempArtist;
-	    	try {
-	    		tempArtist = ds.get(tempArtistKey);
-	    	}
-	    	catch (EntityNotFoundException ectp) {
-	    		tempArtist = new Entity("Artist", tempArtistKey);
-	    	}
-
-	    	// make sure this google user doesn't already have an account
+	    	
 			Query quser = new Query("ARTIST");
-			quser.addFilter("userid", Query.FilterOperator.EQUAL, 
-					userid);
-			Entity oldartist = ds.prepare(quser).asSingleEntity();
-			if (oldartist != null) {
-				//TODO MERGE the old and temp artists!
-				artistId = oldartist.getKey().getId();
-				artistName = (String)oldartist.getProperty("name");
+			quser.addFilter("userid", Query.FilterOperator.EQUAL, userid);
+			artist = ds.prepare(quser).asSingleEntity();
+			if (artist != null) {
+				artistId = artist.getKey().getId();
+				artistName = (String)artist.getProperty("name");
 			}
 			else {
-				tempArtist.setProperty("userid", userid);
-				tempArtist.setProperty("name",  artistName);
-	    		artistId = ds.put(tempArtist).getId();				
+				artist = new Entity("ARTIST");
+				artist.setProperty("userid", userid);
+				artist.setProperty("name",  artistName);
+	    		artistId = ds.put(artist).getId();				
 			}
-    	
-    		if (cookie != null) {
+
+    		if (hasUnsavedSong && cookie != null) {
+
+    			try {
+        			Entity song = ds.get(KeyFactory.createKey("SONG", Long.parseLong(tempSongId)));    				
+
+        			StringBuilder sb = new StringBuilder();
+        			sb.append("{songs: [");
+        			sb.append(song.getProperty("data"));
+        			sb.append("]}");
+        			
+        			Entity album = new Entity("ALBUM");
+        			album.setProperty("name", "New Album");
+        			album.setProperty("data", new Text(sb.toString()));
+        			album.setProperty("votes", 0);
+        			album.setProperty("time", System.currentTimeMillis());
+        			album.setProperty("artistId", artistId);
+
+        			Key albumKey = ds.put(album);
+
+        			//TODO this will overwrite existing albums?
+        			
+        			sb = new StringBuilder();
+        			sb.append("{\"name\": \"New Album\", \"id\": ");
+        			sb.append(albumKey.getId());
+        			sb.append("}");
+
+        			artist.setProperty("albums", new Text(sb.toString()));
+        			ds.put(artist);
+    			}
+    			catch (EntityNotFoundException exp) {
+    				
+    			}
+    			
 	    		cookie.setValue("-1");
     			cookie.setMaxAge(0);
     			resp.addCookie(cookie);
     		}	
-	    }
-	    else if (hasGoogleUser) {
-			String userid = userService.getCurrentUser().getUserId(); 
 
-			Query quser = new Query("ARTIST");
-			quser.addFilter("userid", Query.FilterOperator.EQUAL, 
-					userid);
-			Entity euser = ds.prepare(quser).asSingleEntity();
-			
-			if (euser == null) {
-				artistName = userService.getCurrentUser().getNickname();	
-				
-				euser = new Entity("ARTIST");
-				euser.setProperty("userid", userid);
-				euser.setProperty("name", artistName);
-				artistId = ds.put(euser).getId();
-				
-			}
-			else {
-				artistId = euser.getKey().getId();
-				artistName = (String)euser.getProperty("name");
-			}
-	    	
 	    }
-	    
+    	
 
 		PrintWriter pw = resp.getWriter();
 		pw.write("{\"isLoggedIn\" : ");
@@ -169,8 +145,11 @@ public class ArtistServlet extends HttpServlet {
 			pw.write(Long.toString(artistId));
 			pw.write(", \"artistName\" : \"");
 			pw.write(artistName);
-			pw.write("\"");
-			
+			pw.write("\", \"albums\" : [");
+			if (artist.hasProperty("albums")) {
+				pw.write(((Text)artist.getProperty("albums")).getValue());
+			}
+			pw.write("]");
 		}
 		
 		pw.write("}");

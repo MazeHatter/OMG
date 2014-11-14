@@ -356,6 +356,10 @@ h1 {
 	display:none;
 }
 
+#login-zone {
+	display:none;
+	margin-top:90px;
+}
 #dialog-border {
 	display:none;
 	position:fixed;

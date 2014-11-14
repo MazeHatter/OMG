@@ -1,5 +1,8 @@
 package com.monadpad.omg;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 
@@ -35,5 +38,14 @@ public class UserHelper {
 	
 	public String getUserId() {
 		return userService.getCurrentUser().getUserId();
+	}
+	
+	public Entity getArtist(DatastoreService ds) {
+    	// make sure this google user doesn't already have an account
+		Query quser = new Query("ARTIST");
+		quser.addFilter("userid", Query.FilterOperator.EQUAL, getUserId());
+		Entity artist = ds.prepare(quser).asSingleEntity();
+
+		return artist;
 	}
 }
