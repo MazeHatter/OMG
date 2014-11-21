@@ -31,6 +31,7 @@ public class ArtistServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 
+		resp.addHeader("Access-Control-Allow-Origin", "http://omgbam.com");
 
 		// first, check to see if we have a google user
 		boolean hasGoogleUser = false;
@@ -145,12 +146,12 @@ public class ArtistServlet extends HttpServlet {
 
 		if (!hasGoogleUser) {
 			pw.write(", \"loginUrl\" : \"");
-			pw.write(userService.createLoginURL("/"));
+			pw.write(userService.createLoginURL(req.getHeader("Referer")));
 			pw.write("\"");
 		}
 		else {
 			pw.write(", \"logoutUrl\" : \"");
-			pw.write(userService.createLogoutURL("/"));
+			pw.write(userService.createLogoutURL(req.getHeader("Referer")));
 			pw.write("\"");
 
 			pw.write(", \"artistId\" : ");

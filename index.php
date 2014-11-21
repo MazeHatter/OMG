@@ -38,25 +38,26 @@ else {
 		(Try an updated Chrome, Safari, or FireFox for sound.)
 	</div> 
 
-	<span id="omg-title"><a href="/">omgbam.com</a> by 
-		<a href="http://openmusicgallery.net">openmusicgallery.net</a></span>
+	<a id="login-link" href="">Login</a> <a href="" id="logout-link">Logout</a> 
 
 	<div id="topbarright">
 	<a href="http://github.com/MazeHatter/OMG">source_code</a>
-	<a href="http://reddit.com/r/openmusic">feeback&dicussion</a>
+	<a href="http://reddit.com/r/openmusic">forum</a>
+	<a href="http://openmusicgallery.com">about</a>
 	</div>
 
 </div>
 
+
 <div id="master" class="master">
 	<div class="artist">
-		<div class="album">
+<!--		<div class="album"> -->
 			<div class="song">
 				<!--<div class="section">			
 					<div id="part2" class="part2"></div>
 				</div>-->	
 			</div>
-		</div>
+<!--		</div>   -->
 	</div>
 </div>
 	
@@ -81,8 +82,8 @@ else {
 
 	<div id="melody-maker" class="area">
 	
-		<div class="remixer-caption" id="melody-maker-caption">Melody</div>
-		
+		<div class="remixer-caption" id="melody-maker-caption">Melody</div>	
+	
 		<canvas id="melody-maker-canvas">
 		</canvas>
 
@@ -136,7 +137,7 @@ else {
 
 	<div id="rearranger">
 
-		<div class="remixer-caption">Song</div>
+		<div class="remixer-caption">Song <input class="entity-name" value="unnamed"/></div>
 		
 		<div class="remixer-area" id="rearranger-area">
 					
@@ -161,7 +162,46 @@ else {
 
 	</div>
 
+	<div id="album-option-panel" class="option-panel">
+
+		<div class="panel-option" id="play-album">Play</div>	
+		<div class="panel-option" id="share-album">Share</div>
+		<div class="panel-option" id="next-album">Next</div>				
+
+	</div>
+
+	<div id="album-editor" class="area">
+
+		<div class="remixer-caption">Album <input class="entity-name" value="unnamed"/></div>
+
+		<div class="song" id="add-song-button"><br/><br/>+ Add Song</div>	
+		
+	</div>
 	
+	<div id="artist-view">
+
+		<div class="remixer-caption">Artist <input class="entity-name" value="unnamed"/></div>
+
+		<!--<div class="artist-list-caption">about me:</div>
+		<hr/>
+		<textarea class="artist-about"></textarea>
+
+		<br/>
+		<br/>
+		
+		<div id="soundsets-list-caption" class="artist-list-caption">SoundSets:</div>
+		<hr/>
+		<div id="albums-list-caption" class="artist-list-caption">Albums:</div>
+		<hr/>
+		-->
+
+		<div id="songs-list-caption" class="artist-list-caption">Songs:</div>
+		<hr/>
+		
+		<div class="song" id="add-album-button"><br/>+ Add Song</div>	
+		<!--<div class="soundset" id="add-soundset-button"><br/><br/>+ Add SoundSet</div>-->
+		
+	</div>
 	
 	<div id="share-zone" class="area">
 		<div class="remixer-caption">Share!</div>
@@ -176,6 +216,17 @@ else {
 		<div class="panel-option" id="finish-share">Back</div>
 				
 		
+	</div>
+
+
+	<div id="login-zone" class="area">
+		<div class="login-area">
+		<p>You aren't logged in. Don't lose your progess! Creating an account is easy.</p>
+		
+		<a class="login-google-link" href=""><img align="middle" style="padding-bottom:10px;" src="img/signingoogle.png"/></a>
+		
+		<p><a class="login-cancel" href="javascript:void(0)">Go back to playing...</a></p>
+		</div>
 	</div>
 
 

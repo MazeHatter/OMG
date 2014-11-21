@@ -91,12 +91,12 @@ window.onload = function() {
 		if (user.isLoggedIn) {
 			loginLink.style.display = "none";
 			logoutLink.style.display = "inline";
-			logoutLink.href = user.logoutUrl + location.pathname.substring(1);
+			logoutLink.href = user.logoutUrl;
 		}
 		else {
 			loginLink.style.display = "inline";
 			logoutLink.style.display = "none";
-			loginLink.href = user.loginUrl + location.pathname.substring(1);
+			loginLink.href = user.loginUrl;
 		}
 
 		
@@ -900,7 +900,7 @@ bam.load = function (params)  {
 	var albumBG;
 	var restoreColors = function () {
 		bam.artist.div.style.backgroundColor = artistBG;
-		bam.album.div.style.backgroundColor = albumBG;
+		//bam.album.div.style.backgroundColor = albumBG;
 		if (bam.song)
 			bam.song.div.style.backgroundColor = songBG;
 		if (bam.section)
@@ -967,7 +967,6 @@ bam.load = function (params)  {
 	var newDiv = document.createElement("div");
 	newDiv.className = "section";
 	bam.song.div.appendChild(newDiv);
-	bam.section = new OMGSection(newDiv);
 	bam.zones.push(newDiv);
 
 	songBG = window.getComputedStyle(bam.song.div, null).backgroundColor;
@@ -976,12 +975,15 @@ bam.load = function (params)  {
 
 	if (type == "SECTION") {
 		
-		bam.fadeIn([bam.section.div, omg.remixer], restoreColors);
+		bam.fadeIn([newDiv, omg.remixer], restoreColors);
 		omg.get(params, function(result) {
+			
+			bam.section = new OMGSection(newDiv, result.data);
+
 			var newPart;
 			var newParts = [];
-			for (var ip = 0; ip < result.data.parts.length; ip++) {
-				newPart = bam.makePart(result.data.parts[ip]);
+			for (var ip = 0; ip < bam.section.parts.length; ip++) {
+				newPart = bam.makePartDiv(bam.section.parts[ip]);
 				if (newPart)
 					newParts.push(newPart.div);
 			};
@@ -991,6 +993,8 @@ bam.load = function (params)  {
 		bam.slideInOptions(omg.remixer.options);
 		return;
 	}
+
+	bam.section = new OMGSection(newDiv);
 
 	sectionBG = window.getComputedStyle(bam.section.div, null).backgroundColor;
 	bam.section.div.style.backgroundColor = "white";

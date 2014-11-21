@@ -185,7 +185,7 @@
 
 #melody-of-the-day {width:300px; display:none;}
 
-#omg-overview {left:-600px;}
+#omg-overview {left:-600px; width:380px;}
 
 #overview-screen {background-color:black; height:400px; 
 	border-radius:2px;
@@ -193,11 +193,14 @@
 	padding-top:12px;}
 	
 .overview-option,.overview-option-holder {
-	width:130px;
-	display:inline-block;
+	width:330px;
+	/*display:inline-block;*/
+	background-color:white;
 	border-radius:3px;
 	border:1px solid #808080;
 	cursor:pointer;
+	margin:10px;
+	padding:10px;
 }
 
 .overview-option-holder {
