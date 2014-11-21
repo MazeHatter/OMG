@@ -63,10 +63,12 @@ if (shareParam != null) {
 		(Try an updated Chrome, Safari, or FireFox for sound.)
 	</div> 
 
-	<span id="omg-title"><a href="/"><b>o</b>pen<b>m</b>usic<b>g</b>allery.net</a></span>
+	<a id="login-link" href="">Login</a> <a href="" id="logout-link">Logout</a> 
 
 	<div id="topbarright">
-	<a href="http://reddit.com/r/openmusic">feeback&dicussion</a>
+	<a href="http://github.com/MazeHatter/OMG">source_code</a>
+	<a href="http://reddit.com/r/openmusic">forum</a>
+	<a href="http://openmusicgallery.com">about</a>
 	</div>
 
 </div>
@@ -74,13 +76,13 @@ if (shareParam != null) {
 
 <div id="master" class="master">
 	<div class="artist">
-		<div class="album">
+<!--		<div class="album"> -->
 			<div class="song">
 				<!--<div class="section">			
 					<div id="part2" class="part2"></div>
 				</div>-->	
 			</div>
-		</div>
+<!--		</div>   -->
 	</div>
 </div>
 	
@@ -159,7 +161,7 @@ if (shareParam != null) {
 
 	<div id="rearranger">
 
-		<div class="remixer-caption">Song</div>
+		<div class="remixer-caption">Song <input class="entity-name" value="unnamed"/></div>
 		
 		<div class="remixer-area" id="rearranger-area">
 					
@@ -194,7 +196,7 @@ if (shareParam != null) {
 
 	<div id="album-editor" class="area">
 
-		<div class="remixer-caption">Album</div>
+		<div class="remixer-caption">Album <input class="entity-name" value="unnamed"/></div>
 
 		<div class="song" id="add-song-button"><br/><br/>+ Add Song</div>	
 		
@@ -202,13 +204,25 @@ if (shareParam != null) {
 	
 	<div id="artist-view">
 
-		<div class="remixer-caption">Artist</div>
+		<div class="remixer-caption">Artist <input class="entity-name" value="unnamed"/></div>
 
-		<div id="albums-list-caption" class="artist-list-caption">Albums:</div>
+		<!--<div class="artist-list-caption">about me:</div>
+		<hr/>
+		<textarea class="artist-about"></textarea>
 
-		<!--<div id="soundsets-list-caption" class="artist-list-caption">SoundSets:</div>-->
+		<br/>
+		<br/>
 		
-		<div class="album" id="add-album-button"><br/><br/>+ Add Album</div>	
+		<div id="soundsets-list-caption" class="artist-list-caption">SoundSets:</div>
+		<hr/>
+		<div id="albums-list-caption" class="artist-list-caption">Albums:</div>
+		<hr/>
+		-->
+
+		<div id="songs-list-caption" class="artist-list-caption">Songs:</div>
+		<hr/>
+		
+		<div class="song" id="add-album-button"><br/>+ Add Song</div>	
 		<!--<div class="soundset" id="add-soundset-button"><br/><br/>+ Add SoundSet</div>-->
 		
 	</div>

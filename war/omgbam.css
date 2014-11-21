@@ -6,6 +6,11 @@ html, body {
 	height:100%;
 }
 
+hr {
+	border-top:1px solid gray;
+	border-bottom:0px;
+}
+
 #bbody {
 	width:1024px;
 	margin:auto;
@@ -231,7 +236,7 @@ h1 {
 
 .remixer-caption {
 	/*text-align:center;*/
-	font: 28px Helvetica, arial, freesans, clean, sans-serif;
+	font: 24px Helvetica, arial, freesans, clean, sans-serif;
 	padding:18px;  
 }
 
@@ -699,6 +704,7 @@ h1 {
 	margin:0px;
 }
 
+
 .login-area {
 	border:1px dotted red;
 	border-radius:8px;
@@ -711,7 +717,7 @@ h1 {
 
 
 .artist-list-caption {
-	position:absolute;
+	font-family: "Times New Roman", Times, serif
 }
 
 #albums-list-caption {
@@ -721,3 +727,32 @@ h1 {
 #soundsets-list-caption {
 	top:350px;
 }
+
+.entity-name {
+	font-family:"Arial Black", Gadget, sans-serif;
+	margin:1px;
+	border-width:0px;
+	font-size:24pt;
+	background: transparent;
+}
+
+.entity-name:hover {
+	border-width:1px;
+	margin:0px;
+}
+
+.artist-about {
+	font-family:"Arial Black", Gadget, sans-serif;
+	margin:1px;
+	border-width:0px;
+	font-size:16pt;
+	height:120px;
+	width:100%;
+}
+
+.artist-about:hover {
+	border-width:1px;
+	margin:0px;
+}
+
+#logout-link {display:none;}

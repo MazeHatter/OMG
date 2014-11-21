@@ -11,6 +11,7 @@ import javax.servlet.http.*;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -30,23 +31,31 @@ public class OMGServlet extends HttpServlet {
 			throws IOException {
 		resp.setContentType("text/plain");
 		resp.addHeader("Access-Control-Allow-Origin", "http://omgbam.com");
-		  
+
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		
+		Long artistId = 0l;
 		String userId = "";
 		String collection = req.getParameter("collection");
 		if (collection == null || collection.length() == 0) {
 			collection = "Saved";
 		}
 		UserHelper userInfo = new UserHelper();
+		Entity artist = null;
 		if (userInfo.isLoggedIn()){
 			userId = userInfo.getUserId();
+			
+			artist = userInfo.getArtist(ds);
+			artistId = artist.getKey().getId();
 		}
 
-		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		Entity te = null;
 
+		String name = req.getParameter("name");
 		String type = req.getParameter("type");
 		String tags = req.getParameter("tags");
 		String data = req.getParameter("data");
+		String id = req.getParameter("id");
 
 		if (type == null || type.length() == 0) {
 			resp.getWriter().print("{\"result\": \"bad\"");
@@ -79,29 +88,81 @@ public class OMGServlet extends HttpServlet {
 			return;
 		}
 
-		Entity counts = ds.prepare(new Query("Counts")).asSingleEntity();
-
-		counts.setProperty(type, 
-				(Long)counts.getProperty(type) + 1);
-
+		boolean addNew = true;
+		if (type.equals("SONG") && id != null && id.length() > 0 && artistId > 0) {
+			Key entityKey = KeyFactory.createKey(type, Long.parseLong(id));
+			try {
+				te = ds.get(entityKey);
+				long songArtist = (Long)te.getProperty("artistId");
+				if (artistId == songArtist) {
+					addNew = false;					
+				}
+			} catch (EntityNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 		long now = System.currentTimeMillis();
 
-		counts.setProperty("last", new Text(data));
-		counts.setProperty("last_time", now);
+		Entity counts = null;
+		if (addNew) {
+			counts = ds.prepare(new Query("Counts")).asSingleEntity();
 
+			counts.setProperty(type, 
+					(Long)counts.getProperty(type) + 1);
 
-		te = new Entity(type);
+			counts.setProperty("last", new Text(data));
+			counts.setProperty("last_time", now);
+
+			te = new Entity(type);
+			te.setProperty("votes", 0);
+			te.setProperty("firsttime", now);
+			
+			if (artistId > 0)
+				te.setProperty("artistId", artistId);
+		}
 
 		te.setProperty("type", type);
+
+		if (tags == null)
+			tags = "";
+
+		if (name == null)
+			name = "";
+
+		te.setProperty("name", name);
 		te.setProperty("tags", tags);
 		te.setProperty("data", new Text(data));
-		te.setProperty("votes", 0);
 		te.setProperty("time", now);
 
 		Key key = ds.put(te);
 		if (key != null) {
 
-			if (userId.length() > 0) {
+			if (type.equals("SONG") && addNew && artistId > 0) {
+				StringBuilder albumsData = new StringBuilder();
+				
+				Text albumsJsonText = (Text)artist.getProperty("songs");
+				if (albumsJsonText != null) {
+					String albumsJson = albumsJsonText.getValue();
+					if (albumsJson.length() > 0) {
+						albumsData.append(albumsJson);
+						albumsData.append(",");
+					}
+				}
+				
+				//albumsData.append(data);
+				albumsData.append("{\"name\": \"");
+				albumsData.append(name);
+				albumsData.append("\", \"id\": ");
+				albumsData.append(key.getId());
+				albumsData.append("}");
+				
+				artist.setProperty("songs", new Text(albumsData.toString()));
+
+				ds.put(artist);
+
+			}
+			
+			/*if (userId.length() > 0) {
 				Query quser = new Query("user");
 				quser.addFilter("userid", FilterOperator.EQUAL, userId);
 				Entity euser = ds.prepare(quser).asSingleEntity();
@@ -134,10 +195,11 @@ public class OMGServlet extends HttpServlet {
 					ds.put(ecollection);
 
 				}
-			}
+			}*/
 
 
-			ds.put(counts);
+			if (counts != null)
+				ds.put(counts);
 
 			resp.getWriter().print("{\"result\": \"good\", \"id\": ");
 			resp.getWriter().print(Long.toString(key.getId()));

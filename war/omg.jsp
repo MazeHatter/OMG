@@ -136,8 +136,158 @@ var loggedIn = true;
 			</p>
 		</div>
 		
-	</div>
+</div>
+<script>
+/**************************************************
+ * OVERVIEW sequence
+ * 
+ * this is horribly tied to the UI, ugh
+ * 
+ */
+omg.util.startOverview = function (callback) {
 	
+	var playingOverview = true;
+	var dd = omg.getEl("omg-overview");
+	//var overview = new Panel(dd);
+	//overview.slideIn({finalX:20});
+
+	var timebar = document.createElement("div");
+	timebar.className = "timebar";
+
+	var step1text = document.getElementById("overview-step1");
+	var step2text = document.getElementById("overview-step2");
+	var step3text = document.getElementById("overview-step3");
+	var step4text = document.getElementById("overview-step4");
+	var step5text = document.getElementById("overview-step5");
+	var logintext = document.getElementById("overview-login");
+
+	var sectionA = document.getElementById("overview-section-a");
+	var sectionB = document.getElementById("overview-section-b");
+	var sectionC = document.getElementById("overview-section-c");
+	var sectionD = document.getElementById("overview-section-d");
+	var sectionE = document.getElementById("overview-section-e");
+	
+	var partsGraphics = document.getElementById("overview-parts");
+	
+	var overviewSong = document.getElementById("overview-song");
+	
+
+	var screen = document.getElementById("overview-screen");
+	
+	var lastScreen = function () {
+		sectionA.style.display = "none";
+		sectionB.style.display = "none";
+		sectionC.style.display = "none";
+		sectionD.style.display = "none";
+		sectionE.style.display = "none";
+		
+		step1text.style.display = "none";
+		step2text.style.display = "none";
+		step3text.style.display = "none";
+//		step4text.style.display = "none";
+
+		overviewSong.style.display = "none";
+		partsGraphics.style.display = "none";
+
+		step5text.style.display = "block";
+		omg.util.fade({div: step5text, fadeIn: true, callback: function () {
+			if (callback)
+				callback();
+		}});
+
+	};
+
+	var skipButton = document.getElementById("overview-skip");
+	skipButton.onclick = function () {
+		playingOverview = false;
+		screen.style.backgroundColor = "rgb(255,255,255)";
+		lastScreen();
+	};
+
+	var phase2 = function () {
+		
+		if (!playingOverview)
+			return;
+		
+		omg.util.fade({div: timebar, remove: true});
+
+		omg.util.fade({div: step1text, remove: true});
+		omg.util.fade({div: step2text, remove: true});
+		omg.util.fade({div: step3text, remove: true});
+		//omg.util.fade({div: step4text, remove: true});
+		
+		omg.util.fade({div: sectionA, remove: true});
+		omg.util.fade({div: sectionB, remove: true});
+		omg.util.fade({div: sectionC, remove: true});
+		omg.util.fade({div: sectionD, remove: true});
+		omg.util.fade({div: sectionE, remove: true, 
+			callback: lastScreen });
+	};
+
+	setTimeout(function () {
+
+		if (!playingOverview)
+			return;
+
+		var turnOnScreenAt = Date.now();
+		var screenInterval = setInterval(function () {
+			var percent = parseInt(255 * Math.min(1, (Date.now() - turnOnScreenAt) / 1000));
+			screen.style.backgroundColor = "rgb(" + percent +"," + percent +"," + percent + ")";
+			
+			if (percent == 255) {
+				clearInterval(screenInterval);
+				setTimeout(function () {
+					omg.util.fade({div:step1text, fadeIn: true});		
+					omg.util.fade({div: partsGraphics, fadeIn: true}); 					
+				}, 2000);
+			}
+		}, 1000/60);
+	}, 500);
+	
+	setTimeout(function () {
+		
+		if (!playingOverview)
+			return;
+
+		omg.util.fade({div: partsGraphics, remove: true, length:2000, 
+			callback: function () {
+				
+				if (!playingOverview)
+					return;
+
+				omg.util.fade({div:step2text, fadeIn: true});
+				omg.util.fade({div: sectionC, fadeIn: true});		
+			}});
+			
+	}, 6200);
+			
+	
+	setTimeout(function () {
+		if (!playingOverview)
+			return;
+
+		omg.util.fade({div:step3text, fadeIn: true});
+		omg.util.fade({div:sectionA, fadeIn: true, length: 1500});
+		omg.util.fade({div:sectionB, fadeIn: true, length: 1500});
+		omg.util.fade({div:sectionD, fadeIn: true, length: 1500});
+		omg.util.fade({div:sectionE, fadeIn: true, length: 1500});
+		
+		setTimeout(function () {
+
+			if (!playingOverview)
+				return;
+
+			screen.appendChild(timebar);
+			timebar.style.top = sectionA.offsetTop - 13 + "px";
+			omg.util.slide({div: timebar, finalX: timebar.offsetLeft + 375, 
+				length: 3000, callback: phase2});
+
+		}, 1000);
+	}, 10400);
+
+
+};
+</script>	
 	<hr/>
 	<div class="try-details"><span class="overview-try">Try:</span> <a name="make_a_section"></a>
 		Select a Melody, Bassline, and Drumbeat to create a Section.</div>

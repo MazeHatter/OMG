@@ -88,10 +88,17 @@ public class ArtistServlet extends HttpServlet {
 
     			try {
         			Entity song = ds.get(KeyFactory.createKey("SONG", Long.parseLong(tempSongId)));    				
+    				song.setProperty("artistId", artistId);
+    				ds.put(song);
 
+    				String name = (String)song.getProperty("name"); 
+    				if (name == null) {
+    					name = "";
+    				}
+    				
         			StringBuilder sb = new StringBuilder();
-        			sb.append("{songs: [");
-        			sb.append(song.getProperty("data"));
+        			/*sb.append("{\"songs\" : [");
+        			sb.append(((Text)song.getProperty("data")).getValue());
         			sb.append("]}");
         			
         			Entity album = new Entity("ALBUM");
@@ -102,15 +109,20 @@ public class ArtistServlet extends HttpServlet {
         			album.setProperty("artistId", artistId);
 
         			Key albumKey = ds.put(album);
-
-        			//TODO this will overwrite existing albums?
+        			sb = new StringBuilder();*/
         			
-        			sb = new StringBuilder();
-        			sb.append("{\"name\": \"New Album\", \"id\": ");
-        			sb.append(albumKey.getId());
+        			if (artist.hasProperty("songs")) {
+        				sb.append(((Text)artist.getProperty("songs")).getValue());
+        				sb.append(", ");
+        			}
+        			
+        			sb.append("{\"name\": \"");
+        			sb.append(name);
+        			sb.append("\", \"id\": ");
+        			sb.append(tempSongId);
         			sb.append("}");
-
-        			artist.setProperty("albums", new Text(sb.toString()));
+        			
+        			artist.setProperty("songs", new Text(sb.toString()));
         			ds.put(artist);
     			}
     			catch (EntityNotFoundException exp) {
@@ -150,6 +162,13 @@ public class ArtistServlet extends HttpServlet {
 				pw.write(((Text)artist.getProperty("albums")).getValue());
 			}
 			pw.write("]");
+
+			pw.write(", \"songs\" : [");
+			if (artist.hasProperty("songs")) {
+				pw.write(((Text)artist.getProperty("songs")).getValue());
+			}
+			pw.write("]");
+
 		}
 		
 		pw.write("}");

@@ -85,9 +85,20 @@ window.onload = function() {
 	});
 
 	omg.util.getUser(function (user) {
-		// um, this is a global variable right?
-		// good thing strict mode isn't on
-		//bam.artist.data = user;
+
+		var loginLink = document.getElementById("login-link");
+		var logoutLink = document.getElementById("logout-link");
+		if (user.isLoggedIn) {
+			loginLink.style.display = "none";
+			logoutLink.style.display = "inline";
+			logoutLink.href = user.logoutUrl + location.pathname.substring(1);
+		}
+		else {
+			loginLink.style.display = "inline";
+			logoutLink.style.display = "none";
+			loginLink.href = user.loginUrl + location.pathname.substring(1);
+		}
+
 		
 		bam.setupArtistView();
 
@@ -569,6 +580,7 @@ function setupRearranger() {
 
 	omg.rearranger.playingSection = 0;
 
+	omg.rearranger.songName = omg.rearranger.getElementsByClassName("entity-name")[0];
 
 	omg.rearranger.shareButton = document.getElementById("share-song");
 	omg.rearranger.shareButton.onclick = function() {
@@ -664,13 +676,16 @@ function setupRearranger() {
 		var saveCallback = 	function () {
 			
 			if (omg.util.hasRealAccount()) {
-				bam.shrink(bam.song.div, bam.arrangeSongs, null, null, null, function () {
-					bam.albumEditor.show(bam.song.div);
+				bam.shrink(bam.song.div, bam.arrangeArtistView, null, null, null, function () {
+					//bam.albumEditor.show(bam.song.div);
+					
+					bam.artistView.show(bam.song.div);
+					
 					var song = bam.song;
 					song.div.onclick = function () {
 						bam.song = song;
 						song.div.onclick = undefined;
-						bam.albumEditor.hide(song.div, function () {
+						bam.artistView.hide(song.div, function () {
 							bam.grow(song.div, function () {
 								omg.rearranger.show();
 								omg.player.play(song);
@@ -681,12 +696,12 @@ function setupRearranger() {
 			}
 			else {
 			
-				omg.util.setCookie("unsavedsong", bam.song.id, 1);
+				omg.util.setCookie("unsavedsong", bam.song.data.id, 1);
 
 				// TODO this might need some work
 				bam.fadeIn([bam.loginArea]);
 				var googleLink = bam.loginArea.getElementsByClassName("login-google-link")[0];
-				googleLink.href = omg.util.user.loginUrl;
+				googleLink.href = omg.util.user.loginUrl + location.pathname.substring(1);
 
 				var cancelLink = bam.loginArea.getElementsByClassName("login-cancel")[0];
 				cancelLink.onclick = function () {
@@ -703,12 +718,14 @@ function setupRearranger() {
 			omg.player.stop();
 
 		if (typeof(bam.song.position) != "number") {
-			bam.album.songs.push(bam.song);
-
-			//TODO this should update if it already exists
+			//bam.album.songs.push(bam.song);
+			bam.artist.songs.push(bam.song);
+		}
+		
+		if (!bam.song.saved) {
 			omg.postOMG("SONG", bam.song.getData(), function(response) {
 				if (response && response.result == "good") {
-					bam.song.id = response.id;
+					bam.song.saved = true;
 					if (callbackReady) {
 						saveCallback();
 					}
@@ -717,7 +734,9 @@ function setupRearranger() {
 					}
 				}
 			});
-
+		}
+		else {
+			callbackReady = true;
 		}
 		
 
@@ -746,6 +765,7 @@ function setupRearranger() {
 	};
 
 	omg.rearranger.show = function (callback) {
+		
 		bam.slideUpOptions(omg.rearranger.options);
 		var fadeInList = [omg.rearranger]; 
 		bam.song.sections.forEach(function (section) {
@@ -754,8 +774,15 @@ function setupRearranger() {
 			}
 			fadeInList.push(section.div);
 		});
+
 		bam.fadeIn(fadeInList, callback);
 		bam.arrangeSections();
+		
+		omg.rearranger.songName.value = bam.song.data.name;
+	};
+	
+	omg.rearranger.songName.onchange = function () {
+		bam.song.data.name = omg.rearranger.songName.value;
 	};
 
 }
@@ -818,21 +845,6 @@ function sectionModified() {
 
 }
 
-function getOMG(data, callback) {
-
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET", omg.url + "/omg?type=" + data.type + "&id=" + data.id, true);
-	xhr.onreadystatechange = function() {
-		if (xhr.readyState == 4) {
-			var response = JSON.parse(xhr.response);
-			var ooo = response.list[0];
-			ooo.data = JSON.parse(ooo.json);
-			// ooo.list[0].divInList = data.divInList;
-			callback(ooo);
-		}
-	};
-	xhr.send();
-}
 
 
 function sendVote(entry, value) {
@@ -901,14 +913,14 @@ bam.load = function (params)  {
 
 	bam.artist.data = omg.util.user;
 	
-	if (typeof(omg.util.hasRealAccount())) {
+	if (!params && omg.util.hasRealAccount()) {
 		bam.fadeIn([artistDiv, bam.artistView]);
-		var newAlbum;
-		var newAlbums = [];
-		for (var ip = 0; ip < bam.artist.data.albums.length; ip++) {
-			newAlbums.push(bam.makeAlbum(bam.artist.data.albums[ip]).div);
+		var newSong;
+		var newSongs= [];
+		for (var ip = 0; ip < bam.artist.data.songs.length; ip++) {
+			newSongs.push(bam.makeSong(bam.artist.data.songs[ip]).div);
 		};
-		bam.fadeIn(newAlbums);
+		bam.fadeIn(newSongs);
 		bam.arrangeArtistView();
 			
 		return;
@@ -920,28 +932,29 @@ bam.load = function (params)  {
 	bam.artist.div.style.backgroundColor = "white";
 	bam.artist.div.style.display = "block";
 	
-	var albumDiv = bam.div.getElementsByClassName("album")[0];
+	/*var albumDiv = bam.div.getElementsByClassName("album")[0];
 	bam.album = new OMGAlbum(albumDiv);
 	bam.zones.push(albumDiv);
 	
 	albumBG = window.getComputedStyle(bam.album.div, null).backgroundColor;
 	bam.album.div.style.backgroundColor = "white";
 	bam.album.div.style.display = "block";
+	*/
 
 	var songDiv = bam.div.getElementsByClassName("song")[0];
-	bam.song = new OMGSong(songDiv);
-	bam.song.loop = true;
 	bam.zones.push(songDiv);
 	
 	if (type == "SONG") {
 		bam.fadeIn([songDiv, omg.rearranger, omg.rearranger.addSectionButton], restoreColors);
 		bam.slideUpOptions(omg.rearranger.options);
-		getOMG(params, function(result) {
+		omg.get(params, function(result) {
+			
+			bam.song = new OMGSong(songDiv, result.data);
 			var newSection;
 			var newSections = [];
-			for (var ip = 0; ip < result.data.sections.length; ip++) {
-				newSections.push(bam.makeSection(result.data.sections[ip]).div);
-			};
+			bam.song.sections.forEach(function (section) {
+				newSections.push(bam.makeSectionDiv(section));
+			});
 			bam.fadeIn(newSections);
 			bam.arrangeSections();
 			
@@ -949,6 +962,8 @@ bam.load = function (params)  {
 		return;
 	} 
 
+	bam.song = new OMGSong(songDiv);
+	
 	var newDiv = document.createElement("div");
 	newDiv.className = "section";
 	bam.song.div.appendChild(newDiv);
@@ -962,7 +977,7 @@ bam.load = function (params)  {
 	if (type == "SECTION") {
 		
 		bam.fadeIn([bam.section.div, omg.remixer], restoreColors);
-		getOMG(params, function(result) {
+		omg.get(params, function(result) {
 			var newPart;
 			var newParts = [];
 			for (var ip = 0; ip < result.data.parts.length; ip++) {
@@ -987,7 +1002,7 @@ bam.load = function (params)  {
 	bam.zones.push(newDiv);
 	
 	if (type == "DRUMBEAT") {
-		getOMG(params, function(result) {
+		omg.get(params, function(result) {
 
 			bam.part = result;
 			//bam.section.parts.push(bam.part);
@@ -1003,7 +1018,7 @@ bam.load = function (params)  {
 	} 
 	else if (type == "MELODY" || type == "BASSLINE") {
 		if (params) {
-			getOMG(params, function(result) {
+			omg.get(params, function(result) {
 				bam.part = new OMGPart(newDiv, result.data);
 				
 				bam.fadeIn([bam.part.div, bam.mm], restoreColors);
@@ -1345,6 +1360,14 @@ bam.setupMelodyMaker = function () {
 			bam.section.parts.push(part);
 		}
 
+		if (!part.saved) {
+			omg.postOMG(type, part.data, function(response) {
+				if (response && response.result == "good") {
+					part.saved = true;
+				}
+			});
+		}
+		
 		bam.slideOutOptions(document.getElementById("mm-options"), function() {
 			bam.shrink(bam.part.div, bam.offsetLeft, 88 + position * 126, 640, 105,
 					function() {
@@ -1374,13 +1397,6 @@ bam.setupMelodyMaker = function () {
 							sections : [ bam.section ]
 						});
 
-						if (typeof (part.id) != "number" || part.id <= 0) {
-							omg.postOMG(type, part.data, function(response) {
-								if (response && response.result == "good") {
-									part.id = response.id;
-								}
-							});
-						}
 					});
 		});
 
@@ -1823,17 +1839,21 @@ bam.arrangeArtistView = function(callback) {
 	var div = bam.artist.div;
 
 	var albums = bam.artist.albums;
+	//switcharoo
+	albums = bam.artist.songs || [];
 
+	var topOffset = 150;
+	
 	var albumTargets = bam.makeTargets(albums, function (target, ia) {
-		target.targetX = bam.offsetLeft + ia * 185;
-		target.targetY = 272;
-		target.targetW = 175;
-		target.targetH = 90;		
+		target.targetX = bam.offsetLeft;
+		target.targetY = topOffset + ia * 60;
+		target.targetW = 475;
+		target.targetH = 55;		
 	});
 
 	var soundSetTargets = bam.makeTargets(bam.artist.soundSets, function (target, ia) {
 		target.targetX = bam.offsetLeft + ia * 110;
-		target.targetY = 325;
+		target.targetY = topOffset + 53;
 		target.targetW = 100;
 		target.targetH = 300;		
 	});
@@ -1842,14 +1862,14 @@ bam.arrangeArtistView = function(callback) {
 
 	var child = {div : bam.artistView.addAlbumButton};
 	
-	child.originalH = 14; // padding does the rest;
-	child.originalW = 60; // padding does the rest;
+	child.originalH = child.div.clientHeight; // padding does the rest;
+	child.originalW = child.div.clientWidth; // padding does the rest;
 	child.originalX = child.div.offsetLeft;
 	child.originalY = child.div.offsetTop;
-	child.targetX = albumTargets.length * 185;
-	child.targetY = 250; //child.originalY;
-	child.targetW = 175;
-	child.targetH = 90;
+	child.targetX = 0;
+	child.targetY = topOffset - 22 + albumTargets.length * 60; //child.originalY;
+	child.targetW = 475;
+	child.targetH = 55;
 	children.push(child);
 
 	var startedAt = Date.now();
@@ -2162,6 +2182,10 @@ bam.reachTarget = function(div, target) {
 };
 
 bam.setupSectionDiv = function(section) {
+
+	if (!section.div) {
+		 
+	}
 	
 	section.setup = true;
 	
@@ -2374,6 +2398,7 @@ bam.setupSectionDiv = function(section) {
 bam.setupAlbumDiv = function(album) {
 	
 	album.setup = true;
+	album.hasData = false;
 	
 	album.div.style.cursor = "pointer";
 	album.div.style.borderWidth = "2px";
@@ -2381,7 +2406,73 @@ bam.setupAlbumDiv = function(album) {
 	
 	album.div.onclick = function() {
 
-		var fadeOutList2 = [];
+		var hasDataCallback = function () {
+
+			bam.album = album;
+
+			//var fadeInList = [ bam.albumEditor ];
+			var fadeInList = [];
+			var controls;
+			var song;
+			for (ip = 0; ip < bam.album.data.songs.length; ip++) {
+
+				var song = bam.album.data.songs[ip];
+				
+				var songDiv = document.createElement("div");
+				songDiv.className = "song";
+				songDiv.style.borderWidth = "2px";
+				songDiv.style.borderRadius = "8px";
+				songDiv.style.cursor = "pointer";
+				bam.song = new OMGSong(songDiv, song);
+				bam.song.setup = false;
+				bam.album.songs.push(bam.song);
+				bam.album.div.appendChild(songDiv);
+
+				
+				var song = bam.song;
+				song.div.onclick = function () {
+
+					if (!song.setup) {
+						song.sections.forEach(function (section) {
+							bam.makeSectionDiv(section);
+							section.div.style.display = "none";
+						});
+						song.setup = true;
+					}
+					
+					bam.song = song;
+					song.div.onclick = undefined;
+					bam.albumEditor.hide(song.div, function () {
+						bam.grow(song.div, function () {
+							omg.rearranger.show();
+							//omg.player.play(song);
+						});
+					});
+				};
+
+				//setupSongDiv(bam.song);
+
+				fadeInList.push(songDiv);
+			}
+			bam.fadeIn(fadeInList);
+			bam.albumEditor.show(songDiv);
+
+		};
+		var callbackReady = album.hasData;
+		
+		if (!album.hasData) {
+			omg.get({type:"ALBUM", id: album.data.id}, function (response) {
+				album.data = response.data;
+				album.hasData = true;
+				
+				if (callbackReady)
+					hasDataCallback();
+				else
+					callbackReady = true;
+			});
+		}
+		
+		/*var fadeOutList2 = [];
 		var otherSectionList = bam.artist.div.getElementsByClassName("album");
 		for (var ii = 0; ii < otherSectionList.length; ii++) {
 			if (otherSectionList.item(ii) != album.div)
@@ -2389,50 +2480,90 @@ bam.setupAlbumDiv = function(album) {
 			else
 				album.position = ii;
 		}
-		fadeOutList2.push(bam.artistView);
+		fadeOutList2.push(bam.artistView);*/
 
 		bam.slideDownOptions(omg.rearranger.options);
-		bam.fadeOut(fadeOutList2, function() {
+		//bam.fadeOut(fadeOutList2, function() {
+		bam.artistView.hide(album.div, function() {
 			bam.grow(album.div, function() {				
-
-				bam.album = album;
-
-				var fadeInList = [ bam.albumEditor ];
-				var controls;
-				/*for (ip = bam.section.parts.length - 1; ip > -1; ip--) {
-					controls = bam.section.parts[ip].controls;
-					if (!controls) {
-						setupPartDiv(bam.section.parts[ip]);
-					}
-					fadeInList.push(bam.section.parts[ip].controls);
-				}*/
-				bam.fadeIn(fadeInList);
-
-				bam.slideInOptions(bam.albumEditor.options);
-				//omg.remixer.refresh();
+				if (callbackReady)
+					hasDataCallback();
+				else
+					callbackReady = true;
 			});
 		});
 		album.div.onclick = null;
 	};
 };
 
-bam.makePart = function (data) {
+bam.setupSongDiv = function(song) {
+	
+	song.setup = false;
+	song.hasData = false;
+	
+	song.div.style.cursor = "pointer";
+	song.div.style.borderWidth = "2px";
+	song.div.style.borderRadius = "8px";
+	
+	song.div.onclick = function() {
+
+		var hasDataCallback = function () {
+			console.log("hascoallbf");
+			bam.song = song;
+
+			if (!song.setup) {
+				song.sections.forEach(function (section) {
+					bam.makeSectionDiv(section);
+					section.div.style.display = "none";
+				});
+				song.setup = true;
+			}
+			
+			bam.song = song;
+			song.div.onclick = undefined;
+			bam.grow(song.div, function () {
+				omg.rearranger.show();
+				//omg.player.play(song);
+			});
+
+		};
+		var callbackReady = song.hasData;
+		
+		if (!song.hasData) {
+			omg.get({type:"SONG", id: song.id}, function (response) {
+				song.setData(response.data);
+				song.hasData = true;
+				
+				if (callbackReady)
+					hasDataCallback();
+				else
+					callbackReady = true;
+			});
+		}
+		
+		bam.artistView.hide(song.div, function() {
+			bam.grow(song.div, function() {				
+				if (callbackReady)
+					hasDataCallback();
+				else
+					callbackReady = true;
+			});
+		});
+		song.div.onclick = null;
+	};
+};
+
+bam.makePartDiv = function (part) {
 	
 	var newDiv = document.createElement("div");
 	newDiv.className = "part2";
 	newDiv.style.display = "block";
 	
-	var part;
-	if (data.type == "DRUMBEAT") {
-		part = new OMGDrumpart(newDiv, data);
-	} 
-	else if (data.type == "MELODY" || data.type == "BASSLINE") {
-		part = new OMGPart(newDiv, data);
-	}
-	//part.data = data;
+	part.div = newDiv;
+	
 	if (part) {
 		bam.section.div.appendChild(newDiv);
-		bam.section.parts.push(part);
+		//bam.section.parts.push(part);
 		setupPartDiv(part);
 		
 	}
@@ -2440,32 +2571,31 @@ bam.makePart = function (data) {
 	return part;
 };
 
-bam.makeSection = function (data, small) {
+bam.makeSectionDiv = function (section) {
 	
 	var newDiv = document.createElement("div");
 	newDiv.className = "section";
 	newDiv.style.display = "block";
 	bam.song.div.appendChild(newDiv);
 
-	var section = new OMGSection(newDiv);
-	section.data = data;
-	bam.song.sections.push(section);
-
+	section.div = newDiv;
+	
 	//I think makeParts() wants this
 	bam.section = section;
 	
 	var newPart;
 	var newParts = [];
 	var newPartDiv;
-	for (var ip = 0; ip < data.parts.length; ip++) {
-		newPart = bam.makePart(data.parts[ip]);
+	for (var ip = 0; ip < section.parts.length; ip++) {
+
+		newPart = bam.makePartDiv(section.parts[ip]);
 		
 		if (newPart) {
 			newPartDiv = newPart.div;
 			newParts.push(newPartDiv);	
 
 			newPart.controls.style.display = "none";
-			targets = bam.setTargetsSmallParts(null, ip, data.parts.length,
+			targets = bam.setTargetsSmallParts(null, ip, section.parts.length,
 					newDiv.clientWidth, newDiv.clientHeight);
 			
 			bam.reachTarget(newPartDiv, targets);
@@ -2475,7 +2605,7 @@ bam.makeSection = function (data, small) {
 	bam.setupSectionDiv(section);
 	
 	bam.fadeIn(newParts);
-	return section;
+	return newDiv;
 };
 
 bam.makeAlbum = function (data) {
@@ -2489,34 +2619,33 @@ bam.makeAlbum = function (data) {
 	album.data = data;
 	bam.artist.albums.push(album);
 
-	//I think makeParts() wants this
 	bam.album = album;
-	
-	/* code copied from makeSectino()	 
-	 parts should be songs
-	 
-	var newPart;
-	var newParts = [];
-	var newPartDiv;
-	for (var ip = 0; ip < data.parts.length; ip++) {
-		newPart = bam.makePart(data.parts[ip]);
 		
-		if (newPart) {
-			newPartDiv = newPart.div;
-			newParts.push(newPartDiv);	
-
-			newPart.controls.style.display = "none";
-			targets = bam.setTargetsSmallParts(null, ip, data.parts.length,
-					newDiv.clientWidth, newDiv.clientHeight);
-			
-			bam.reachTarget(newPartDiv, targets);
-		}
-	}*/
-	
 	bam.setupAlbumDiv(album);
 	
 	//bam.fadeIn(newParts);
 	return album;
+};
+
+bam.makeSong = function (data) {
+	
+	var newDiv = document.createElement("div");
+	newDiv.className = "song";
+	newDiv.style.display = "block";
+	bam.artist.div.appendChild(newDiv);
+
+	var song = new OMGSong(newDiv);
+	//album.data = data;
+	bam.artist.songs.push(song);
+
+	// shouldn't need this, but setupdiv probably does
+	bam.song = song;
+
+	song.id = data.id;
+	bam.setupSongDiv(song);
+	
+	//bam.fadeIn(newParts);
+	return song;
 };
 
 
@@ -2631,6 +2760,8 @@ bam.sectionZoneBeatPlayed = function (isubbeat) {
 bam.setupAlbumEditor = function () {
 	bam.albumEditor = document.getElementById("album-editor");
 
+	bam.albumEditor.albumName = bam.albumEditor.getElementsByClassName("entity-name")[0];
+	
 	bam.albumEditor.options = document.getElementById("album-option-panel");
 	
 	bam.albumEditor.addButton = document.getElementById("add-song-button");
@@ -2652,7 +2783,7 @@ bam.setupAlbumEditor = function () {
 	};
 	
 	bam.albumEditor.show = function (exceptSong, callback) {
-		var fadeInList = [bam.albumEditor, bam.albumEditor.addButton];
+		var fadeInList = [bam.albumEditor];
 		bam.album.songs.forEach(function (song) {
 			if (!exceptSong || exceptSong != song.div) {
 				fadeInList.push(song.div);				
@@ -2661,9 +2792,11 @@ bam.setupAlbumEditor = function () {
 		bam.fadeIn(fadeInList, callback);
 		bam.slideInOptions(bam.albumEditor.options);
 		bam.arrangeSongs();
+		
+		bam.albumEditor.albumName.value = bam.album.data.name;
 	};
 	bam.albumEditor.hide = function (exceptSong, callback) {
-		var fadeOutList = [bam.albumEditor, bam.albumEditor.addButton];
+		var fadeOutList = [bam.albumEditor];
 		bam.album.songs.forEach(function (song) {
 			if (!exceptSong || exceptSong != song.div) {
 				fadeOutList.push(song.div);				
@@ -2674,6 +2807,10 @@ bam.setupAlbumEditor = function () {
 		bam.slideOutOptions(bam.albumEditor.options);
 	};
 
+	bam.albumEditor.albumName.onchange = function () {
+		bam.album.data.name = bam.albumEditor.albumName.value;
+	};
+	
 	bam.albumEditor.nextButton = document.getElementById("next-album");
 	bam.albumEditor.nextButton.onclick = function () {
 		
@@ -2683,9 +2820,8 @@ bam.setupAlbumEditor = function () {
 		if (typeof(bam.album.position) != "number") {
 			bam.artist.albums.push(bam.album);
 			
-			omg.postAlbum({test: true} || bam.albumEditor.getData(), function(response) {
+			omg.postAlbum(bam.album.getData(), function(response) {
 				if (response && response.result == "good") {
-					console.log("good!?");
 					bam.album.data.id = response.id;
 				}
 			});
@@ -2696,8 +2832,7 @@ bam.setupAlbumEditor = function () {
 
 		bam.albumEditor.hide(null, function () {
 			bam.shrink(bam.album.div, bam.arrangeArtistView, 0, 0, 0, function () {
-				bam.fadeIn([bam.artistView]);
-				
+				bam.artistView.show(album.div);
 
 				album.div.onclick = function() {
 					bam.album = album;
@@ -2722,13 +2857,16 @@ bam.setupAlbumEditor = function () {
 bam.setupArtistView = function () {
 	bam.artistView = document.getElementById("artist-view");
 	
+	bam.artistView.artistName = bam.artistView.getElementsByClassName("entity-name")[0];
+	
+	// this says album, but really, it's a song, fooled you!
 	bam.artistView.addAlbumButton = document.getElementById("add-album-button");
 	bam.artistView.addAlbumButton.onclick = function () {
 		
-		var albumDiv = bam.createElementOverElement("album", 
+		var albumDiv = bam.createElementOverElement("song", 
 				bam.artistView.addAlbumButton);
 
-		bam.album = new OMGAlbum(albumDiv);
+		bam.song = new OMGSong(albumDiv);
 		bam.artist.div.appendChild(albumDiv);
 		
 		albumDiv.style.display = "block";
@@ -2737,14 +2875,39 @@ bam.setupArtistView = function () {
 				
 		bam.artistView.hide(albumDiv, function () {
 			bam.grow(albumDiv, function () {
-				bam.albumEditor.show();
+				//bam.albumEditor.show();
+				omg.rearranger.show();
 			});			
 		});		
 	};
 	
 	bam.artistView.hide = function (except, callback) {
-		bam.fadeOut([bam.artistView], callback);
+	
+		var fadeOutList = [bam.artistView];
+		bam.artist.songs.forEach(function (song) {
+			if (!except || except != song.div) {
+				fadeOutList.push(song.div);				
+			}
+		});
+
+		bam.fadeOut(fadeOutList, callback);
+
 	};
+	
+	bam.artistView.show = function (except, callback) {
+		var fadeInList = [bam.artistView];
+		bam.artist.songs.forEach(function (album) {
+			if (!except || except != album.div) {
+				fadeInList.push(album.div);				
+			}
+		});
+
+		bam.fadeIn(fadeInList, function () {
+			bam.arrangeArtistView(callback);			
+		});
+
+	};
+
 };
 
 bam.makeTargets = function (thingsOfAType, setTarget) {

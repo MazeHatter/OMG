@@ -743,7 +743,7 @@ if (typeof omg != "object")
 function OMGAlbum(div, data) {
 	this.div = div;
 	this.songs = [];
-	
+
 	if (data) {
 		this.data = data;
 		
@@ -752,30 +752,46 @@ function OMGAlbum(div, data) {
 		}
 	}
 	else {
-		this.data = {type: "ALBUM"};		
+		this.data = {type: "ALBUM", name: "(unnamed)"};		
 	}
 }
+
+OMGAlbum.prototype.getData = function () {
+
+	this.data.songs = [];
+	for (var ip = 0; ip < this.songs.length; ip++) {
+		this.data.songs[ip] = this.songs[ip].getData();
+	}
+	return this.data;
+};
 
 function OMGSong(div, data) {
 	this.div = div;
 	this.sections = [];
+	this.loop = true;
 	
 	if (data) {
-		this.data = data;
-		
-		for (var i = 0; i < data.sections.length; i++) {
-			this.sections.push(new OMGSection(null, data.sections[i]));
-		}
+		this.setData(data);
 	}
 	else {
-		this.data = {type: "SONG"};		
+		this.data = {type: "SONG", name: "(untitled)"};		
 	}
 
 	
 	// key? tempo? yes, we need that shit
 };
-
+OMGSong.prototype.setData = function (data) {
+	this.data = data;
+	
+	for (var i = 0; i < data.sections.length; i++) {
+		this.sections.push(new OMGSection(null, data.sections[i]));
+	}
+	
+	if (!this.data.name)
+		this.data.name = "(untitled)";
+};
 OMGSong.prototype.getData = function () {
+
 	this.data.sections = [];
 	for (var ip = 0; ip < this.sections.length; ip++) {
 		this.data.sections[ip] = this.sections[ip].getData();
@@ -784,6 +800,9 @@ OMGSong.prototype.getData = function () {
 };
 
 function OMGSection(div, data) {
+	var partData;
+	var part;
+	
 	this.div = div;
 	
 	this.parts = [];
@@ -792,9 +811,17 @@ function OMGSection(div, data) {
 	
 	if (data) {
 		this.data = data;
-		
+
 		for (var ip = 0; ip < data.parts.length; ip++) {
-			this.parts.push(new OMGPart(null, data.parts[ip]));
+			partData = data.parts[ip];
+			if (partData.type == "DRUMBEAT") {
+				part = new OMGDrumpart(null, partData);
+			} 
+			else if (partData.type == "MELODY" || partData.type == "BASSLINE") {
+				part = new OMGPart(null, partData);
+			}
+
+			this.parts.push(part);
 		}
 	}
 	else {
@@ -840,7 +867,6 @@ function OMGDrumpart(div, data) {
 		      ]};
 	}
 	omg.player.loadPart(this, this.data);
-	console.log("drum part loaded");
 
 	//not used i dont think, should be soon
 	this.loadSoundSet = function (soundSet) {
@@ -914,4 +940,5 @@ function OMGArtist(div, data) {
 	
 	this.soundSets = [];
 	this.albums = [];
+	this.songs = [];
 }

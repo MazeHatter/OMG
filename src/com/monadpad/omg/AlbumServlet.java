@@ -40,10 +40,17 @@ public class AlbumServlet extends HttpServlet {
 		Entity te = null;
 
 		String data = req.getParameter("data");
+		String name = req.getParameter("name");
 
 		if (data == null || data.length() == 0) {
 			resp.getWriter().print("{\"result\": \"bad\"");
 			resp.getWriter().print(",\"reason\": \"no json\"}");
+			return;
+		}
+
+		if (name == null || name.length() == 0) {
+			resp.getWriter().print("{\"result\": \"bad\"");
+			resp.getWriter().print(",\"reason\": \"no name\"}");
 			return;
 		}
 
@@ -77,6 +84,7 @@ public class AlbumServlet extends HttpServlet {
 		te = new Entity("ALBUM");
 
 		te.setProperty("data", new Text(data));
+		te.setProperty("name", name);
 		te.setProperty("votes", 0);
 		te.setProperty("time", now);
 		te.setProperty("artistId", artist.getKey().getId());
@@ -84,31 +92,33 @@ public class AlbumServlet extends HttpServlet {
 		Key key = ds.put(te);
 		if (key != null) {
 
-			String json = ((Text)artist.getProperty("data")).toString();
+			StringBuilder albumsData = new StringBuilder();
 			
-			Gson gson = new Gson();
-			Type stringStringMap = new TypeToken<Map<String, String>>(){}.getType();
-			Map<String,String> map = gson.fromJson(json, stringStringMap);
-			String albumsJson = map.get("albums");
+			Text albumsJsonText = (Text)artist.getProperty("albums");
+			if (albumsJsonText != null) {
+				String albumsJson = albumsJsonText.getValue();
+				if (albumsJson.length() > 0) {
+					albumsData.append(albumsJson);
+					albumsData.append(",");
+				}
+			}
 			
-			List<JsonAlbum> jsonAlbums = new ArrayList<JsonAlbum>();
-			gson.fromJson(albumsJson, jsonAlbums.getClass());
+			//albumsData.append(data);
+			albumsData.append("{\"name\": \"");
+			albumsData.append(name);
+			albumsData.append("\", \"id\": ");
+			albumsData.append(key.getId());
+			albumsData.append("}");
+			
+			artist.setProperty("albums", new Text(albumsData.toString()));
 
-			JsonAlbum newJsonAlbum = new JsonAlbum();
-			newJsonAlbum.id = key.getId();
-			jsonAlbums.add(newJsonAlbum);
-			
-			albumsJson = gson.toJson(jsonAlbums);
-			map.put("albums", albumsJson);
-			
-			json = gson.toJson(map);
-			artist.setProperty("data", new Text(json));
-
+			// put these together?
+			ds.put(artist);
 			ds.put(counts);
 
 			resp.getWriter().print("{\"result\": \"good\", \"id\": ");
 			resp.getWriter().print(Long.toString(key.getId()));
-			resp.getWriter().print("}");
+			resp.getWriter().print(", \"mike\":true}");
 
 		}
 		else {
