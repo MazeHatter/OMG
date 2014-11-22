@@ -271,7 +271,12 @@ function setupMelodyDiv(part) {
 	part.canvas.style.width = part.canvas.parentElement.clientWidth - 10 + "px";
 	part.canvas.width = part.canvas.clientWidth;
 
-	omg.ui.drawMelodyCanvas(part.data, part.canvas);
+	try {
+		omg.ui.drawMelodyCanvas(part.data, part.canvas);	
+	}
+	catch (exp) {
+		console.log("error drawing melody canvas");
+	}
 
 	var beatMarker = document.createElement("div");
 	var offsetLeft;

@@ -820,6 +820,9 @@ function OMGSection(div, data) {
 			else if (partData.type == "MELODY" || partData.type == "BASSLINE") {
 				part = new OMGPart(null, partData);
 			}
+			else {
+				part = new OMGPart(null, partData);
+			}
 
 			this.parts.push(part);
 		}
