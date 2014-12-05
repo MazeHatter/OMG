@@ -706,7 +706,7 @@ function setupRearranger() {
 				// TODO this might need some work
 				bam.fadeIn([bam.loginArea]);
 				var googleLink = bam.loginArea.getElementsByClassName("login-google-link")[0];
-				googleLink.href = omg.util.user.loginUrl + location.pathname.substring(1);
+				googleLink.href = omg.util.user.loginUrl ;
 
 				var cancelLink = bam.loginArea.getElementsByClassName("login-cancel")[0];
 				cancelLink.onclick = function () {
@@ -962,6 +962,8 @@ bam.load = function (params)  {
 			});
 			bam.fadeIn(newSections);
 			bam.arrangeSections();
+			
+			omg.rearranger.songName.value = bam.song.data.name;
 			
 		});
 		return;
@@ -1493,6 +1495,10 @@ bam.shrink = function(div, x, y, w, h, callback) {
 
 		if (now == 1) {
 			clearInterval(interval);
+			
+			if (div.captionDiv)
+				div.captionDiv.style.display = "block";
+
 			// div.style.cursor = "pointer";
 			if (callback)
 				callback();
@@ -1503,6 +1509,9 @@ bam.shrink = function(div, x, y, w, h, callback) {
 bam.grow = function(div, callback) {
 
 	bam.zones.push(div);
+	
+	if (div.captionDiv)
+		div.captionDiv.style.display = "none";
 	
 	var originalH = div.clientHeight;
 	var originalW = div.clientWidth;
@@ -2513,11 +2522,18 @@ bam.setupSongDiv = function(song) {
 	song.div.style.cursor = "pointer";
 	song.div.style.borderWidth = "2px";
 	song.div.style.borderRadius = "8px";
+
+	var songCaption = document.createElement("div");
+	songCaption.className = "song-caption";
+	console.log(song.data.name);
+	songCaption.innerHTML = song.data.name;
+	song.div.appendChild(songCaption);
+	song.div.captionDiv = songCaption;
+	
 	
 	song.div.onclick = function() {
 
 		var hasDataCallback = function () {
-			console.log("hascoallbf");
 			bam.song = song;
 
 			if (!song.setup) {
@@ -2651,6 +2667,7 @@ bam.makeSong = function (data) {
 	bam.song = song;
 
 	song.id = data.id;
+	song.data.name = data.name;
 	bam.setupSongDiv(song);
 	
 	//bam.fadeIn(newParts);

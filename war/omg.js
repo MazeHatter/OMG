@@ -592,7 +592,7 @@ gallery.startOverview = function (callback) {
 					return;
 
 				omg.util.fade({div:step2text, fadeIn: true});
-				omg.util.fade({div: sectionC, fadeIn: true});		
+				omg.util.fade({div: sectionC, fadeIn: true, display:"inline-block"});		
 			}});
 			
 	}, 6200);
@@ -603,10 +603,10 @@ gallery.startOverview = function (callback) {
 			return;
 
 		omg.util.fade({div:step3text, fadeIn: true});
-		omg.util.fade({div:sectionA, fadeIn: true, length: 1500});
-		omg.util.fade({div:sectionB, fadeIn: true, length: 1500});
-		omg.util.fade({div:sectionD, fadeIn: true, length: 1500});
-		omg.util.fade({div:sectionE, fadeIn: true, length: 1500});
+		omg.util.fade({div:sectionA, fadeIn: true, length: 1500, display:"inline-block"});
+		omg.util.fade({div:sectionB, fadeIn: true, length: 1500, display:"inline-block"});
+		omg.util.fade({div:sectionD, fadeIn: true, length: 1500, display:"inline-block"});
+		omg.util.fade({div:sectionE, fadeIn: true, length: 1500, display:"inline-block"});
 		
 		setTimeout(function () {
 

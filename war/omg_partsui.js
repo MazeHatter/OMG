@@ -116,6 +116,12 @@ omg.ui.drawDrumCanvas = function (params) {
 	var rowHeight = params.rowHeight;
 	var subbeat = params.subbeat;
 
+	//backwards compat
+	if (!drumbeat.tracks && drumbeat.data && drumbeat.data.length) {
+		drumbeat.tracks = drumbeat.data;
+		delete drumbeat.data;
+	}
+	
 	if (!drumbeat.tracks || drumbeat.tracks.length == 0)
 		return;
 
@@ -251,6 +257,8 @@ omg.ui.setupNoteImages = function () {
 		omg.ui.noteImages.push(imageBundle);
 	}
 }
+
+//todo not necessary yet
 omg.ui.setupNoteImages();
 
 
@@ -300,6 +308,8 @@ function OMGDrumMachine(canvas, part) {
 	
 	this.currentTrack = 0;
 
+	this.drawTrackColumn = true;
+	
 	if (part) {
 		this.setPart(part);
 	}	
@@ -354,8 +364,10 @@ function OMGDrumMachine(canvas, part) {
 		var row    = Math.floor(y / omgdrums.rowHeight);
 
 		if (column == 0) {
-			if (row < omgdrums.part.data.tracks.length - 1)
-				omgdrums.currentTrack = row;
+			if (omgdrums.drawTrackColumn) {
+				omgdrums.currentTrack = Math.min(Math.floor(y / omgdrums.captionRowHeight),
+											omgdrums.part.data.tracks.length - 1);				
+			}
 		}
 		else {
 			// figure out the subbeat this is
@@ -366,6 +378,9 @@ function OMGDrumMachine(canvas, part) {
 			
 			lastBox = [column, row];
 			omgdrums.isTouching = true;
+			
+			if (omgdrums.onchange)
+				omgdrums.onchange();
 		}
 
 		omgdrums.drawLargeCanvas();
@@ -387,9 +402,13 @@ function OMGDrumMachine(canvas, part) {
 			var subbeat = column - 1 + row * omg.subbeats;
 
 			var data = omgdrums.part.data.tracks[omgdrums.currentTrack].data;
-			data[subbeat] = !data[subbeat];
+			data[subbeat] = data[subbeat] ? 0 : 1;
 			
 			lastBox = [column, row];
+
+			if (omgdrums.onchange)
+				omgdrums.onchange();
+
 		}
 
 		omgdrums.drawLargeCanvas();
@@ -413,6 +432,7 @@ OMGDrumMachine.prototype.setPart = function (part) {
 	this.offsetLeft = offsets.left;
 	this.offsetTop = offsets.top;
 	
+	this.captionsAreSetup = false
 }
 
 OMGDrumMachine.prototype.drawLargeCanvas = function (iSubBeat) {
@@ -440,10 +460,53 @@ OMGDrumMachine.prototype.drawLargeCanvas = function (iSubBeat) {
 		this.currentBeat = [(iSubBeat % omg.subbeats) + 1,
 		               Math.floor(iSubBeat / omg.subbeats)];
 	}
+
+	var captionWidth;
+	var halfColumnWidth = this.columnWidth / 2;
+	var partCaption;
+	if (!this.captionsAreSetup) {
+		this.captions = [];
+		for (var jj = 0; jj < part.tracks.length; jj++) {
+			partCaption = part.tracks[jj].name
+			captionWidth = ctx.measureText(partCaption).width;
+			this.captions.push({"caption": partCaption, "width": captionWidth,
+								"left": halfColumnWidth - captionWidth / 2});
+		}
+		this.captionsAreSetup = true;
+	}
+	
+	this.captionRowHeight = height / this.captions.length;
 	
 	var x, y, w, h;
-	for (var ii = 0; ii < this.columns; ii++) {
-		for (var jj = 0; jj < this.rows; jj++) {
+	var jj, ii;
+
+	if (this.drawTrackColumn) {
+		for (var jj = 0; jj < this.captions.length; jj++) {
+			ctx.fillStyle = "#FFFFFF";
+			ctx.strokeStyle = "#808080";
+
+			x = boxMargin; 
+			y = boxMargin + jj * this.captionRowHeight;
+			w = this.columnWidth - boxMargin * 2; 
+			h = this.captionRowHeight -   boxMargin * 2;
+
+			if (part.tracks[jj]) {					
+				if (jj == this.currentTrack) {
+					ctx.fillRect(x, y, w, h);
+					ctx.fillStyle = "black";
+				}
+				else {
+					ctx.strokeRect(x, y, w, h);
+					ctx.fillStyle = "white";
+				}
+				ctx.fillText(this.captions[jj].caption, this.captions[jj].left, y + h / 2);
+			}
+		}		
+	}
+	
+	ctx.font = "18px sans-serif";
+	for (ii = 1; ii < this.columns; ii++) {
+		for (jj = 0; jj < this.rows; jj++) {
 			ctx.fillStyle = "#FFFFFF";
 			ctx.strokeStyle = "#808080";
 
@@ -462,17 +525,11 @@ OMGDrumMachine.prototype.drawLargeCanvas = function (iSubBeat) {
 						ctx.strokeRect(x, y, w, h);
 						ctx.fillStyle = "white";
 					}
-					ctx.fillText(part.tracks[jj].name, x + 20, y + h / 2);
+					ctx.fillText(this.captions[jj].caption, this.captions[jj].left, y + h / 2);
 				}
 			}
 			else {
 				
-				if (this.currentBeat && omg.player.playing && 
-						ii == this.currentBeat[0] && jj == this.currentBeat[1]) {
-					ctx.fillStyle = "red";
-					ctx.fillRect(x - boxMargin, y - boxMargin, 
-							w + boxMargin * 2, h + boxMargin * 2);					
-				}
 				ctx.fillStyle = "#FFFFFF";
 				
 				if (part.tracks[this.currentTrack].data[jj * omg.subbeats + ii - 1]) {
@@ -483,7 +540,17 @@ OMGDrumMachine.prototype.drawLargeCanvas = function (iSubBeat) {
 					ctx.strokeRect(x, y, w, h);	
 					ctx.fillStyle = "white";
 				}
-				ctx.fillText(ii==1?jj+1:ii==1?"e":ii==2?"+":"a", x + w / 3, y + h / 2);
+				ctx.fillText(ii==1?jj+1:ii==2?"e":ii==3?"+":"a", x + w / 2 - 6, y + h / 2);
+
+				if (this.currentBeat && omg.player.playing && 
+						ii == this.currentBeat[0] && jj == this.currentBeat[1]) {
+					ctx.globalAlpha = 0.5;
+					ctx.fillStyle = "red";
+					ctx.fillRect(x, y, w, h);
+					ctx.globalAlpha = 1;
+					//ctx.fillRect(x - boxMargin, y - boxMargin, 
+					//		w + boxMargin * 2, h + boxMargin * 2);					
+				}
 
 			}
 		}		
@@ -1393,34 +1460,6 @@ OMGMelodyMaker.prototype.animateDrawing = function () {
 	}, 1000 / 60);
 };
 
-OMGMelodyMaker.prototype.fadeDiv = function (div, length, on) {
-	var startedFade = Date.now();
-	var percent;
-
-	if (on)
-		div.style.opacity = 0;
-
-	div.style.display = "block";
-
-	var fadeDivInterval = setInterval(
-			function() {
-				percent = (Date.now() - startedFade) / length;
-
-				if (!on)
-					percent = 1 - percent;
-
-				div.style.opacity = (div == omg.dialogBorder) ? 0.6 * percent
-						: percent;
-
-				if ((on && percent >= 1) || (!on && percent <= 0)) {
-					clearInterval(fadeDivInterval);
-					if (!on)
-						div.style.display = "none";
-				}
-
-			}, 1000 / 60);
-
-};
 
 OMGMelodyMaker.prototype.setPart = function(part, welcomeStyle) {
 

@@ -144,14 +144,18 @@ public class ArtistServlet extends HttpServlet {
 		pw.write(", \"isAdmin\" : ");
 		pw.write(isAdmin ? "true" : "false");
 
+		String referer = req.getHeader("Referer");
+		if (referer == null)
+			referer = "/";
+		
 		if (!hasGoogleUser) {
 			pw.write(", \"loginUrl\" : \"");
-			pw.write(userService.createLoginURL(req.getHeader("Referer")));
+			pw.write(userService.createLoginURL(referer));
 			pw.write("\"");
 		}
 		else {
 			pw.write(", \"logoutUrl\" : \"");
-			pw.write(userService.createLogoutURL(req.getHeader("Referer")));
+			pw.write(userService.createLogoutURL(referer));
 			pw.write("\"");
 
 			pw.write(", \"artistId\" : ");

@@ -27,8 +27,8 @@ if (typeof omg != "object")
     p.iSubBeat = 0;
     p.loopStarted = 0;
 
-    p.beats = 8;
-    p.subbeats = 4;
+    p.beats = omg.beats || 8;
+    p.subbeats = omg.subbeats || 4;
     
     p.nextUp = null;
     
@@ -36,16 +36,20 @@ if (typeof omg != "object")
 
     	if (!p.context)
     		return;
-    	
-    	p.prepareSong(song);
 
-    	if (p.playing) {
-    		p.nextUp = song;
-    		return p.playingIntervalHandle;
+    	if (song) {
+        	p.prepareSong(song);
+
+        	if (p.playing) {
+        		p.nextUp = song;
+        		return p.playingIntervalHandle;
+        	}
+
+        	p.song = song;
     	}
 
-    	p.song= song;
-
+    	// if there is no song already here, this'll blow
+    	
         p.song.playingSection = 0;
     
         if (!p.song.sections || !p.song.sections.length){
@@ -59,7 +63,7 @@ if (typeof omg != "object")
 
     	//todo this bpm thing isn't consistent
         var beatsPerSection = p.beats * p.subbeats;
-    	p.subbeatLength = song.subbeatMillis || 125; 
+    	p.subbeatLength = p.song.subbeatMillis || 125; 
     	
     	var lastSection;
     	var nextSection;
@@ -522,7 +526,13 @@ if (typeof omg != "object")
         var key = sound;
         var url = sound;
         if (sound.indexOf("PRESET_") == 0) {
-        	var preseturl = "https://dl.dropboxusercontent.com/u/24411900/omg/drums/"
+        	var preseturl;
+        	if (window.location.hostname != "localhost") {
+        		preseturl = "https://dl.dropboxusercontent.com/u/24411900/omg/drums/";
+        	}
+        	else {
+        		preseturl = "http://localhost:8888/audio/";
+        	}
             url = preseturl + sound.substring(7).toLowerCase() + ".mp3";
         }
         
@@ -864,7 +874,13 @@ function OMGDrumpart(div, data) {
 		        {"name":"tambourine","sound":"PRESET_HH_TAMB",
 	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
-		        {"name":"scratch","sound":"PRESET_HH_SCRATCH",
+		        {"name":"h tom","sound":"PRESET_HH_TOM_MH",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"m tom","sound":"PRESET_HH_TOM_ML",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"l tom","sound":"PRESET_HH_TOM_L",
 	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	        	        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
 		      ]};
@@ -909,6 +925,14 @@ function OMGPart(div, data) {
 }
 
 OMGPart.prototype.play = function () {
+	var newSong = new OMGSong();
+	var newSection = new OMGSection();
+	newSection.parts.push(this);
+	newSong.sections.push(newSection);
+	omg.player.play(newSong);
+
+};
+OMGDrumpart.prototype.play = function () {
 	var newSong = new OMGSong();
 	var newSection = new OMGSection();
 	newSection.parts.push(this);

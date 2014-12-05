@@ -153,6 +153,20 @@ h1 {
 	right: 4px;
 	top: 2px;
 }
+#no-web-audio {
+	display:none;
+	position:absolute;
+	top:0px;
+	left:0px;
+	width:100%;
+	text-align:center;
+	z-index:-1;
+}
+.old-browser {
+	color:red;
+	font-size:16pt;
+	text-align:center;
+}
 
 
 .area {
@@ -300,21 +314,6 @@ h1 {
 }
 
 
-
-#no-web-audio {
-	display:none;
-	position:absolute;
-	top:0px;
-	left:0px;
-	width:100%;
-	text-align:center;
-	z-index:-1;
-}
-.old-browser {
-	color:red;
-	font-size:16pt;
-	text-align:center;
-}
 
 
 .remixer-part-rightbar {
@@ -756,3 +755,10 @@ h1 {
 }
 
 #logout-link {display:none;}
+
+.song-caption {
+	font-family:"Arial Black", Gadget, sans-serif;
+	margin:10px;
+	font-size:16pt;
+	
+}

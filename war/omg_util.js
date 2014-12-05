@@ -118,6 +118,7 @@ omg.util.fade = function (params) {
 		if (params.fadeIn) {
 			params.div.style.opacity = 0;
 			params.div.style.visibility = "visible";
+			params.div.style.display = params.display || "block";
 		}
 	}
 	else {
@@ -262,6 +263,11 @@ omg.postOMG = function (type, data, callback) {
 	if (typeof (data.id) == "number" && data.id > 0) {
 		idParam = "id=" + data.id + "&";
 	}
+	
+	if (type == "SONG" && data.name) {
+		idParam = idParam + "name=" + encodeURIComponent(data.name) + "&";
+	}
+	
 	console.log(idParam)
 	var xhr = new XMLHttpRequest();
 	xhr.open("POST", omg.url + "/omg", true);

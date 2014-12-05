@@ -1,20 +1,732 @@
 <!DOCTYPE html>
 <html>
+<head>
+<title>Make a Drumbeat! OMG!</title>
+<style>
+#drum-canvas {width:400px; height:500px;}
+
+/* this is from omgbam.css */
+#topbar {
+	padding:2px;
+	color: black;
+	width: 100%;
+	height: 18px;
+	background-color:#FFFFFF;
+	opacity:0.5;
+	font: 13px Helvetica, arial, freesans, clean, sans-serif;
+	position:fixed;
+	top:0px;
+	left:0px;
+	margin:0px;
+	border-bottom:2px solid #C0C0C0;
+	z-index:10;
+}
+
+#topbar:hover {
+	opacity:1;
+}
+#omg48topbar {
+	margin-left: 10px;
+	vertical-align: middle;
+	width: 22px;
+	height: 22px;
+	margin-top:-2px;
+}
+
+#topbartext {
+	margin-left: 20px;
+}
+
+#topbarright {
+	position: absolute;
+	right: 4px;
+	top: 2px;
+}
+#no-web-audio {
+	display:none;
+	position:absolute;
+	top:0px;
+	left:0px;
+	width:100%;
+	text-align:center;
+	z-index:-1;
+}
+.old-browser {
+	color:red;
+	font-size:16pt;
+	text-align:center;
+}
+#bbody {
+	width:1024px;
+	margin:auto;
+	position:relative;
+/*	margin-top:22px;*/
+	margin-top:32px;
+		
+}
+
+.panel-option, .horizontal-panel-option {
+	border-radius:6px;
+	text-align:center;
+	padding:18px;
+	margin:18px;
+	width:240px;
+	border-bottom:2px solid #0F0F0F;
+	border-top:1px solid #FFFFFF;
+	background-color:#F0F0F0;
+	
+	font:14pt Helvetica, arial, freesans, clean, sans-serif;
+	cursor:pointer;
+	
+}
+
+#twitter-button {
+	padding:20px;
+	background-color:white;
+	border:1px solid gray;
+	border-radius:4px;
+	cursor:pointer;
+}
+
+#email-button {
+	padding:20px;
+	background-color:#FF80FF;
+    border:1px solid gray;
+    border-radius:4px;
+    /*padding-right:2px;*/
+    cursor:pointer;
+}
+
+#facebook-button {
+	margin-left:27px;
+	border:1px solid gray;
+	padding:20px;
+	cursor:pointer;
+}
+
+/* end stolen parts from omgbam.css*/
+
+body {	background-color:#FFFF99;
+}
+
+#instructions {
+	position:absolute;
+	left:480px;
+	top:30px;
+}
+
+.instruction-part {
+	color:#404040;
+	font-size:18pt;
+}
+.instruction-step {
+	margin-top:15px;
+	margin-bottom:15px;
+	font-size:18pt;
+	display:none;
+	font-family:Helvetica, arial, freesans, clean, sans-serif;
+}
+.instructions-info-visible, .instructions-info {
+	color:#606060;
+	margin-top:10px;
+	margin-bottom:10px;
+	font-size:14pt;
+	font-style:italic;
+	
+	
+}
+.instructions-info {
+	display:none;
+}
+#part3, #part2 {display:none;}
+#stop-button {margin-left:60px; visibility:hidden;}
+
+#saved-beat-options {text-align:center; display:none;}
+
+.text-centered {
+	width:100%;
+	position:relative;
+	margin-left:50px;
+	}
+
+</style>
+</head>
 <body>
 
-<canvas id="drum-canvas"></canvas>
+<div id="topbar">
 
+	<div  id="no-web-audio">
+		<span class="old-browser">
+		<b>This browser doesn't support Web Audio API.</b></span> 
+		
+		(Try an updated Chrome, Safari, or FireFox for sound.)
+	</div> 
+
+	<a id="login-link" href="">Login</a> <a href="" id="logout-link">Logout</a> 
+
+	<div id="topbarright">
+	<a href="http://github.com/MazeHatter/OMG">source_code</a>
+	<a href="http://reddit.com/r/openmusic">forum</a>
+	<a href="http://openmusicgallery.com">about</a>
+	</div>
+
+</div>
+
+<div id="bbody">
+
+	<canvas id="drum-canvas"></canvas>
+
+	<div class="panel-option" id="stop-button">Stop</div>			
+	
+	<div id="instructions">
+		<div id="part1">
+			<h2 class="instruction-part">
+				Part 1: Counting Music
+			</h2>
+			
+			<div class="instructions-info" id="info1">
+				Music is usually counted with 4 beats.
+			</div>
+						
+			<div class="instruction-step" id="step1">
+				Step 1. Click the boxes <i>1</i>, <i>2</i>, <i>3</i> and <i>4</i>
+			</div>
+
+			<div class="instructions-info" id="info2">
+				Beats can be subdivided 
+			</div>
+
+			<div class="instruction-step" id="step2">
+				Step 2. Click the boxes labeled <i>+</i>
+			</div>
+
+			<div class="instruction-step" id="step3">
+				Step 3. Click the boxes labeled <i>e</i> and <i>a</i>
+			</div>
+
+			<div class="instructions-info" id="info-good">
+				Good! 
+			</div>
+		
+		</div>	
+		<div id="part2">
+			<h2 class="instruction-part">
+				Part 2: A Drum Pattern
+			</h2>
+			
+			<div class="instructions-info" id="info3">
+				Playing different drums on different beats
+			</div>
+						
+			<div class="instruction-step" id="step4">
+				Step 1. Play the <i>Kick</i> on Beats 1 and 3
+			</div>
+
+			<div class="instruction-step" id="step5">
+				Step 2. Play the <i>Snare</i> on beats 2 and 4
+			</div>
+
+			<div class="instruction-step" id="step6">
+				Step 3. Play the <i>Open Hi-Hat</i> on the + of 4
+			</div>
+
+			<div class="instruction-step" id="step7">
+				Step 4. Play the <i>Closed Hi-Hat</i> on 1 + 2 + 3 + 4
+			</div>
+
+			<div class="instructions-info" id="info-done">
+				Now you have a drumbeat!
+			</div>
+		
+		</div>	
+
+		<div id="part3">
+			<h2 class="instruction-part">
+				Play around! Change it up!
+			</h2>
+
+			<div class="instructions-info-visible">
+				When you like the beat, save it!
+			</div>
+			
+			<div class="text-centered">
+			<div class="panel-option" id="save-button">Save This Beat!</div>
+			</div>
+			
+			<div id="saved-beat-options">
+			
+				Saved At Url: <input type="text" id="share-url"></input>
+				<br/>
+				<br/>
+				
+				<a target="_blank" href="" id="facebook-link">
+					<img id="facebook-button" src="img/f_logo.png">
+				</a>
+				<a target="_blank" href="" id="twitter-link">
+					<img id="twitter-button" src="img/twitter_logo.png">
+				</a>
+				<a target="_blank" href="" id="email-link">
+					<img id="email-button" src="img/email.png">
+				</a>
+			</div>
+			 
+			<br/>
+			<div class="instructions-info-visible">
+				You can even compose a whole song!
+			</div>
+	
+			<div class="text-centered">		
+			<div class="panel-option" id="launch-omg">Make a Song With This Beat</div>			
+			</div>
+
+		</div>
+	</div>
+</div>
 <script>
-omg = {beats: 8, subbeats: 4};
+omg = {beats: 4, subbeats: 4, bpm:300};
 </script>
 
-<script src="omg_drums.js"></script>
+<script src="omg_partsui.js"></script>
+<script src="omg_player.js"></script>
 <script src="omg_util.js"></script>
 
 <script>
-omg.drums = new OMGDrums(document.getElementById("drum-canvas"));
-omg.drums.setPart(createDrumbeat());
-omg.drums.drawLargeCanvas();
+window.onload = function () {
+	
+	var canvas = document.getElementById("drum-canvas");
+	canvas.width = canvas.clientWidth;
+	canvas.height = canvas.clientHeight;
+	var part = new OMGDrumpart(null, makeIntroductionDrumset());
+	var playingPart = new OMGDrumpart(null, makeIntroductionDrumset());
+	//var part = new OMGDrumpart(null, null);
+	omg.drums = new OMGDrumMachine(canvas);
+	
+	omg.drums.drawTrackColumn = false;
+	
+	
+	omg.drums.setPart(part);
+	omg.drums.drawLargeCanvas();
+	
+	omg.player.onBeatPlayedListeners.push(function(isubbeat, isection) {
+		omg.drums.drawLargeCanvas(isubbeat);
+	});
+	
+	//playingPart.play();
+	var newSong = new OMGSong();
+	var newSection = new OMGSection();
+	newSection.parts.push(playingPart);
+	newSong.sections.push(newSection);
+	newSong.subbeatMillis = 300;
+	
+	var partData = part.data.tracks[0].data;
+
+	var savedOptionsShowing = false;
+	var savedBeatOptions = omg.getEl("saved-beat-options");
+	var saveButton = omg.getEl("save-button");
+
+
+	omg.drums.onchange = function () {
+		refreshIntroductionPart(part, playingPart);
+		
+		omg.drums.part.id = 0;
+		omg.drums.part.default = false;
+		
+		if (savedOptionsShowing) {
+			savedBeatOptions.style.display = "none";
+			saveButton.style.display = "block";
+			saveButton.innerHTML = "Save this Beat!";
+			savedOptionsShowing = false;
+		}
+		
+		if (omg.drums.onchange2)
+			omg.drums.onchange2();
+	};
+	
+	var stopButton = omg.getEl("stop-button");
+	stopButton.onclick = function () {
+		if (stopButton.innerHTML == "Stop") {
+			omg.player.stop();
+			stopButton.innerHTML = "Play";
+		}
+		else {
+			omg.player.play();
+			stopButton.innerHTML = "Stop";
+		}
+	};
+
+	var steps = [
+		{do: function () {
+			omg.util.fade({div: omg.getEl("info1"), fadeIn: true});
+			nextStep();
+		}, delay: 1}, 
+		{do: function () {
+			omg.util.fade({div: omg.getEl("step1"), fadeIn: true});
+			omg.drums.onchange2 = function () {
+				if (!omg.player.playing) {
+					omg.player.play(newSong);
+					stopButton.style.visibility = "visible";
+				}
+
+				var ok = true;
+			
+				// check to see if 1,2,3, and 4 are checked
+				for (var ib = 0; ib < partData.length; ib++) {
+					if (!(partData[ib] == (ib % 4 == 0) ? 1 : 0)) {
+						ok = false;
+						break;
+					}				
+				} 
+
+				if (ok) {
+					omg.drums.onchange2 = undefined;
+					
+					nextStep();				
+				}
+				
+			};
+		}, delay: 2000}, 
+		
+		{do: function () {
+			omg.util.fade({div: omg.getEl("info2"), fadeIn: true});
+			nextStep();
+		}, delay: 1000},
+		 
+		{do: function () {
+			omg.util.fade({div: omg.getEl("step2"), fadeIn: true});
+			omg.drums.onchange2 = function () {
+
+				var ok = true;
+
+				for (var ib = 0; ib < partData.length; ib++) {
+					if (!(partData[ib] == (ib % 2 == 0) ? 1 : 0)) {
+						ok = false;
+						break;
+					}				
+				} 
+
+				if (ok) {
+				
+					omg.drums.onchange2 = undefined;
+					
+					nextStep();
+				}
+			};
+		}, delay: 3000},
+		
+		/*{do: function () {
+			omg.util.fade({div: omg.getEl("step3"), fadeIn: true});
+			omg.drums.onchange2 = function () {
+				
+				var ok = true;
+			
+				for (var ib = 0; ib < partData.length; ib++) {
+					if (!partData[ib]) {
+						ok = false;
+						break;
+					}				
+				} 
+
+				if (ok) {
+					omg.drums.onchange2 = undefined;
+					
+					nextStep();
+				}
+			};
+		}, delay: 1500},
+		*/
+		
+		{do: function () {
+			omg.util.fade({div: omg.getEl("info-good"), fadeIn: true});
+			nextStep();
+		}, delay: 1},
+
+		{do: function () {
+
+			omg.player.stop();
+					
+			part = new OMGDrumpart();
+			part.play();
+			
+			omg.drums.setPart(part);
+			omg.drums.drawTrackColumn = true;
+		
+			omg.getEl("part1").style.display = "none";
+			omg.util.fade({div: omg.getEl("part2"), fadeIn: true});
+			
+			nextStep();
+		}, delay: 5000},
+
+		{do: function () {
+			omg.util.fade({div: omg.getEl("info3"), fadeIn: true});
+			nextStep();
+		}, delay: 1000},
+		
+		{do: function () {
+			omg.util.fade({div: omg.getEl("step4"), fadeIn: true});
+			omg.drums.onchange2 = function () {
+
+				var ok = true;
+			
+				var kick = omg.drums.part.data.tracks[0].data;			
+
+				// 16 is hard coded because actual length has 32
+				for (var ib = 0; ib < 16; ib++) {
+					if (!(kick[ib] == (ib % 8 == 0) ? 1 : 0)) {
+						ok = false;
+						break;
+					}				
+				} 
+
+				if (ok) {				
+					omg.drums.onchange2 = undefined;
+					
+					nextStep();
+				}
+			};
+		}, delay: 1000},
+		
+		{do: function () {
+			omg.util.fade({div: omg.getEl("step5"), fadeIn: true});
+			omg.drums.onchange2 = function () {
+				
+				var ok = true;
+
+				var snare = omg.drums.part.data.tracks[1].data;			
+
+				// 16 is hard coded because actual length has 32
+				for (var ib = 0; ib < 16; ib++) {
+					if (!(snare[ib] == ((ib - 4) % 8 == 0) ? 1 : 0)) {
+						ok = false;
+						break;
+					}				
+				} 
+
+				if (ok) {
+					omg.drums.onchange2 = undefined;
+				
+					nextStep();
+				}
+			};
+		}, delay: 1000},
+
+		{do: function () {
+			omg.util.fade({div: omg.getEl("step6"), fadeIn: true});
+			omg.drums.onchange2 = function () {
+			
+				var ok = true;
+
+				var openhh = omg.drums.part.data.tracks[3].data;			
+			
+				// check to see if 1,2,3, and 4 are checked
+				for (var ib = 0; ib < 16; ib++) {
+					if (!(openhh[ib] == (ib == 14) ? 1 : 0)) {
+						ok = false;
+						break;
+					}				
+				} 
+
+				if (ok) {
+					omg.drums.onchange2 = undefined;
+				
+					nextStep();
+				}
+			};
+		}, delay: 1000},
+
+		{do: function () {
+			omg.util.fade({div: omg.getEl("step7"), fadeIn: true});
+			omg.drums.onchange2 = function () {
+			
+				var ok = true;
+
+				var closedhh = omg.drums.part.data.tracks[2].data;			
+			
+				for (var ib = 0; ib < 16; ib++) {
+					if (!(closedhh[ib] == (ib < 14 && ib % 2 == 0) ? 1 : 0)) {
+						ok = false;
+						break;
+					}				
+				} 
+
+				if (ok) {
+					omg.drums.onchange2 = undefined;
+				
+					nextStep();
+				}
+			};
+		}, delay: 1000},
+
+		{do: function () {
+			omg.util.fade({div: omg.getEl("info-done"), fadeIn: true});
+			nextStep();
+		}, delay: 500},
+		
+		{do: function () {
+			omg.getEl("part2").style.display = "none";
+			omg.util.fade({div: omg.getEl("part3"), fadeIn: true});
+			
+			//give the part this id, so we don't get a million doublicates
+			omg.drums.part.id = 6533320372387840
+			omg.drums.part.default = true;
+				
+			nextStep();	
+
+		}, delay: 4000},
+	];
+	var step = -1;
+	var nextStep = function () {
+		step++;
+		if (step < steps.length) {
+			setTimeout(steps[step].do, steps[step].delay);
+		}
+	};
+
+	nextStep();
+	
+	saveButton.onclick = function () {
+		if (saveButton.innerHTML != "Saving...") {
+			saveButton.innerHTML = "Saving...";
+	
+			doubleUpBeat();
+	
+			var type = "DRUMBEAT";
+			
+			var goToId = function(id) {
+				var url = window.location.origin + 
+						"/omgbam.jsp" + "?share=" + type + "-" + id;
+						
+				omg.getEl("share-url").value = url;
+				omg.getEl("twitter-link").href = 'http://twitter.com/home?status=' + encodeURIComponent(url);
+				omg.getEl("facebook-link").href = "http://www.facebook.com/sharer/sharer.php?t=OMGBAM.com&u="
+					+ encodeURIComponent(url);
+				omg.getEl("email-link").href = "mailto:?subject=OMGBAM.com&body=" + url;
+
+				saveButton.style.display = "none";
+				omg.util.fade({div: savedBeatOptions, fadeIn: true});
+				savedOptionsShowing = true;
+			};
+
+			if (omg.drums.part.id > 0) {
+				goToId(omg.drums.part.id);
+			}	
+			else {
+				omg.postOMG(type, omg.drums.part.data, function(response) {
+					if (response && response.result == "good") {
+						omg.drums.part.id = response.id;
+						goToId(response.id);
+	
+					}
+				});			
+			}				
+		}
+	};
+	
+	var launchOMGButton = omg.getEl("launch-omg");
+	launchOMGButton.onclick = function () {
+	
+		if (omg.drums.part.default) {
+			var url = window.location.origin + 
+				"/omgbam.jsp?share=SECTION-5086403738206208"
+		
+			window.location = url;
+			
+			return;		
+		} 
+	
+		doubleUpBeat();
+
+		var newSection = new OMGSection();
+		newSection.parts.push(omg.drums.part);
+
+		var type = "SECTION";		
+
+		omg.postOMG(type, newSection.getData(), function(response) {
+			if (response && response.result == "good") {
+				
+				var url = window.location.origin + 
+						"/omgbam.jsp" + "?share=" + type + "-" + response.id;
+				
+				window.location = url;
+
+			}
+		});
+
+		
+	}; 
+};
+
+function makeIntroductionDrumset() {
+	return  {"type":"DRUMBEAT","bpm":120,"kit":0,
+			    isNew: true,
+				"tracks":[			
+				{"name":"1","sound":"PRESET_counting/1",
+				"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"2","sound":"PRESET_counting/2",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"3","sound":"PRESET_counting/3",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"4","sound":"PRESET_counting/4",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"and","sound":"PRESET_counting/and",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"e","sound":"PRESET_counting/e",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+		        {"name":"a","sound":"PRESET_counting/a",
+	        	"data":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+	]};
+
+};
+
+function refreshIntroductionPart(displayingPart, playingPart) {
+
+	displayingPart = displayingPart.data.tracks;
+	playingPart = playingPart.data.tracks;
+	
+	playingPart[0].data[0] = displayingPart[0].data[0];
+	playingPart[1].data[4] = displayingPart[0].data[4];
+	playingPart[2].data[8] = displayingPart[0].data[8];
+	playingPart[3].data[12] = displayingPart[0].data[12];
+	
+	playingPart[4].data[2] = displayingPart[0].data[2];
+	playingPart[4].data[6] = displayingPart[0].data[6];
+	playingPart[4].data[10] = displayingPart[0].data[10];
+	playingPart[4].data[14] = displayingPart[0].data[14];
+
+	playingPart[5].data[1] = displayingPart[0].data[1];
+	playingPart[5].data[5] = displayingPart[0].data[5];
+	playingPart[5].data[9] = displayingPart[0].data[9];
+	playingPart[5].data[13] = displayingPart[0].data[13];
+
+	playingPart[6].data[3] = displayingPart[0].data[3];
+	playingPart[6].data[7] = displayingPart[0].data[7];
+	playingPart[6].data[11] = displayingPart[0].data[11];
+	playingPart[6].data[15] = displayingPart[0].data[15];
+
+}
+
+function doubleUpBeat() {
+	// the drum beat is only 4 beats long, make it 8
+	var track;
+	for (var ii = 0; ii < omg.drums.part.data.tracks.length; ii++) {
+		track = omg.drums.part.data.tracks[ii].data;
+		for (var ib = 0; ib < 16; ib++) {
+			track[ib + 16] = track[ib]; 
+		}
+	}
+}
+
+</script>
+
+<script>
+if (window.location.hostname != "localhost") {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-50186685-4', 'auto');
+  ga('send', 'pageview');
+}
 </script>
 
 </body>
