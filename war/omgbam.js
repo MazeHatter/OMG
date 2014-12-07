@@ -347,11 +347,9 @@ function setupRemixer() {
 		if (omg.player.playing) {
 			omg.player.stop();
 		} else {
-			omg.player.play({
-				subbeatMillis : 125,
-				loop : true,
-				sections : [ bam.section ]
-			});
+			var playSong = new OMGSong();
+			playSong.sections.push(bam.section);
+			omg.player.play(playSong);
 		}
 
 		e.stopPropagation();
@@ -1402,11 +1400,10 @@ bam.setupMelodyMaker = function () {
 
 						omg.remixer.refresh();
 
-						omg.player.play({
-							loop : true,
-							subbeatMillis : 125,
-							sections : [ bam.section ]
-						});
+						var playSong = new OMGSong();
+						playSong.sections.push(bam.section);
+						
+						omg.player.play(playSong);
 
 					});
 		});

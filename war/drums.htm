@@ -162,7 +162,11 @@ body {	background-color:#FFFF99;
 		(Try an updated Chrome, Safari, or FireFox for sound.)
 	</div> 
 
-	<a id="login-link" href="">Login</a> <a href="" id="logout-link">Logout</a> 
+	<!-- <a id="login-link" href="">Login</a> <a href="" id="logout-link">Logout</a>-->
+	
+	<span id="omg-title"><a href="/"><b>o</b>pen<b>m</b>usic<b>g</b>allery.net</a></span> 
+
+	<span id="omg-title"><a href="/omgbam.jsp">omgbam!</span> 
 
 	<div id="topbarright">
 	<a href="http://github.com/MazeHatter/OMG">source_code</a>
@@ -283,7 +287,7 @@ body {	background-color:#FFFF99;
 	</div>
 </div>
 <script>
-omg = {beats: 4, subbeats: 4, bpm:300};
+omg = {beats: 4, subbeats: 4};
 </script>
 
 <script src="omg_partsui.js"></script>
@@ -316,7 +320,7 @@ window.onload = function () {
 	var newSection = new OMGSection();
 	newSection.parts.push(playingPart);
 	newSong.sections.push(newSection);
-	newSong.subbeatMillis = 300;
+	newSong.data.subbeatMillis = 300;
 	
 	var partData = part.data.tracks[0].data;
 

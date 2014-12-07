@@ -63,8 +63,17 @@ if (typeof omg != "object")
 
     	//todo this bpm thing isn't consistent
         var beatsPerSection = p.beats * p.subbeats;
-    	p.subbeatLength = p.song.subbeatMillis || 125; 
+        if (p.song.data && p.song.data.subbeatMillis)
+        	p.subbeatLength = p.song.data.subbeatMillis;
+        else if (p.song.sections[0].data && 
+        		p.song.sections[0].data.subbeatMillis) {
+        	p.subbeatLength = p.song.sections[0].data.subbeatMillis
+        }
+        else
+        	p.subbeatLength = 125; 
     	
+        console.log(p.subbeatLength);
+        
     	var lastSection;
     	var nextSection;
     	

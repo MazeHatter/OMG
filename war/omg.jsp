@@ -52,6 +52,7 @@ var loggedIn = true;
 <div id="topbar">
 
 	<span id="omg-title"><a href="/"><b>o</b>pen<b>m</b>usic<b>g</b>allery.net</a></span>
+	<span id="omg-title"><a href="/omgbam.jsp">omgbam!</span> 
 
 	<div  id="no-web-audio">
 		<span class="old-browser">
