@@ -153,6 +153,8 @@ function setupPartDiv(part) {
 	part.controls.selectInstrument.onchange = function() {
 		var instrument = part.controls.selectInstrument.value;
 
+		console.log(instrument)
+		
 		if (instrument == "DEFAULT") {
 
 			for (var ii = 0; ii < part.data.notes.length; ii++) {
@@ -165,12 +167,18 @@ function setupPartDiv(part) {
 
 			return;
 		}
-
+		
 		getSoundSet(instrument, function(ss) {
 
 			part.sound = ss;
 
-			omg.player.setupPartWithSoundSet(ss, part, true);
+			if (type == "DRUMBEAT") {
+				omg.player.setupDrumPartWithSoundSet(ss, part, true);
+			}
+			else {
+				omg.player.setupPartWithSoundSet(ss, part, true);				
+			}
+
 		});
 
 	};
@@ -872,19 +880,48 @@ function getLoadParams() {
 	var shareParams;
 	var loadParams;
 
+	var newSoundSet;
+	
+	var pnew = false;
+	var pshare = false;
+	
 	if (params.length > 1) {
 		params = params.slice(1).split("&");
 		for (var ip = 0; ip < params.length; ip++) {
 			nvp = params[ip].split("=");
 
 			if (nvp[0].toLowerCase() === "share") {
-				shareParams = nvp[1].split("-");
-				loadParams = {
-						id : shareParams[1],
-						type : shareParams[0].toUpperCase()
-				};
+				pshare = nvp[1];
 			}
+			
+			if (nvp[0].toLowerCase() === "new") {
+				pnew = nvp[1];
+			}
+			
+			if (nvp[0].toLowerCase() === "soundset") {
+				newSoundSet = nvp[1];
+			}
+
 		}
+	}
+	
+	if (pshare) {
+		shareParams = pshare.split("-");
+		loadParams = {
+				id : shareParams[1],
+				command: "share",
+				type : shareParams[0].toUpperCase()
+		};
+	}
+	else if (pnew) {
+		shareParams = pnew.split("-");
+		loadParams = {
+				soundset : shareParams[1],
+				command: "new",
+				type : shareParams[0].toUpperCase(),
+				soundset: newSoundSet
+		};
+		
 	}
 
 	return loadParams;
@@ -892,6 +929,7 @@ function getLoadParams() {
 
 bam.load = function (params)  {
 
+	var pshare = params && params.command == "share";
 	var type = params ? params.type : "MELODY";
 
 	// to make the beginning as pretty as possible (no weird flickers)
@@ -947,7 +985,7 @@ bam.load = function (params)  {
 	var songDiv = bam.div.getElementsByClassName("song")[0];
 	bam.zones.push(songDiv);
 	
-	if (type == "SONG") {
+	if (type == "SONG" && pshare) {
 		bam.fadeIn([songDiv, omg.rearranger, omg.rearranger.addSectionButton], restoreColors);
 		bam.slideUpOptions(omg.rearranger.options);
 		omg.get(params, function(result) {
@@ -1011,22 +1049,44 @@ bam.load = function (params)  {
 	bam.zones.push(newDiv);
 	
 	if (type == "DRUMBEAT") {
-		omg.get(params, function(result) {
+		if (pshare) {
+			omg.get(params, function(result) {
 
-			bam.part = result;
-			//bam.section.parts.push(bam.part);
+				bam.part = new OMGDrumpart(newDiv, result.data);
+				
+				//bam.section.parts.push(bam.part);
+				
+				//bam.part.div = newDiv;
+				
+				bam.fadeIn([bam.part.div, bam.beatmaker ], restoreColors);
+		
+				bam.beatmaker.ui.setPart(bam.part);
+				bam.beatmaker.ui.drawLargeCanvas();
+		
+				bam.slideInOptions(bam.mm.options);
+			});			
+		}
+		else {
 			
-			bam.part.div = newDiv;
+			bam.part = new OMGDrumpart(newDiv);
+			
+			var ppart = bam.part;
+			getSoundSet(params.soundset, function(ss) {
+				omg.player.setupDrumPartWithSoundSet(ss, ppart, true);
+			});
+			
 			bam.fadeIn([bam.part.div, bam.beatmaker ], restoreColors);
 	
-			bam.beatmaker.ui.setPart(result);
+			bam.beatmaker.ui.setPart(bam.part);
 			bam.beatmaker.ui.drawLargeCanvas();
 	
 			bam.slideInOptions(bam.mm.options);
-		});
+			
+		}
 	} 
 	else if (type == "MELODY" || type == "BASSLINE") {
-		if (params) {
+		
+		if (pshare) {
 			omg.get(params, function(result) {
 				bam.part = new OMGPart(newDiv, result.data);
 				
@@ -1079,6 +1139,7 @@ function getSoundSet(id, callback) {
 
 	if (typeof id == "string" && id.indexOf("PRESET_") == 0) {
 		dl = omg.player.getPresetSoundSet(id);
+		console.log(dl);
 		omg.downloadedSoundSets[id] = dl;
 		callback(dl);
 		return;

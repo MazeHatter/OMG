@@ -32,6 +32,10 @@ public class UserHelper {
 		return userService.createLoginURL("/");
 	}
 	
+	public String getLoginUrl(String url) {
+		return userService.createLoginURL(url);
+	}
+	
 	public String getLogoutUrl() {
 		return userService.createLogoutURL("/");
 	}

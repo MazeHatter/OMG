@@ -647,6 +647,31 @@ if (typeof omg != "object")
 
     };
 
+    p.setupDrumPartWithSoundSet = function (ss, part, load) {
+
+    	if (!ss)
+    		return;
+    	    	
+    	var prefix = ss.data.prefix || "";
+    	var postfix = ss.data.postfix || "";
+
+    	var track;
+    	
+    	for (var ii = 0; ii < part.data.tracks.length; ii++) {
+    		track = part.data.tracks[ii];
+    		
+    		track.sound = prefix + ss.data.data[ii].url + postfix;
+
+    		if (!track.sound)
+    			continue;
+    		
+            if (load && !p.loadedSounds[track.sound]) {
+                p.loadSound(track.sound, part);
+            }
+    	}
+
+    };
+
     p.getPresetSoundSet = function (preset) {
     	var oret;
     	if (preset == "PRESET_SYNTH1") {
@@ -707,6 +732,35 @@ if (typeof omg != "object")
     			oret.data.prefix = "http://localhost/mp3/bass_";
     		}
     	}
+    	if (preset == "PRESET_HIP") {
+    		oret = {"name" : "PRESET_HIP", "id" : 0,  
+    				"data" : {"name":"PRESET_HIP","data":[
+                     {"url":"PRESET_HH_KICK","caption":"kick"},
+                     {"url":"PRESET_HH_CLAP","caption":"clap"},
+                     {"url":"PRESET_ROCK_HIHAT_CLOSED","caption":"hihat closed"},
+                     {"url":"PRESET_HH_HIHAT","caption":"hihat open"},
+                     {"url":"PRESET_HH_TAMB","caption":"tambourine"},
+                     {"url":"PRESET_HH_TOM_MH","caption":"h tom"},
+                     {"url":"PRESET_HH_TOM_ML","caption":"m tom"},
+                     {"url":"PRESET_HH_TOM_L","caption":"l tom"}
+                     ]} };
+    		
+    	}
+    	if (preset == "PRESET_ROCK") {
+    		oret = {"name" : "PRESET_ROCK", "id" : 0,  
+    				"data" : {"name":"PRESET_ROCK","data":[
+                     {"url":"PRESET_ROCK_KICK","caption":"kick"},
+                     {"url":"PRESET_ROCK_SNARE","caption":"snare"},
+                     {"url":"PRESET_ROCK_HIHAT_CLOSED","caption":"hihat closed"},
+                     {"url":"PRESET_ROCK_HIHAT_OPEN","caption":"hihat open"},
+                     {"url":"PRESET_ROCK_CRASH","caption":"crash"},
+                     {"url":"PRESET_ROCK_TOM_H","caption":"h tom"},
+                     {"url":"PRESET_ROCK_TOM_ML","caption":"m tom"},
+                     {"url":"PRESET_ROCK_TOM_L","caption":"l tom"}
+                     ]} };
+    		
+    	}
+
 
     	return oret;
     };

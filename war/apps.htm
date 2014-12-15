@@ -3,129 +3,264 @@
 <head>
 <title>OMG Apps</title>
 <style>
-body {width:600px; margin:auto;}
-.appstorebuttons img {height:80px;width:80px;}
+/*body {width:600px; margin:auto;}*/
+.appstorebuttons img {height:60px;width:60px; padding:6px;}
 
 .appstorebuttons {text-align:center;
 	font-size:10pt;
 	font-family:Helvetica;
-	color:#808080;}
+	color:#808080;
+	
+	position:absolute;
+	right:10px;
+	top:-12px;
+	}
+	
+#android-area {
+	position:absolute;
+	left:400px;
+	top:79px;
+	width:600px;
+}
+.android-app {
+	position:relative;
+}
+#web-area, #ios-area, #nook-area {
+	width:300px;
+	margin-left:50px;
+}
+
+.otherstorelink {
+	color:black;
+	display:block;
+	width:90%;
+	padding:12px;
+	text-decoration:none;
+}
+.appstorebuttons img:hover , .otherstorelink:hover {
+	background-color:#F8F844;
+}
+.otherstorelink:visited {
+	color:#000000;
+	
+}
+.title {
+	text-align:center;
+	margin-top:30px;
+}
+
+.for-platform {
+	font-style:italic;
+	color:#808080;
+}
 </style>
+
+<link rel="stylesheet" href="omg.css" type="text/css" />
+
 </head>
 <body>
-<h2>OMG Apps</h2>
 
+<div id="topbar">
+	<div id="topbar-inner">
+	<a href="/"><img id="omg48topbar" src="img/omg48.png"></a>
+	</div>
+</div>
+
+
+<h2 class="title">OMG Apps</h2>
+
+<div class="platform-area" id="ios-area">
+	<div class="for-platform">for iOS</div>
+	<hr/>
+	
+	<a href="https://itunes.apple.com/us/app/id844802206?mt=8" class="otherstorelink">
+	<img src="img/sketchatune48.png" align="middle">	Sketch a Tune
+	</a>	
+	
+	<a href="https://itunes.apple.com/us/app/you-got-a-doodle!/id828748170?mt=8" class="otherstorelink">
+	<img src="img/yougotadoodle48.png" align="middle">	You Got A Doodle!
+	</a>
+
+</div>
+
+<br/>
+
+<div class="platform-area" id="web-area">
+	<div class="for-platform">for Web (Mobile and Desktop)</div>
+	<hr/>
+
+	<a href="/omgbam.jsp" class="otherstorelink">
+	<img src="img/omg48.png" align="middle">	OMG Bam!
+	</a>
+	
+	<a href="http://sketchatune.com" class="otherstorelink">
+	<img src="img/sketchatune48.png" align="middle">	SketchaTune.com
+	</a>	
+	
+
+</div>
+
+<br/>
+
+<div class="platform-area" id="nook-area" >
+	<div class="for-platform">for Nook</div>
+	<hr/>
+
+	<a href="http://www.barnesandnoble.com/w/sketch-a-tune-monadpadcom/1115251425?ean=2940147127148" 
+			class="otherstorelink">
+	<img src="img/sketchatune48.png" align="middle">	Sketch a Tune
+	</a>	
+	
+	<a href="http://www.barnesandnoble.com/w/omg-drums-monadpadcom/1118415512?ean=2940147174081"
+			class="otherstorelink">
+		<img src="img/omgdrums48.png" align="middle"> OMG Drums	
+			
+	</a>
+
+
+</div>
+
+
+<div class="platform-area" id="android-area">
+	<div class="for-platform">for Android (including Amazon Fire devices)</div>
+	<hr/>
+	
+	<a name="omgbananas"></a>
+	<div class="android-app">
+		<h2> OMG Bananas</h2>
+		
+		<p><img src="img/banana48.png">
+		Easily make drum beats, bass lines, chord changes and more! Want to change the direction of the music? Get involved! Need a collaborator? This app learns what you like and helps create more! Want to just rip out a guitar solo? Go bananas and have fun.
+		</p>
+		
+		<div class="appstorebuttons">
+		Free at Google Play and Amazon Appstore:<br>
+		<a href="https://play.google.com/store/apps/details?id=com.monadpad.omgbananas">
+		<img src="img/market114.png"/>
+		</a>
+		<a href="http://www.amazon.com/MonadPad-com-OMG-Bananas/dp/B00H3XJM2O">
+		<img src="img/amazon114.png"/>
+		</a>
+		</div>
+	</div>
+		
+	<hr>
+	
+	<div class="android-app">
+
+
+		<a name="omgdrums"></a>
+		<h2>OMG Drums</h2>
+		
+		<p><img src="img/omgdrums48.png">
+		OMG Drums is an Open Source drum machine for Android. Make beats, or have the app randomly make some for you. 
+		</p>
+		<div class="appstorebuttons">
+		Free at Google Play and Amazon Appstore:<br>
+		<a href="https://play.google.com/store/apps/details?id=com.monadpad.omgdrums">
+		<img src="img/market114.png"/></a>
+		
+		<a href="http://www.amazon.com/MonadPad-com-OMG-Drums/dp/B00HTC596W">
+		<img src="img/amazon114.png"/>
+		</a>
+		</div>
+	</div>
+
+
+	<hr>
+	
+		<div class="android-app">
+	
+			<a name="sketchatune"></a>
+			<h2>Sketch a Tune</h2>
+			<p>
+				<img src="img/sketchatune48.png">
+				You doodle. Music is created. It's that simple. Use different colors to make different sounds. Play in different keys and scales. Add solo's, and chord changes. Then share your creation!
+			</p>
+			<div class="appstorebuttons">
+			Free at Google Play and Amazon Appstore:<br>
+			
+			<a href="https://play.google.com/store/apps/details?id=com.monadpad.sketchatune2">
+			<img src="img/market114.png"/>
+			</a>
+			<a href="http://amzn.com/B00CM1A51Y">
+			<img src="img/amazon114.png"/>
+			</a>
+			</div>
+
+		</div>
 <hr>
-<a name="omgdrums">
-<h1>OMG Drums</h1>
 
-<p><img src="img/omgdrums48.png">
-OMG Drums is an Open Source drum machine for Android. Make beats, or have the app randomly make some for you. 
-</p>
-<div class="appstorebuttons">
-Free at Google Play and Amazon Appstore:<br>
-<a href="https://play.google.com/store/apps/details?id=com.monadpad.omgdrums">
-<img src="img/market114.png"/></a>
 
-<a href="http://www.amazon.com/MonadPad-com-OMG-Drums/dp/B00HTC596W">
-<img src="img/amazon114.png"/>
-</a>
-</div>
+	<div class="android-app">
 
-<hr>
-<a name="sketchatune">
-<h1>Sketch a Tune</h1>
-<p>
-	<img src="img/sketchatune48.png">
-	Sketch a Tune You doodle. Music is created. It's that simple. Use different colors to make different sounds. Play in different keys and scales. Add solo's, and chord changes. Then share your creation!
-</p>
-<div class="appstorebuttons">
-Free at Google Play and Amazon Appstore:<br>
+		<a name="tonezart"></a>
+		<h2>Tonezart</h2>
+		<p><img src="img/tonezart48.png">
+		Want a unique ringtone all of your own? Use Tonezart and make custom and original ringtones for everyone in your phone in seconds! Let the Tonezart monkey randomly create melodies for you, or compose your own simply by drawing on the screen!
+		
+		</p>
+		<div class="appstorebuttons">
+		Free at Google Play and Amazon Appstore:<br>
+		<a href="https://play.google.com/store/apps/details?id=com.monadpad.tonezart">
+		<img src="img/market114.png"/>
+		</a>
+		<a href="http://www.amazon.com/MonadPad-com-Tonezart-the-Ringtone-Composer/dp/B00F1RR5EG">
+		<img src="img/amazon114.png"/>
+		</a>
+		</div>
 
-<a href="https://play.google.com/store/apps/details?id=com.monadpad.sketchatune2">
-<img src="img/market114.png"/>
-</a>
-<a href="http://amzn.com/B00CM1A51Y">
-<img src="img/amazon114.png"/>
-</a>
-</div>
-
+	</div>		
 <hr>
 
-<a name="drawmusic">
-<h1>Draw Music MonadPad</h1>
-<p>
-<img src="img/drawmusic48.png"> The original! The inspiring app that puts the joy of creating music into anyone's hands. Kids and adults, musicians and music lovers all love this app.
-</p>
-<div class="appstorebuttons">
-Free at Google Play and Amazon Appstore:<br>
-<a href="https://play.google.com/store/apps/details?id=com.monadpad.le&hl=en">
-<img src="img/market114.png"/>
-</a>
-<a href="http://www.amazon.com/MonadPad-com-Draw-Music-MonadPad/dp/B005YTP9W6">
-<img src="img/amazon114.png"/>
-</a>
-</div>
-
+	<div class="android-app">
+		
+		<a name="drawmusic"></a>
+		<h2>Draw Music MonadPad</h2>
+		<p>
+		<img src="img/drawmusic48.png"> The original! The inspiring app that puts the joy of creating music into anyone's hands. Kids and adults, musicians and music lovers all love this app.
+		</p>
+		<div class="appstorebuttons">
+		Free at Google Play and Amazon Appstore:<br>
+		<a href="https://play.google.com/store/apps/details?id=com.monadpad.le&hl=en">
+		<img src="img/market114.png"/>
+		</a>
+		<a href="http://www.amazon.com/MonadPad-com-Draw-Music-MonadPad/dp/B005YTP9W6">
+		<img src="img/amazon114.png"/>
+		</a>
+		</div>
+	</div>
 <hr>
+	<div class="android-app">
 
-<a name="omgbananas"></a>
-<h1>OMG Bananas</h1>
 
-<p>
-<img src="img/banana48.png">
-Want to know how to make a song? Watch and learn as the app makes drum beats, bass lines, chord changes and more! Want to change the direction of the music? Get involved! Need a collaborator? This app learns what you like and helps create more! Want to just rip out a guitar solo? Go bananas and have fun.
-</p>
-<div class="appstorebuttons">
-Free at Google Play and Amazon Appstore:<br>
-<a href="https://play.google.com/store/apps/details?id=com.monadpad.omgbananas">
-<img src="img/market114.png"/>
-</a>
-<a href="http://www.amazon.com/MonadPad-com-OMG-Bananas/dp/B00H3XJM2O">
-<img src="img/amazon114.png"/>
-</a>
+		<a name="bitar"></a>
+		<h2>Bitar -<br/> The Touchscreen Guitar</h2>
+		<p><img src="img/bitar48.png">
+		
+		It's hard to describe the awesomeness of a touchscreen guitar. Check this out: 
+		</p>
+		
+		<iframe width="560" height="315" src="//www.youtube.com/embed/D7FojM0RH5M" frameborder="0" allowfullscreen></iframe>
+		
+		<div class="appstorebuttons">
+		Available at Google Play and Amazon Appstore:<br>
+		<a href="https://play.google.com/store/apps/details?id=com.monadpad.ax">
+		<img src="img/market114.png"/>
+		</a>
+		<a href="http://www.amazon.com/MonadPad-com-Bitar/dp/B00DH7ZH60">
+		<img src="img/amazon114.png"/>
+		</a>
+		</div>
+
+	</div>
+	
+	<br/>
+	<br/>
+	<br/>
+	<br/>
+	<br/>
+	OMG, OMG Bananas, OMG Drums, and Tonezart logos by Wes Golinski
 </div>
-
-<hr>
-
-<a name="tonezart"></a>
-<h1>Tonezart</h1>
-<p><img src="img/tonezart48.png">
-Want a unique ringtone all of your own? Use Tonezart and make custom and original ringtones for everyone in your phone in seconds! Let the Tonezart monkey randomly create melodies for you, or compose your own simply by drawing on the screen!
-
-</p>
-<div class="appstorebuttons">
-Free at Google Play and Amazon Appstore:<br>
-<a href="https://play.google.com/store/apps/details?id=com.monadpad.tonezart">
-<img src="img/market114.png"/>
-</a>
-<a href="http://www.amazon.com/MonadPad-com-Tonezart-the-Ringtone-Composer/dp/B00F1RR5EG">
-<img src="img/amazon114.png"/>
-</a>
-</div>
-
-<hr>
-
-
-<a name="bitar"></a>
-<h1>Bitar - The Touchscreen Guitar</h1>
-<p><img src="img/bitar48.png">
-
-It's hard to describe the awesomeness of a touchscreen guitar. Check this out: 
-</p>
-<div class="appstorebuttons">
-<iframe width="560" height="315" src="//www.youtube.com/embed/D7FojM0RH5M" frameborder="0" allowfullscreen></iframe>
-</div>
-<div class="appstorebuttons">
-Free at Google Play and Amazon Appstore:<br>
-<a href="https://play.google.com/store/apps/details?id=com.monadpad.ax">
-<img src="img/market114.png"/>
-</a>
-<a href="http://www.amazon.com/MonadPad-com-Bitar/dp/B00DH7ZH60">
-<img src="img/amazon114.png"/>
-</a>
-</div>
-
-
 </body>
 </html>

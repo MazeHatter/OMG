@@ -1,10 +1,37 @@
 var bottomNote = -100;
 
-document.getElementById("add-another-sound").onclick = function () {
+console.log(110)
+window.onload = function () {
 
-    createNewSound();
+
+	document.getElementById("add-another-sound").onclick = function () {
+
+	    createNewSound();
+
+	};
+
+	var forWhatPanel = document.getElementById("for-what"); 
+	var editPanel = document.getElementById("edit-panel");
+	var whatIsPanel = document.getElementById("what-is");
+	
+	var forBeats = document.getElementById("for-beats");
+	
+	if (hasUser) {
+		omg.util.fade({div: forWhatPanel, fadeIn:true});
+		forBeats.onclick = function () {
+			omg.util.fade({div: whatIsPanel, remove:true, });
+			omg.util.fade({div: forWhatPanel, remove:true, callback: function () {
+				omg.util.fade({div:editPanel, fadeIn:true});
+			}});
+		};
+	}
+	else {
+		omg.util.fade({div:omg.getEl("login-area"), fadeIn:true});
+	}
+
 
 };
+
 
 document.getElementById("save-button").onclick = function () {
     var warning = document.getElementById("warning");
@@ -56,7 +83,7 @@ document.getElementById("save-button").onclick = function () {
             if (xhr.responseText.indexOf("{") === 0) {
                 var oReturn = JSON.parse(xhr.responseText);
                 if (oReturn.id && oReturn.id > 0) {
-                    window.location = "/?func=newdrumbeat&soundset=" + oReturn.id; 
+                    window.location = "/omgbam.jsp?new=drumbeat&soundset=" + oReturn.id; 
                 }
             }
             else {
@@ -130,6 +157,9 @@ function createNewSound(caption, url) {
         "<input type='text' class='sound-url' value='" + url + "'> " +
         "<button type='button'>Get</button>";
 
-    document.getElementById("sound-list").appendChild(newDiv);   
+    newDiv.style.display = "none";
+    document.getElementById("sound-list").appendChild(newDiv);
+    
+    omg.util.fade({div:newDiv, fadeIn:true});
 
 }
