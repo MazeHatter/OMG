@@ -68,7 +68,7 @@ if (shareParam != null) {
 	<div id="topbarright">
 	<a href="http://github.com/MazeHatter/OMG">source_code</a>
 	<a href="http://reddit.com/r/openmusic">forum</a>
-	<a href="http://openmusicgallery.net">overview</a>
+	<a href="/overview.jsp">overview</a>
 	</div>
 
 </div>

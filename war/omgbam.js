@@ -1071,9 +1071,12 @@ bam.load = function (params)  {
 			bam.part = new OMGDrumpart(newDiv);
 			
 			var ppart = bam.part;
-			getSoundSet(params.soundset, function(ss) {
-				omg.player.setupDrumPartWithSoundSet(ss, ppart, true);
-			});
+			
+			if (params.soundset) {
+				getSoundSet(params.soundset, function(ss) {
+					omg.player.setupDrumPartWithSoundSet(ss, ppart, true);
+				});				
+			}
 			
 			bam.fadeIn([bam.part.div, bam.beatmaker ], restoreColors);
 	

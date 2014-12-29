@@ -78,6 +78,6 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
     </servlet-mapping>
 
 	<welcome-file-list>
-		<welcome-file>omg.jsp</welcome-file>
+		<welcome-file>overview.jsp</welcome-file>
 	</welcome-file-list>
 </web-app>

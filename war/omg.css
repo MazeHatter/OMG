@@ -30,16 +30,17 @@ body {
 
 
 #bbody {
-	padding-top: 34px;
-	width:1024px;
+	/*padding-top: 34px;*/
+	max-width:1024px;
 	margin:auto;
 }
 
 h1 {
 	font-size: 24px;
 	color: #808080;
-	padding: 0px;
-	margin:0px;
+	/*padding: 0px;
+	margin:0px;*/
+	text-align:center;
 }
 
 

@@ -19,8 +19,12 @@ if (!window.requestAnimFrame) {
 	})();
 }
 
-omg.getEl = function (id) {
-	return document.getElementById(id);
+omg.getEl = function (id, param2) {
+	var el = document.getElementById(id);
+	if (el && typeof(param2) == "function")
+		el.onclick = param2;
+	
+	return el;
 }
 omg.newEl = function (type) {
 	return document.createElement(type);
@@ -116,7 +120,7 @@ omg.util.fade = function (params) {
 	if (params.startT == undefined) {
 		params.startT = Date.now();
 		if (params.fadeIn) {
-			params.div.style.opacity = 0;
+			params.div.style.opacity = params.start || 0;
 			params.div.style.visibility = "visible";
 			params.div.style.display = params.display || "block";
 		}
@@ -126,6 +130,9 @@ omg.util.fade = function (params) {
 	}
 
 	var opacity = now / length;
+	if (params.start && opacity < params.start)
+		opacity = params.start
+		
 	if (!params.fadeIn)
 		opacity = 1 - opacity;
 	params.div.style.opacity = opacity;			
