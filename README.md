@@ -1,8 +1,6 @@
 The OpenMusicGallery is an open music project released under the OMG License.
 
-Read about how crazy of an idea it is at http://openmusicgallery.com
+OMG is a library of open music (http://openmusicgallery.net) that includes an integrated HTML Digital Audio Workstation (http://omgbam.com) and touchscreen modular instruments (http://omgbananas.com).
 
-Get an overview at http://openmusicgallery.net
-
-Get down and dirty at http://omgbam.com
+Read about how crazy of an idea it is at http://openmusicgallery.com.
 
