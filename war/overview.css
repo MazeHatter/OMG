@@ -52,6 +52,7 @@
 
 
 #overview-screen { 
+	display:none;
 	padding-top:6px;
 	position:relative;}
 	
@@ -78,11 +79,13 @@
 }
 
 
-#what-next {display:none;}
+#what-next {display:none;
+	text-align:center;
+}
 .step {
 	position:relative;
 	display:none;
-	
+	text-align:center;	
 }
 
 
@@ -110,7 +113,7 @@
 	width:220px;
 	background-color:#99FF99;
 }
-#overview-got-it:hover, #make-section-continue:hover {
+.create-panel-option:hover, #overview-got-it:hover, #make-section-continue:hover {
 	background-color:#33FF33;
 }
 .panel-options {
@@ -123,12 +126,6 @@
 	left:47%;
 }
 
-#what-next-possibilities {
-	
-	padding-left:180px;
-	
-}
-
 .selected-main-tab, .main-tab {
 	display:inline-block;
 	width:22%;
@@ -137,7 +134,8 @@
 	border-bottom:1px solid black;
 	padding:14px;
 	background:#F0F0F0;
-	margin:-2px;
+	margin-left:-2px;
+	margin-right:-2px;
 	border-radius:12px 12px 0px 0px;
 	cursor:pointer;
 }
@@ -157,4 +155,77 @@
 	margin:auto;
 	margin-top:25px;
 	padding:10px;	
+}
+
+#browser-settings {
+	
+	margin:28px;
+	padding:12px;
+	background-color:#FAFAFA;
+	border-top:1px solid #888888;
+	border-bottom:1px solid #888888;
+	text-align:center;
+}
+
+#switch-to-browse-parts, #switch-to-browse-songs {
+	text-decoration:underline;
+	color:blue;
+	cursor:pointer;
+}
+
+.create-panel-option {
+	display:inline-block;
+	border-radius:6px;
+	text-align:center;
+	padding:18px;
+	margin:12px;
+	width:240px;
+	border-bottom:2px solid #0F0F0F;
+	border-top:1px solid #FFFFFF;
+	
+	font:14pt Helvetica, arial, freesans, clean, sans-serif;
+	cursor:pointer;
+
+	background-color:#99FF99;
+	color:black;
+	text-decoration:none;
+}
+
+.option-row {
+	text-align:center;
+}
+
+.omg-title {
+	font: 12px "Palatino Linotype", "Book Antiqua", Palatino, serif;
+	
+	font-weight:bold;
+	color: #808080;
+	/*padding: 0px;
+	margin:0px;*/
+	text-align:center;
+}
+
+
+.section {
+	position: relative;
+	display:inline-block;
+	border-width: 0px;
+	border: 1px solid #808080;
+	border-radius:3px;
+	padding: 4px;
+	height: 50px;
+	width:130px;
+	cursor: pointer;
+	background-color:#99AAFF;
+}
+
+.song {	
+	background-color:#99FF99;
+}
+
+.omg-title a:visited {
+	color:#808080;
+}
+.omg-title a {
+	color:#808080;
 }

@@ -930,6 +930,7 @@ function getLoadParams() {
 bam.load = function (params)  {
 
 	var pshare = params && params.command == "share";
+	var pnew = params && params.command == "new";
 	var type = params ? params.type : "MELODY";
 
 	// to make the beginning as pretty as possible (no weird flickers)
@@ -955,6 +956,7 @@ bam.load = function (params)  {
 	bam.artist.data = omg.util.user;
 	
 	if (!params && omg.util.hasRealAccount()) {
+		bam.artistView.artistName.value = bam.artist.data.artistName;
 		bam.fadeIn([artistDiv, bam.artistView]);
 		var newSong;
 		var newSongs= [];
@@ -1102,7 +1104,9 @@ bam.load = function (params)  {
 		else {
 			bam.part = new OMGPart(newDiv);
 			bam.fadeIn([bam.part.div, bam.mm], restoreColors);
-			bam.mm.setPart(bam.part, true);
+			
+			var welcome = !pnew;
+			bam.mm.setPart(bam.part, welcome);
 		}
 	}
 

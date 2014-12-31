@@ -1,4 +1,15 @@
-<!-- Indices written at Sun, 28 Dec 2014 22:33:36 PST -->
+<!-- Indices written at Tue, 30 Dec 2014 18:49:53 PST -->
 
-<datastore-indexes/>
+<datastore-indexes>
 
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="SECTION" ancestor="true" source="auto">
+        <property name="time" direction="desc"/>
+    </datastore-index>
+
+    <!-- Used 2 times in query history -->
+    <datastore-index kind="SONG" ancestor="true" source="auto">
+        <property name="time" direction="desc"/>
+    </datastore-index>
+
+</datastore-indexes>

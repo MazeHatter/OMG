@@ -71,13 +71,16 @@ var loggedIn = true;
 </div>
 -->
 
-<h1>Open Music Gallery</h1>
+<div class="omg-title">
+	Open Music Gallery 	
+	<a href="dotcom.html">about</a>
+</div>
 
 
 <div class="main-tabs">
-<div id="overview-tab" class="selected-main-tab">Overview</div>
-<div id="browse-tab" class="main-tab">Browse</div>
+<div id="browse-tab" class="selected-main-tab">Browse</div>
 <div id="create-tab" class="main-tab">Create</div>
+<div id="overview-tab" class="main-tab">Overview</div>
 </div>
 
 
@@ -131,10 +134,9 @@ var loggedIn = true;
 </div>
 
 
-<div id="bbody">
 
 <div class="step" id="what-next">
-	<h1>Ideas to get you started...</h1>
+	<h3>Ideas to get you started...</h3>
 	
 
 	<p class="try-link">
@@ -150,32 +152,36 @@ var loggedIn = true;
 	<p class="try-link">
 		<a class="overview-try" href="/apps.htm">Try OMG Mobile Apps!</a>
 	</p>
-
-	<p class="try-link">
-		<a class="overview-try" href="<%=loginUrl%>">No Fuss Login with GMail/Google</a>
-		 
-	</p>
 	
 	<p class="try-link">
-		<span class="overview-try">Press Browse or Create
+		<span class="overview-try">Press the Browse or Create tabs
 	</p>
 
-	
-
-
-	<!--<p id="login-p">To save what you make, please login!
+	<p id="login-p">No Fuss Login with GMail/Google to save your stuff
 	<br/>
 	<a href="<%=loginUrl%>"><img src="img/signingoogle.png"/></a>
-	</p>-->
-
+	</p>
+	
+	<div id="replay-overview" class="create-panel-option">Replay Overview</div>
+	
+	
 </div>
 
+<div id="bbody">
 
 <div class="step" id="browser">
-	<hr/>
-	display: Songs - Newest [] Votes [] | Songs - Newest [] Votes [] | Songs - Newest [] Votes [] | Songs - Newest [] Votes []
-	<hr/>
-
+	
+	<div id="browser-settings">
+		<div id="browsing-parts">
+			Browse Parts -
+			<span id="switch-to-browse-songs">Browse Songs</span>
+		</div>
+		<div id="browsing-songs">
+			<span id="switch-to-browse-parts">Browse Parts</span> -
+			Browse Songs
+		</div>
+	</div>
+	
 	<div class="result-area" id="melodies">
 		
 		<div class="area-caption">Melodies</div>
@@ -218,8 +224,49 @@ var loggedIn = true;
 			</tr>			
 		</table>	
 	</div>
+
 	<div class="result-area" id="drumbeats">
 		<div class="area-caption">Drumbeats</div>
+		<div class="area-count"></div>	
+		
+		<table class="results-table">
+			<tr class="column-caption">
+				<td>Newest</td>
+				<td>Highest Rated</td>
+			</tr>
+			<tr>
+				<td>
+					<div class="newest-column"></div>
+				</td>
+				<td>
+					<div class="most-votes-column"></div>
+				</td>
+			</tr>			
+		</table>
+	</div>
+
+	<div class="result-area" id="songs">
+		<div class="area-caption">Songs</div>
+		<div class="area-count"></div>	
+		
+		<table class="results-table">
+			<tr class="column-caption">
+				<td>Newest</td>
+				<td>Highest Rated</td>
+			</tr>
+			<tr>
+				<td>
+					<div class="newest-column"></div>
+				</td>
+				<td>
+					<div class="most-votes-column"></div>
+				</td>
+			</tr>			
+		</table>
+	</div>
+
+	<div class="result-area" id="sections">
+		<div class="area-caption">Sections</div>
 		<div class="area-count"></div>	
 		
 		<table class="results-table">
@@ -242,92 +289,32 @@ var loggedIn = true;
 
 
 
-<div class="step">
-	
-	<hr />
+
+<div class="step" id="create-panel">
+
 	<div class="try-details">
-		<a name="remix_a_song"></a>
-		<span class="overview-try">Try:</span> Remix a Song.
+		<span class="overview-try">OMG Bam!</span> is the web app to create and remix music in your browser.
 	</div>
-	<hr/>
-	<p>
-		Click a song to preview it. Double click to edit it.
-	</p>
-		<div id="song-results"></div>
-	<hr/>
 
-
-</div>
-
-<div class="step">
-
-	<div class="try-details"><a name="draw_a_melody"></a><span class="overview-try">Try:</span> Draw a Melody!</div>
-	<hr/>
-	
-	<div id="mm-area">
-		<canvas id="melody-maker-canvas">
-		</canvas>
-		
-		<div id="mm-options" class="option-panel">		
-			<div class="panel-option" id="play-mm">Play</div>
-			<div class="panel-option" id="share-mm">Share</div>
-			<!--<div class="melody-maker-option" id="save-mm">Save</div>-->
-			<div class="panel-option" id="next-mm">Next</div>
-			<div class="panel-option" id="clear-mm">Clear</div>
+		<div class="option-row">
+			<a class="create-panel-option" href="omgbam.jsp?new=drumbeat">Create a Drum Beat</a>
+			<a class="create-panel-option" href="omgbam.jsp?new=melody">Create a Melody</a>
+			<a class="create-panel-option" href="newinstrument.jsp">Create a Sound Set</a>
 		</div>
-
-		<div id="mm-share-zone" class="area">
-			<div id="mm-share-controls">
-				<h1>Share!</h1>
-				url: <input type="text" id="share-url"></input>
-				<br/>
-				<br/>
-				<a target="_blank" href="" id="facebook-link"><img id="facebook-button" src="img/f_logo.png"></a>
-				<a target="_blank" href="" id="twitter-link"><img id="twitter-button" src="img/twitter_logo.png"></a>
-				<a target="_blank" href="" id="email-link"><img id="email-button" src="img/email.png"></a>
 		
-				<div class="panel-option" id="finish-share">Done</div>
-			</div>			
-		</div>
-
-	</div>	
-
-</div>
-
-<div class="step">
-	
-	<hr/>
-	<div class="try-details"><a name="make_a_soundset"></a>
-		<span class="overview-try">Try:</span> Record your voice and upload it as a SoundSet.
-	</div>
-	<hr/>
-	<p>
-		Melodies, basslines, and drumbeats can be played back in any instrument, 
-		even your own voice if you create a soundset for it!
-	</p>
-	<ul>
-		<li><a href="newinstrument.jsp">Make new SoundSet</a></li>
+		<p>SoundSets are the audio patches used for playing parts. You can upload your own drumset, or guitar, or even your voice!</p>
 	</ul>
+	
 	<hr/>
 
-</div>
-
-<div class="step">
-
-	<div class="try-details"><a name="apps"></a>
-		<span class="overview-try">Try:</span> Apps that read and write to OMG.
-	</div>
-	<hr/>
-	<div>
-	<ul>
-		<li><a href="http://omgbam.com">OMG Bam!</a></li>
-		<li><a href="http://omgbananas.com">OMG Bananas!</a></li>
-		<li><a href="http://tonezart.com">Tonezart</a></li>
-		<li><a href="http://sketchatune.com">Sketch a Tune</a></li>
-		<li><a href="apps.htm#drawmusic">Draw Music MonadPad</a></li>
-		<li><a href="http://playbitar.com">Bitar</a></li>
+	<div class="try-details">
+			<span class="overview-try">OMG Bananas!</span> is a unique instrument for Android:
 	</div>
 
+	<div class="option-row">
+		<a class="create-panel-option" href="http://omgbananas.com">OMG Bananas!</a>
+		<a class="create-panel-option" href="apps.htm">More iOS and Android Apps</a>
+	</div>
 </div>
 
 

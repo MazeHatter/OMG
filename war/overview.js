@@ -1,15 +1,12 @@
 window.onload = function () {
 	
-	gallery.setupMelodyMaker();
+	//gallery.setupMelodyMaker();
     gallery.loadCounts();
-
-    gallery.loadArea("MELODY", document.getElementById("melodies"));
-    gallery.loadArea("BASSLINE", document.getElementById("basslines"));
-    gallery.loadArea("DRUMBEAT", document.getElementById("drumbeats"));
 
 	var omgBrowser = omg.getEl("browser");
 	var whatNext = omg.getEl("what-next");
 	var overview = omg.getEl("overview-screen");
+	var createPanel = omg.getEl("create-panel");
 	
 	//gallery.getContributions("SONG", "mostvotes", 21, function (results) {
     //    displaySongs(results);
@@ -23,31 +20,16 @@ window.onload = function () {
 
 
 	var afterOverviewCallback = function () {
-		
+
+		if (!gallery.playingOverview)
+			return;
+
+		gallery.playingOverview = false;
 		omg.util.fade({div:omg.getEl("what-next"), fadeIn:true});
-		return;
-		
-		omg.util.fade({div: createASection, fadeIn: true, 
-			callback: function () {
-				var partDivs = createASection.getElementsByClassName("part");
-				console.log(partDivs);
-				for (var ip = 0; ip < partDivs.length; ip++) {
-					if (partDivs[ip].drawWhenReady) {
-						partDivs[ip].drawWhenReady();
-						partDivs[ip].drawWhenReady = undefined;
-					}
-				}
-		}});
+		gallery.overviewGotIt = true;		
 	};	
 
 	
-	gallery.startOverview(afterOverviewCallback);
-	
-    //stupid hacks to get the canvas's offsets correct after parts load
-	window.onscroll = function () {
-		omg.mm.redoOffsets = true;
-	};    
-
 	var browseTab = omg.getEl("browse-tab", function () {
 		browseTab.className = "selected-main-tab";
 		createTab.className = "main-tab";
@@ -57,6 +39,9 @@ window.onload = function () {
 		whatNext.style.display = "none";
 		overview.style.display = "none";
 		omg.util.fade({div:browser, fadeIn:true});
+		omg.util.setCookie("lasttab", "browse");
+		
+		createPanel.style.display = "none";
 		
 	});
 	var createTab = omg.getEl("create-tab", function () {
@@ -67,31 +52,123 @@ window.onload = function () {
 		browser.style.display = "none";
 		whatNext.style.display = "none";
 		gallery.stopOverview();
+		overview.style.display = "none";
 		
+		omg.util.fade({div:createPanel, fadeIn:true});
+		omg.util.setCookie("lasttab", "create");
 	});
 	var overviewTab = omg.getEl("overview-tab", function () {
 		overviewTab.className = "selected-main-tab";
 		createTab.className = "main-tab";
 		browseTab.className = "main-tab";
 		
-		whatNext.style.display = "none";
 		browser.style.display = "none";
+		createPanel.style.display = "none";
 		
-		gallery.startOverview(afterOverviewCallback);
+		if (!gallery.overviewGotIt) {
+			whatNext.style.display = "none";
+			omg.util.fade({div:overview, fadeIn:true});
+			if (!gallery.playingOverview)
+				gallery.startOverview(afterOverviewCallback);			
+		}
+		else {
+			whatNext.style.display = "block";
+
+		}
+		
+		omg.util.setCookie("lasttab", "overview");
+	});
+
+	var lastTab = omg.util.getCookie("lasttab");
+	if (lastTab && lastTab === "create") {
+		createTab.onclick();
+	}
+	else if (lastTab && lastTab === "overview") {
+		//overview.style.display = "block";
+		//gallery.startOverview(afterOverviewCallback);
+		overviewTab.onclick();
+	}
+	else {		
+		browseTab.onclick();
+	}
+	
+	omg.getEl("replay-overview", function () {
+		whatNext.style.display = "none";
+		omg.util.fade({div:overview, fadeIn:true});
+		gallery.startOverview(afterOverviewCallback);			
+		
 	});
 	
+	gallery.setupBrowserSettings();
+
 };
 
 gallery = {};
+gallery.numberOfResults = 15;
+
+gallery.setupBrowserSettings = function () {
+
+	var loadedSongs = false;
+	
+	var melodies = document.getElementById("melodies");
+	var basslines = document.getElementById("basslines");
+	var drumbeats = document.getElementById("drumbeats");
+    gallery.loadArea("MELODY", melodies);
+    gallery.loadArea("BASSLINE", basslines);
+    gallery.loadArea("DRUMBEAT", drumbeats);
+
+    var songs = document.getElementById("songs");
+    var sections = document.getElementById("sections");
+    
+	var browsingParts = document.getElementById("browsing-parts");
+	var browsingSongs = document.getElementById("browsing-songs");
+	
+	browsingSongs.style.display = "none";
+
+	songs.style.display = "none";
+	sections.style.display = "none";
+	
+	omg.getEl("switch-to-browse-songs", function () {
+		browsingParts.style.display = "none";
+		browsingSongs.style.display = "block";
+		
+		if (!loadedSongs) {
+			gallery.loadArea("SECTION", sections);
+		    gallery.loadArea("SONG", songs);
+		    
+		    loadedSongs = true;
+		}
+		
+		melodies.style.display = "none";
+		basslines.style.display = "none";
+		drumbeats.style.display = "none";
+		
+		songs.style.display = "inline-block";
+		sections.style.display = "inline-block";
+		
+	});
+	omg.getEl("switch-to-browse-parts", function () {
+		browsingParts.style.display = "block";
+		browsingSongs.style.display = "none";
+		
+		melodies.style.display = "inline-block";
+		basslines.style.display = "inline-block";
+		drumbeats.style.display = "inline-block";
+		
+		songs.style.display = "none";
+		sections.style.display = "none";
+
+	});
+};
 
 gallery.loadArea = function (type, div) {
 	var mostVotesColumn = div.getElementsByClassName("most-votes-column")[0];
 	var newestColumn = div.getElementsByClassName("newest-column")[0];
 
-	gallery.getContributions(type, "newest", 15, function (results) {
+	gallery.getContributions(type, "newest", gallery.numberOfResults, function (results) {
         displayResults(newestColumn, results, 1);
 	});
-	gallery.getContributions(type, "mostvotes", 15, function (results) {
+	gallery.getContributions(type, "mostvotes", gallery.numberOfResults, function (results) {
 		displayResults(mostVotesColumn, results, 1);
 	});
 };
@@ -166,8 +243,16 @@ function displayResults(partList, results, page) {
     var data;
 
     for (var i = 0; i < results.list.length; i++) {
-    	
-    	setupPart(partList, results.list[i]);
+
+    	if (results.list[i].type === "SONG") {
+        	setupSong(partList, results.list[i]);
+    	}
+    	else if (results.list[i].type === "SECTION") {
+        	setupSong(partList, results.list[i]);
+    	}
+    	else {
+        	setupPart(partList, results.list[i]);    		
+    	}
 
     }
     
@@ -187,7 +272,7 @@ function displayResults(partList, results, page) {
         lastRow.appendChild(lessDiv);
     }
 
-    if (false && results.list.length == 8) {
+    if (results.list.length == gallery.numberOfResults) {
         var moreDiv = document.createElement("div");
         moreDiv.className = "more-results-button";
         moreDiv.innerHTML = "More >";
@@ -201,8 +286,6 @@ function displayResults(partList, results, page) {
     }
     partList.appendChild(lastRow);
     
-    //hack cuz its position may have moved
-    omg.mm.redoOffsets = true;
 }
 
 function displaySongs(results) {
@@ -322,20 +405,23 @@ function setupPart(parentDiv, searchResult) {
     part.appendChild(partDetail);
     
     part.drawWhenReady = function () {
-        partDetail.height = partDetail.clientHeight * 2;
-        console.log(searchResult.type);
+        partDetail.height = 60; // partDetail.clientHeight * 2;
         if (searchResult.type == "DRUMBEAT") {
         	var params = {};
+        	params.width = 120;
+        	params.height = 60;
         	params.drumbeat = partData;
         	params.canvas = partDetail;
         	params.captionWidth = 0;
         	omg.ui.drawDrumCanvas(params);        	
         }
-        else {
-        	omg.ui.drawMelodyCanvas(partData, partDetail, partDetail.clientWidth * 2);
+        else if (searchResult.type == "MELODY" || searchResult.type == "BASSLINE"){
+        	var width = 180; // partDetail.clientWidth * 2;
+        	omg.ui.drawMelodyCanvas(partData, partDetail, width);
         }    	
     };
-
+    part.drawWhenReady();
+    part.drawWhenReady = null;
 
     part.onclick = function () {    
         // this is mostly for iPhones, requiring 
@@ -403,8 +489,14 @@ function setupPart(parentDiv, searchResult) {
 
 function setupSong(parentDiv, searchResult) {
 
+	var type = searchResult.type;
 	var div = document.createElement("div");
-    div.className = "song";
+	
+	if (type == "SECTION")
+		div.className = "section";
+	else 
+		div.className = "song";
+	
     parentDiv.appendChild(div);
     
     var detail;
@@ -419,8 +511,6 @@ function setupSong(parentDiv, searchResult) {
     detail.className = "part-time";
     detail.innerHTML = omg.util.getTimeCaption(searchResult.time);
     div.appendChild(detail);
-
-
     
     div.onclick = function () {    
         // this is mostly for iPhones, requiring 
@@ -429,12 +519,22 @@ function setupSong(parentDiv, searchResult) {
         //    initSound();
         //}
 
-    	if (omg.player.playing)
+    	if (omg.player.playing) {
     		omg.player.stop();
-    	
+        	return;
+    	}
+    		
         div.playing = true;
-        
-        omg.player.play(new OMGSong(null, JSON.parse(searchResult.json)));
+
+        if (type == "SONG") {
+        	omg.player.play(new OMGSong(null, JSON.parse(searchResult.json)));	
+        }
+        else {
+        	var omgsong = new OMGSong();
+        	var omgsection = new OMGSection(null, JSON.parse(searchResult.json));
+        	omgsong.sections.push(omgsection);
+        	omgsong.play();
+        }
         
         div.className = "song-selected";
         addVoteButtons(searchResult, div);
@@ -445,7 +545,7 @@ function setupSong(parentDiv, searchResult) {
     };
     
     div.ondblclick = function () {
-    	window.location = "/omgbam.jsp?share=" + searchResult.type + "-" + searchResult.id; 
+    	window.location = "/omgbam.jsp?share=" + type + "-" + searchResult.id; 
     };
     
 }
@@ -553,6 +653,11 @@ gallery.startOverview = function (callback) {
 	var sectionD = document.getElementById("overview-section-d");
 	var sectionE = document.getElementById("overview-section-e");
 	
+	sectionA.style.opacity = 0;
+	sectionB.style.opacity = 0;
+	sectionD.style.opacity = 0;
+	sectionE.style.opacity = 0;
+	
 	var partsGraphics = document.getElementById("overview-parts");
 	
 	var overviewSong = document.getElementById("overview-song");
@@ -560,11 +665,19 @@ gallery.startOverview = function (callback) {
 
 	var screen = document.getElementById("overview-screen");
 	var skipButton = document.getElementById("overview-got-it");
-
+	skipButton.innerHTML = "Got It";
+	
 	var lastScreen = function () {
+		
+		if (!gallery.playingOverview)
+			return;
 
 		var secondsToGo = 4;
 		var timer = function () {
+
+			if (!gallery.playingOverview)
+				return;
+			
 			if (secondsToGo > 0) {
 				secondsToGo--;
 				skipButton.innerHTML = "in " + secondsToGo;
@@ -580,8 +693,8 @@ gallery.startOverview = function (callback) {
 	
 
 	skipButton.onclick = function () {
-		playingOverview = false;
 		omg.util.fade({div:screen, remove:true, "callback": callback});
+		gallery.overviewGotIt = true;
 	};
 
 
@@ -629,6 +742,7 @@ gallery.startOverview = function (callback) {
 			timebar.style.left = sectionA.offsetLeft - 13 + "px";
 			omg.util.slide({div: timebar, finalX: timebar.offsetLeft + 425, 
 				length: 3000, callback: function () {
+					omg.util.fade({div:timebar, remove:true});
 					setTimeout(lastScreen, 5000)
 				}
 			});

@@ -36,7 +36,8 @@ body {
 }
 
 h1 {
-	font-size: 24px;
+	font: 18px "Palatino Linotype", "Book Antiqua", Palatino, serif;
+	font-weight:bold;
 	color: #808080;
 	/*padding: 0px;
 	margin:0px;*/
@@ -55,7 +56,7 @@ h1 {
 
 .part {
 	position: relative;
-	background-color: #FFFFCC;
+	background-color: #FFFF99;
 	border-width: 0px;
 	border: 1px solid #808080;
 	border-radius:3px;
@@ -193,7 +194,7 @@ hr {
 .result-area {
 	display:inline-block;
 	text-align:center;
-	margin-left:35px;
+/*	margin-left:35px;*/
 }
 
 .explanation {

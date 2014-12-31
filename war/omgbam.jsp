@@ -53,9 +53,10 @@ if (shareParam != null) {
 
 <body>
 
-
 <div id="topbar">
 
+	<a href="/">omg</a> - 
+	
 	<div  id="no-web-audio">
 		<span class="old-browser">
 		<b>This browser doesn't support Web Audio API.</b></span> 
@@ -63,12 +64,10 @@ if (shareParam != null) {
 		(Try an updated Chrome, Safari, or FireFox for sound.)
 	</div> 
 
-	<a id="login-link" href="">Login</a> <a href="" id="logout-link">Logout</a> 
+	 
 
 	<div id="topbarright">
-	<a href="http://github.com/MazeHatter/OMG">source_code</a>
-	<a href="http://reddit.com/r/openmusic">forum</a>
-	<a href="/overview.jsp">overview</a>
+		<a id="login-link" href="">Login</a> <a href="" id="logout-link">Logout</a>
 	</div>
 
 </div>
