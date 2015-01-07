@@ -73,7 +73,7 @@ var loggedIn = true;
 
 <div class="omg-title">
 	Open Music Gallery 	
-	<a href="dotcom.html">about</a>
+	<a href="about.html">about</a>
 </div>
 
 

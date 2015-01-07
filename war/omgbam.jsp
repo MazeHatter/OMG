@@ -31,7 +31,7 @@ if (shareParam != null) {
 <link rel="apple-touch-icon" href="http://openmusicgallery.appspot.com/img/omg256.png" />
 
 <meta property="og:image" content="http://openmusicgallery.appspot.com/img/omg256.png"/>
-<meta name="viewport" content="width=1024, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 <% if (type.length() > 0) { %>
 <title>A Shared <%=type%> (via OMG Bam!)</title>   
@@ -55,7 +55,7 @@ if (shareParam != null) {
 
 <div id="topbar">
 
-	<a href="/">omg</a> - 
+	<a href="/">omg</a>
 	
 	<div  id="no-web-audio">
 		<span class="old-browser">
@@ -67,7 +67,7 @@ if (shareParam != null) {
 	 
 
 	<div id="topbarright">
-		<a id="login-link" href="">Login</a> <a href="" id="logout-link">Logout</a>
+		<a id="login-link" href="">Login</a> <a href="" id="logout-link">Logout</a> 
 	</div>
 
 </div>
@@ -95,15 +95,7 @@ if (shareParam != null) {
 		<div class="panel-option">Melody of the Day</div>
 		<div class="panel-option">Browse Gallery</div>-->
 	</div>
-	
-	<div id="mm-options" class="option-panel">		
-		<div class="panel-option" id="play-mm">Play</div>
-		<div class="panel-option" id="share-mm">Share</div>
-		<!--<div class="melody-maker-option" id="save-mm">Save</div>-->
-		<div class="panel-option" id="next-mm">Next</div>
-		<div class="panel-option" id="clear-mm">Clear</div>
-	</div>
-
+		
 	<div id="melody-maker" class="area">
 	
 		<div class="remixer-caption" id="melody-maker-caption">Melody</div>	
@@ -113,12 +105,20 @@ if (shareParam != null) {
 
 	</div>
 
-	<div class="option-panel" id="remixer-option-panel">
-		<div class="panel-option" id="play-section">Play</div>
-		<div class="panel-option" id="share-section">Share</div>
-		<div class="panel-option" id="remixer-next">Next</div>				
-		<div class="panel-option" id="clear-remixer">Clear</div>
+	<div id="beatmaker" class="area">
 
+		<div class="remixer-caption">Drumbeat</div>
+		
+		<canvas id="beatmaker-canvas">
+		</canvas>
+
+	</div>
+	<div id="mm-options" class="option-panel">		
+		<div class="panel-option" id="play-mm">Play</div>
+		<div class="panel-option" id="share-mm">Share</div>
+		<!--<div class="melody-maker-option" id="save-mm">Save</div>-->
+		<div class="panel-option" id="next-mm">Next</div>
+		<div class="panel-option" id="clear-mm">Clear</div>
 	</div>
 
 	<div id="remixer" class="area">
@@ -133,15 +133,23 @@ if (shareParam != null) {
 			
 		<div class="remixer-area" id="remixer-add-buttons">
 			<div class="remixer-add-button" id="remixer-add-melody">
-				+ Add Melody
+				+ Melody
 			</div>
 			<div class="remixer-add-button" id="remixer-add-bassline">
-				+ Add Bassline
+				+ Bassline
 			</div>
 			<div class="remixer-add-button" id="remixer-add-drumbeat">
-				+ Add Drumbeat
+				+ Drumbeat
 			</div>			
 		</div>
+
+	</div>
+
+	<div class="option-panel" id="remixer-option-panel">
+		<div class="panel-option" id="play-section">Play</div>
+		<div class="panel-option" id="share-section">Share</div>
+		<div class="panel-option" id="remixer-next">Next</div>				
+		<div class="panel-option" id="clear-remixer">Clear</div>
 
 	</div>
 
@@ -161,7 +169,7 @@ if (shareParam != null) {
 
 	<div id="rearranger">
 
-		<div class="remixer-caption">Song <input class="entity-name" value="unnamed"/></div>
+		<div class="remixer-caption">Song<input class="entity-name" value="unnamed"/></div>
 		
 		<div class="remixer-area" id="rearranger-area">
 					
@@ -177,14 +185,6 @@ if (shareParam != null) {
 
 	</div>
 
-	<div id="beatmaker" class="area">
-
-		<div class="remixer-caption">Drumbeat</div>
-		
-		<canvas id="beatmaker-canvas">
-		</canvas>
-
-	</div>
 
 	<div id="album-option-panel" class="option-panel">
 
@@ -270,7 +270,7 @@ if (shareParam != null) {
 <script src="omg_player.js"></script>
 
 <script>
-if (window.location.hostname != "localhost") {
+if (window.location.hostname != "localhost" && window.location.hostname.indexOf("192") != 0) {
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)

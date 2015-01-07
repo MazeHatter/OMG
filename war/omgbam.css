@@ -12,7 +12,7 @@ hr {
 }
 
 #bbody {
-	width:1024px;
+	max-width:1024px;
 	margin:auto;
 	position:relative;
 	margin-top:22px;
@@ -150,7 +150,7 @@ h1 {
 
 #topbarright {
 	position: absolute;
-	right: 4px;
+	right: 8px;
 	top: 2px;
 }
 #no-web-audio {
@@ -170,17 +170,40 @@ h1 {
 
 
 .area {
-	width:650px;	
+	max-width:650px;	
 }
 
 .option-panel {
-	position:absolute;
-	top:50px;
-	left:680px;
-	margin:0px 2%;
 	display:none;
+	
 }
 
+@media all and (min-width: 900px) {
+	.option-panel {
+		position:absolute;
+		top:50px;
+		left:680px;
+		margin:0px 2%;
+		display:none;
+	}
+	#song-option-panel {
+		display:none;
+		position:absolute;
+		left:0px;
+		top:435px;
+		width:1000px;
+	}
+}
+@media all and (max-width: 899px) {
+	#song-option-panel, .option-panel {
+		position:absolute;
+		bottom:5px;
+		
+		display:none;
+		width:100%;
+		text-align:center;
+	}
+}
 
 #mm-initial-options {
 	display:block;
@@ -201,6 +224,7 @@ h1 {
 	
 }
 
+
 .panel-option-blink, .horizontal-panel-option-blink {
 	border-radius:6px;
 	text-align:center;
@@ -216,11 +240,6 @@ h1 {
 	cursor:pointer;	
 }
 
-.panel-option:hover, .horizontal-panel-option:hover {
-	border-bottom:2px solid #60A060;
-	border-top:1px solid #808080;
-}
-
 .horizontal-panel-option {
 	display:inline-block;
 	width:100px;
@@ -229,6 +248,24 @@ h1 {
 	display:inline-block;
 	width:100px;
 }
+
+@media all and (max-width: 899px) {
+	.horizontal-panel-option-blink, .horizontal-panel-option, .panel-option, .panel-option-blink {
+		display:inline-block;
+		padding:8px;
+		margin:3px;
+		width:25%;
+	
+	}
+	
+}
+
+.panel-option:hover, .horizontal-panel-option:hover {
+	border-bottom:2px solid #60A060;
+	border-top:1px solid #808080;
+}
+
+
 
 
 
@@ -252,6 +289,12 @@ h1 {
 	/*text-align:center;*/
 	font: 24px Helvetica, arial, freesans, clean, sans-serif;
 	padding:18px;  
+}
+@media all and (max-width: 899px) {
+	.remixer-caption {
+	font: 24px Helvetica, arial, freesans, clean, sans-serif;
+	padding:4px;  
+}
 }
 
 .remixer-area {
@@ -414,7 +457,7 @@ h1 {
 
 #melody-maker-canvas {
     width:100%;
-    margin:0px 2% ;	
+   
 }
 
 #beatmaker-canvas {
@@ -592,7 +635,14 @@ h1 {
 	padding:40px;
 	width:30px;
 	margin-left:95px;
+}
 
+@media all and (max-width: 899px) {
+#play-album, #play-section, #play-mm, #play-song {
+	padding:28px;
+	width:30px;
+	margin-left:0px;
+	}
 }
 
 
@@ -621,20 +671,13 @@ h1 {
 	
 }
 
-#song-option-panel {
-	display:none;
-	position:absolute;
-	left:0px;
-	top:435px;
-	width:1000px;
-}
 
 #add-section {
 	left:130px;
 	top:103px;
 	width:60px;
-	height:14px;
-	padding:133px 20px 153px 20px;
+	height:200px;
+	padding:50px 20px 50px 20px;
 	
 }
 
@@ -657,6 +700,8 @@ h1 {
 	position:relative;
 	top:80px;
 }
+
+	
 
 .section-controls {
 	border:1px solid orange;
@@ -698,7 +743,7 @@ h1 {
 .remixer-add-button {
 	background-color:#FFFF99;
 	display:inline-block !important;
-	padding:40px 20px;
+	padding:20px 20px;
 	width:160px;
 	margin:0px;
 }
@@ -761,4 +806,22 @@ h1 {
 	margin:10px;
 	font-size:16pt;
 	
+}
+
+
+@media all and (max-width: 899px) {
+	#clear-song, #clear-remixer, #clear-mm {
+		display:none;
+	}
+	#remixer-add-buttons {
+		text-align:center;
+		margin:auto;
+	}
+	.remixer-add-button {
+		
+		padding:10px;
+		
+		width:100px;
+	}
+
 }

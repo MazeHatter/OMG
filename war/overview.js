@@ -8,10 +8,6 @@ window.onload = function () {
 	var overview = omg.getEl("overview-screen");
 	var createPanel = omg.getEl("create-panel");
 	
-	//gallery.getContributions("SONG", "mostvotes", 21, function (results) {
-    //    displaySongs(results);
-	//});
-
 	gallery.song = new OMGSong();
 	gallery.section = new OMGSection();
 	gallery.song.sections.push(gallery.section);
@@ -109,13 +105,11 @@ gallery.numberOfResults = 15;
 gallery.setupBrowserSettings = function () {
 
 	var loadedSongs = false;
+	var loadedParts = false;
 	
 	var melodies = document.getElementById("melodies");
 	var basslines = document.getElementById("basslines");
 	var drumbeats = document.getElementById("drumbeats");
-    gallery.loadArea("MELODY", melodies);
-    gallery.loadArea("BASSLINE", basslines);
-    gallery.loadArea("DRUMBEAT", drumbeats);
 
     var songs = document.getElementById("songs");
     var sections = document.getElementById("sections");
@@ -123,12 +117,12 @@ gallery.setupBrowserSettings = function () {
 	var browsingParts = document.getElementById("browsing-parts");
 	var browsingSongs = document.getElementById("browsing-songs");
 	
-	browsingSongs.style.display = "none";
+	//browsingSongs.style.display = "none";
 
-	songs.style.display = "none";
-	sections.style.display = "none";
+	//songs.style.display = "none";
+	//sections.style.display = "none";
 	
-	omg.getEl("switch-to-browse-songs", function () {
+	var browseSongs = omg.getEl("switch-to-browse-songs", function () {
 		browsingParts.style.display = "none";
 		browsingSongs.style.display = "block";
 		
@@ -146,10 +140,17 @@ gallery.setupBrowserSettings = function () {
 		songs.style.display = "inline-block";
 		sections.style.display = "inline-block";
 		
+		omg.util.setCookie("lstb", "songs");
 	});
-	omg.getEl("switch-to-browse-parts", function () {
+	var browseParts = omg.getEl("switch-to-browse-parts", function () {
 		browsingParts.style.display = "block";
 		browsingSongs.style.display = "none";
+
+		if (!loadedParts) {
+			gallery.loadArea("MELODY", melodies);
+		    gallery.loadArea("BASSLINE", basslines);
+		    gallery.loadArea("DRUMBEAT", drumbeats);
+		}
 		
 		melodies.style.display = "inline-block";
 		basslines.style.display = "inline-block";
@@ -158,7 +159,15 @@ gallery.setupBrowserSettings = function () {
 		songs.style.display = "none";
 		sections.style.display = "none";
 
+		omg.util.setCookie("lstb", "parts");
 	});
+	
+	if (omg.util.getCookie("lstb") === "songs") {
+		browseSongs.onclick();
+	}
+	else {
+		browseParts.onclick();
+	}
 };
 
 gallery.loadArea = function (type, div) {
@@ -446,22 +455,35 @@ function setupPart(parentDiv, searchResult) {
         		}
         	}
     		part.playing = false;
-    		gallery.makeSectionButton.innerHTML = "Select One of Each";
-    		gallery.makeSectionButton.className = "horizontal-panel-option";
+    		//gallery.makeSectionButton.innerHTML = "Select One of Each";
+    		//gallery.makeSectionButton.className = "horizontal-panel-option";
+    		
+    		if (part.playingMessage) {
+    			part.removeChild(part.playingMessage);
+    			part.playingMessage = undefined;
+    		}
+    		
     		return;
     	}
     	
 
     	var newPart = new OMGPart(part, partData);
-
+    	var oldPart;
     	for (var ip = 0; ip < parts.length; ip++) {
     		if (parts[ip].data.type == searchResult.type) {
     			if (parts.length == 1 && omg.player.playing) {
     				omg.player.stop();
     			}
 
-    			parts[ip].div.className = "part";
+    			oldPart = parts[ip].div;
+    			oldPart.className = "part";
     			parts.splice(ip, 1);
+
+        		if (oldPart.playingMessage) {
+        			oldPart.removeChild(oldPart.playingMessage);
+        			oldPart.playingMessage = undefined;
+        		}
+
     			
     			break;
     		}
@@ -473,6 +495,13 @@ function setupPart(parentDiv, searchResult) {
     	part.className = "part-selected";
         addVoteButtons(searchResult, part);
 
+        var playingMessage = document.createElement("div");
+        playingMessage.innerHTML = "<div class='playing-message-background'></div>" + 
+				"<div class='playing-message-text'>Tap to Stop <br/> Dbl-Tap to Edit</div>";
+        playingMessage.className = "playing-message";
+        part.appendChild(playingMessage);
+        part.playingMessage = playingMessage;
+        
         part.playing = true;
         
         if (parts.length == 3) {
@@ -519,11 +548,24 @@ function setupSong(parentDiv, searchResult) {
         //    initSound();
         //}
 
+    		
+    	if (div.playing) {
+    		div.playing = false;
+    		omg.player.stop();
+    		
+    		if (div.playingMessage) {
+    			div.removeChild(div.playingMessage);
+    			div.playingMessage = undefined;
+    		}
+
+    		return;
+    	}
+
+    	
     	if (omg.player.playing) {
     		omg.player.stop();
-        	return;
     	}
-    		
+
         div.playing = true;
 
         if (type == "SONG") {
@@ -542,6 +584,14 @@ function setupSong(parentDiv, searchResult) {
         if (parentDiv.playingSong)
         	parentDiv.playingSong.className = "song";
         parentDiv.playingSong = div;
+        
+        var playingMessage = document.createElement("div");
+        playingMessage.innerHTML = "<div class='playing-message-background'></div>" + 
+				"<div class='playing-message-text'>Tap to Stop <br/> Dbl-Tap to Edit</div>";
+        playingMessage.className = "playing-message";
+        div.appendChild(playingMessage);
+        div.playingMessage = playingMessage;
+
     };
     
     div.ondblclick = function () {

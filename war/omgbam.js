@@ -26,7 +26,12 @@ var omg = {
 };
 
 window.onload = function() {
-	bam.offsetLeft = document.getElementById("bbody").offsetLeft;
+
+	var bbody = document.getElementById("bbody")
+	bam.windowWidth = bbody.clientWidth;
+	bam.offsetLeft = bbody.offsetLeft;
+	bam.mobile = bam.windowWidth < 1000;
+	
 	bam.div = document.getElementById("master");
 	bam.zones = [];
 
@@ -108,7 +113,9 @@ window.onload = function() {
 	});
 
 	window.onresize = function() {
-		bam.offsetLeft = document.getElementById("bbody").offsetLeft;
+		bam.windowWidth = bbody.clientWidth;
+		bam.offsetLeft = bbody.offsetLeft;
+		bam.mobile = bam.windowWidth < 1000;
 		
 		for (var iz = 0; iz < bam.zones.length; iz++) {
 			bam.zones[iz].style.height = window.innerHeight + 10 + "px";
@@ -546,7 +553,7 @@ function setupRemixer() {
 
 						//bam.slideInOptions(omg.rearranger.addSectionButton,
 						//		null, 5 + sections * 110);
-						bam.slideUpOptions(omg.rearranger.options);
+						bam.slideInOptions(omg.rearranger.options);
 						bam.fadeIn([ omg.rearranger, omg.rearranger.addSectionButton ]);
 						bam.fadeIn(otherSections);
 
@@ -777,7 +784,7 @@ function setupRearranger() {
 
 	omg.rearranger.show = function (callback) {
 		
-		bam.slideUpOptions(omg.rearranger.options);
+		bam.slideInOptions(omg.rearranger.options);
 		var fadeInList = [omg.rearranger]; 
 		bam.song.sections.forEach(function (section) {
 			if (section.beatMarker) {
@@ -989,7 +996,7 @@ bam.load = function (params)  {
 	
 	if (type == "SONG" && pshare) {
 		bam.fadeIn([songDiv, omg.rearranger, omg.rearranger.addSectionButton], restoreColors);
-		bam.slideUpOptions(omg.rearranger.options);
+		bam.slideInOptions(omg.rearranger.options);
 		omg.get(params, function(result) {
 			
 			bam.song = new OMGSong(songDiv, result.data);
@@ -1654,7 +1661,10 @@ bam.arrangeParts = function(callback) {
 
 	var children;
 	var child;
-
+	
+	var top = bam.mobile ? 60 : 88; 
+	var height = bam.mobile ? 75 : 105; 
+	
 	if (div.className === "section") {
 		children = [];
 		var parts = div.getElementsByClassName("part2");
@@ -1669,9 +1679,9 @@ bam.arrangeParts = function(callback) {
 
 			// 110, 88 + parts * 126, 640, 105
 			child.targetX = bam.offsetLeft - div.offsetLeft;
-			child.targetY = 88 + ip * 126;
-			child.targetW = 640;
-			child.targetH = 105;
+			child.targetY = top + ip * (height + 21);
+			child.targetW = Math.min(640, bam.windowWidth - 15);
+			child.targetH = height;
 
 			children.push(child);
 		}
@@ -1680,13 +1690,13 @@ bam.arrangeParts = function(callback) {
 			div : omg.remixer.addButtons
 		};
 		child.originalH = child.div.clientHeight;
-		child.originalW = 640;
+		child.originalW = child.div.clientWidth;
 		child.originalX = 4;
 		child.originalY = child.div.offsetTop;
 		child.targetX = 4;
-		child.targetY = 64 + Math.max(0.6, parts.length) * 126;
-		child.targetW = 640;
-		child.targetH = 105;
+		child.targetY = top - 28 + Math.max(0.6, parts.length) * (height + 21);
+		child.targetW = child.div.clientWidth;
+		child.targetH = child.div.clientHeight;
 		children.push(child);
 	}
 
@@ -1730,6 +1740,9 @@ bam.arrangeSongs = function(callback) {
 	var children;
 	var child;
 
+	var top = bam.mobile ? 60 : 88;
+	var height = bam.mobile ? 56 : 96;
+	
 	children = [];
 	var songs = div.getElementsByClassName("song");
 	for (var isong = 0; isong < songs.length; isong++) {
@@ -1742,7 +1755,7 @@ bam.arrangeSongs = function(callback) {
 		child.originalY = child.div.offsetTop;
 
 		child.targetX = bam.offsetLeft - div.offsetLeft;
-		child.targetY = 88 + isong * 96;
+		child.targetY = top + isong * height;
 		child.targetW = 600;
 		child.targetH = 80;
 
@@ -1759,7 +1772,7 @@ bam.arrangeSongs = function(callback) {
 	child.originalX = 4;
 	child.originalY = child.div.offsetTop;
 	child.targetX = 0;
-	child.targetY = 64 + Math.max(0.6, songs.length) * 96;
+	child.targetY = top - 28 + Math.max(0.6, songs.length) * 96;
 	child.targetW = 600;
 	child.targetH = 80;
 	children.push(child);
@@ -1813,6 +1826,9 @@ bam.arrangeSections = function(callback) {
 	var child;
 	var grandchild;
 
+	var top = bam.mobile ? 100 : 125;
+	var height = Math.min(300, window.innerHeight - top - 100);
+	
 	children = [];
 	var parts ;
 	var sections = bam.song.sections;
@@ -1827,9 +1843,9 @@ bam.arrangeSections = function(callback) {
 		child.originalY = child.div.offsetTop;
 
 		child.targetX = bam.offsetLeft + ip * 110 - div.slidLeft;
-		child.targetY = 125;
+		child.targetY = top;
 		child.targetW = 100;
-		child.targetH = 300;
+		child.targetH = height;
 
 		children.push(child);
 
@@ -1857,14 +1873,15 @@ bam.arrangeSections = function(callback) {
 	child = {
 		div : omg.rearranger.addSectionButton
 	};
-	child.originalH = 14; // padding does the rest;
+	child.originalH = child.div.clientHeight - 100; // padding does the rest;
 	child.originalW = 60; // padding does the rest;
 	child.originalX = child.div.offsetLeft;
 	child.originalY = child.div.offsetTop;
 	child.targetX = 5 + bam.song.sections.length * 110 - div.slidLeft;
-	child.targetY = 103; //child.originalY;
+	child.targetY = top - 22; //child.originalY;
 	child.targetW = child.originalW;
-	child.targetH = child.originalH;
+	
+	child.targetH = height - 100;
 	children.push(child);
 
 	var startedAt = Date.now();
@@ -1991,6 +2008,11 @@ bam.slideOutOptions = function(div, callback) {
 		return;
 	}
 
+	if (window.innerWidth < 1000) {
+		bam.slideDownOptions(div, callback);
+		return;		
+	}
+
 	div.showing = false;
 
 	var windowW = window.innerWidth;
@@ -2016,10 +2038,15 @@ bam.slideOutOptions = function(div, callback) {
 
 bam.slideInOptions = function(div, callback, target) {
 	
+	if (window.innerWidth < 1000) {
+		bam.slideUpOptions(div, callback, window.innerHeight - 112);
+		return;		
+	}
+
 	if (div == omg.rearranger.options)  {
 		bam.slideUpOptions(div, callback, target);
 		return;
-	}
+	}	
 
 	for (var ic = 0; ic < div.children.length; ic++) {
 		if (div.children[ic].id.indexOf("play") > -1) {
@@ -2248,12 +2275,13 @@ bam.setTargetsSmallParts = function(targets, partNo, partCount, w, h) {
 
 	//imma just do this
 	w = 100;
-	h = 300;
+	h = h || 300;
 	
 	targets.targetX = 15;
-	targets.targetY = 15 + partNo * h / partCount;
+	targets.targetY = 15 +partNo * (h - 20)  / partCount;
 	targets.targetW = w - 40;
-	targets.targetH = h / partCount - 40;
+	targets.targetH = (h - 20) / partCount - 20;
+
 	return targets;
 }
 
@@ -2356,16 +2384,26 @@ bam.setupSectionDiv = function(section) {
 				bam.fadeIn([ omg.rearranger.options ]);
 				bam.fadeOut([ editPanel ]);
 				bam.song.div.onmousemove = undefined;
+				bam.song.div.ontouchmove = undefined;
+				
 			};
-
-			bam.song.div.onmousemove = function(event) {
+			bam.song.div.onmousemove = function (event) {
+				bam.song.div.onmove([ event.clientX, event.clientY ]);
+			};
+			bam.song.div.ontouchmove = function (e) {
+				bam.song.div.onmove([ e.targetTouches[0].pageX,
+				                      e.targetTouches[0].pageY ]);
+			};
+ 
+			
+			bam.song.div.onmove = function(xy) {
+			
 				if (bam.zones[bam.zones.length - 1] != bam.song.div) {
+					bam.song.div.onmousemove = undefined;
 					return;
 				}
 
 				if (section.dragging) {
-
-					var xy = [ event.clientX, event.clientY ];
 
 					section.div.style.left = section.div.offsetLeft
 							+ xy[0] - lastXY[0] + "px";
@@ -2411,8 +2449,13 @@ bam.setupSectionDiv = function(section) {
 		};
 	};
 
+	section.div.ontouchend = function () {
+		section.div.onmouseup();
+	}
 	section.div.onmouseup = function() {
-
+		section.div.onup();
+	}
+	section.div.onup = function () {
 		if (bam.zones[bam.zones.length - 1] != bam.song.div) {
 			return;
 		}

@@ -1020,6 +1020,8 @@ OMGMelodyMaker.prototype.onDisplay = function () {
 
 			var x = e.targetTouches[0].pageX - omgmm.offsets.left;
 			var y = e.targetTouches[0].pageY + omg.util.getScrollTop() - omgmm.offsets.top;
+			canvas.lastX = x;
+			canvas.lastY = y;
 			canvas.onmove(x, y);
 		};
 
@@ -1112,6 +1114,9 @@ OMGMelodyMaker.prototype.onDisplay = function () {
 
 			var x = e.targetTouches[0].pageX - omgmm.offsets.left;
 			var y = e.targetTouches[0].pageY + omg.util.getScrollTop() - omgmm.offsets.top;
+			canvas.lastX = x;
+			canvas.lastY = y;
+
 			canvas.ondown(x, y);
 		};
 
@@ -1245,13 +1250,14 @@ OMGMelodyMaker.prototype.onDisplay = function () {
 		canvas.ontouchend = function(e) {
 			e.preventDefault();
 
-			var x = e.targetTouches[0].pageX - omgmm.offsets.left;
-			var y = e.targetTouches[0].pageY + omg.util.getScrollTop() - omgmm.offsets.top;
-			canvas.onup(x, y);
+			//var x = e.targetTouches[0].pageX - omgmm.offsets.left;
+			//var y = e.targetTouches[0].pageY + omg.util.getScrollTop() - omgmm.offsets.top;
+			canvas.onup(canvas.lastX, canvas.lastY);
 			
 		};
 		
 		canvas.onup = function (x, y) {
+			//alert("on up!");
 			if (y > canvas.height - omgmm.bottomFretBottom) {
 				omgmm.finishBottomRow(x);
 			}
