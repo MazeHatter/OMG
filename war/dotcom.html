@@ -2,16 +2,48 @@
 <head>
 <style>
 body {
-    width:800px;
+    max-width:900px;
     margin:auto;
+    padding:4px;
+}
+
+.numeric-input {
+	width:80px;
+}
+
+#empty-message {
+	color:#808080;
+	text-align:center;
+	padding:20px;
 }
 </style>
 </head>
 <body>
-<h2>Open Music Gallery is Open Source</h2>
+<h2>OpenMusicGallery.com</h2>
 
+<p>Get royalty free music.</p>
+
+<p>I need <br/>
+
+<input id="minutes" class="numeric-input" value="3"></input> minutes and 
+
+<br/><input class="numeric-input" id="seconds" value="20"></input> seconds of music</p>
+
+<p>That sounds like <br/> 
+<input></input>
+<br/><i>(Separate tags with spaces)</i></p>
+<button id="make-it-so">Make it so!</button>
+<hr>
+<div id="omg-results">
+<div id="empty-message">Awaiting your command.</div>
+</div>
+<hr>
+<h3>What's going on here?</h3>
+
+<p>Open Music Gallery is a project to let people point and click and make music and mix and mash their creations
+	with other users. It includes an <a href="http://omgbananas.com">instrument</a> and a <a href="http://omgbam.com">DAW</a>
+	and is <a href="http://github.com/MazeHatter/OMG">open source</a>. 
 <ul>
-<li><a href="http://github.com/MazeHatter/OMG">http://github.com/MazeHatter/OMG</a></li>
 <li><a href="http://reddit.com/r/openmusic">feeback & discussion</a></li>
 <li><a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a></li>
 </ul>

@@ -133,13 +133,13 @@ if (shareParam != null) {
 			
 		<div class="remixer-area" id="remixer-add-buttons">
 			<div class="remixer-add-button" id="remixer-add-melody">
-				+ Melody
+				Add <br/>Melody
 			</div>
 			<div class="remixer-add-button" id="remixer-add-bassline">
-				+ Bassline
+				Add <br/>Bassline
 			</div>
 			<div class="remixer-add-button" id="remixer-add-drumbeat">
-				+ Drumbeat
+				Add <br/>Drumbeat
 			</div>			
 		</div>
 

@@ -1691,9 +1691,9 @@ bam.arrangeParts = function(callback) {
 		};
 		child.originalH = child.div.clientHeight;
 		child.originalW = child.div.clientWidth;
-		child.originalX = 4;
+		child.originalX = 0;
 		child.originalY = child.div.offsetTop;
-		child.targetX = 4;
+		child.targetX = 0;
 		child.targetY = top - 28 + Math.max(0.6, parts.length) * (height + 21);
 		child.targetW = child.div.clientWidth;
 		child.targetH = child.div.clientHeight;
@@ -1811,7 +1811,7 @@ bam.arrangeSongs = function(callback) {
 
 
 bam.arrangeSectionsHandle = -1;
-bam.arrangeSections = function(callback) {
+bam.arrangeSections = function(callback, animLength) {
 
 	if (bam.arrangeSectionsHandle > 0) {
 		clearInterval(bam.arrangeSectionsHandle);
@@ -1886,9 +1886,12 @@ bam.arrangeSections = function(callback) {
 
 	var startedAt = Date.now();
 
-	var interval = setInterval(function() {
+	if (!animLength)
+		animLength = bam.animLength;
+	
+	var intervalFunction = function() {
 		var now = Date.now() - startedAt;
-		var now = Math.min(1, now / bam.animLength);
+		now = Math.min(1, now / animLength);
 
 		for (var ip = 0; ip < children.length; ip++) {
 			child = children[ip];
@@ -1924,7 +1927,9 @@ bam.arrangeSections = function(callback) {
 			if (callback)
 				callback();
 		}
-	}, 1000 / 60);
+	};
+	
+	var interval = setInterval(intervalFunction, 1000 / 60);
 	bam.arrangeSectionsHandle = interval;
 };
 
@@ -2347,7 +2352,7 @@ bam.setupSectionDiv = function(section) {
 					bam.song.div.slidLeft = Math.max(0, bam.song.div.slidLeft);
 					
 					lastX = x_move;
-					bam.arrangeSections();
+					bam.arrangeSections(undefined, 1);
 				});
 				omg.util.setOnUp(bam.song.div, function () {
 					bam.song.div.sliding = false;

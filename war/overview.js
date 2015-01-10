@@ -708,6 +708,11 @@ gallery.startOverview = function (callback) {
 	sectionD.style.opacity = 0;
 	sectionE.style.opacity = 0;
 	
+	if (window.innerWidth <= 900) {
+		sectionA.style.display = "none";
+		sectionE.style.display = "none";
+	}
+	
 	var partsGraphics = document.getElementById("overview-parts");
 	
 	var overviewSong = document.getElementById("overview-song");
@@ -777,10 +782,12 @@ gallery.startOverview = function (callback) {
 			return;
 
 		omg.util.fade({div:step3text, start:0.3, fadeIn: true});
-		omg.util.fade({div:sectionA, fadeIn: true, length: 1500, display:"inline-block"});
-		omg.util.fade({div:sectionB, fadeIn: true, length: 1500, display:"inline-block"});
 		omg.util.fade({div:sectionD, fadeIn: true, length: 1500, display:"inline-block"});
-		omg.util.fade({div:sectionE, fadeIn: true, length: 1500, display:"inline-block"});
+		omg.util.fade({div:sectionB, fadeIn: true, length: 1500, display:"inline-block"});
+		if (window.innerWidth > 900) {
+			omg.util.fade({div:sectionA, fadeIn: true, length: 1500, display:"inline-block"});
+			omg.util.fade({div:sectionE, fadeIn: true, length: 1500, display:"inline-block"});			
+		}
 		
 		setTimeout(function () {
 
@@ -788,8 +795,8 @@ gallery.startOverview = function (callback) {
 				return;
 
 			screen.appendChild(timebar);
-			timebar.style.top = sectionA.offsetTop - 13 + "px";
-			timebar.style.left = sectionA.offsetLeft - 13 + "px";
+			timebar.style.top = sectionB.offsetTop - 13 + "px";
+			timebar.style.left = sectionB.offsetLeft - 63 + "px";
 			omg.util.slide({div: timebar, finalX: timebar.offsetLeft + 425, 
 				length: 3000, callback: function () {
 					omg.util.fade({div:timebar, remove:true});
