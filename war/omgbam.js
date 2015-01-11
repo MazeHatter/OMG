@@ -381,8 +381,7 @@ function setupRemixer() {
 
 		var newdiv = bam.createElementOverElement("part2",
 				omg.remixer.addMelodyButton);
-		bam.fadeIn([newdiv]);
-		
+
 		var newPart = new OMGPart(newdiv);
 
 		var otherParts = [];
@@ -392,9 +391,10 @@ function setupRemixer() {
 		}
 		bam.fadeOut(otherParts);
 
-		bam.section.div.appendChild(newdiv);
 		bam.part = newPart;
-
+		bam.section.div.appendChild(newdiv);
+		bam.fadeIn([newdiv]);
+		
 		bam.fadeOut([ omg.remixer ]);
 		bam.slideOutOptions(omg.remixer.options, function() {
 			bam.grow(newPart.div, function() {
@@ -414,7 +414,6 @@ function setupRemixer() {
 
 		var button = omg.remixer.addBasslineButton;
 		var newdiv = bam.createElementOverElement("part2", button);
-		bam.fadeIn([newdiv]);
 		
 		var newPart = new OMGPart(newdiv)
 		newPart.data.type = "BASSLINE";
@@ -428,6 +427,7 @@ function setupRemixer() {
 		bam.fadeOut(otherParts);
 
 		bam.section.div.appendChild(newdiv);
+		bam.fadeIn([newdiv]);
 		bam.part = newPart;
 
 		bam.fadeOut([ omg.remixer ]);
@@ -448,8 +448,7 @@ function setupRemixer() {
 
 		var newdiv = bam.createElementOverElement("part2",
 				omg.remixer.addDrumbeatButton);
-		bam.fadeIn([newdiv]);
-
+		
 		var newPart = new OMGDrumpart(newdiv)
 
 		var otherParts = [];
@@ -460,6 +459,7 @@ function setupRemixer() {
 		bam.fadeOut(otherParts);
 
 		bam.section.div.appendChild(newPart.div);
+		bam.fadeIn([newdiv]);
 		bam.part = newPart;
 
 		if (omg.player.playing) {
@@ -2236,6 +2236,8 @@ bam.createElementOverElement = function(classname, button) {
 	newPartDiv.style.width = button.clientWidth + "px";
 	newPartDiv.style.height = button.clientHeight + "px";
 
+	newPartDiv.style.borderRadius = "8px";
+	newPartDiv.style.borderWidth = "2px";
 	return newPartDiv;
 };
 
@@ -2245,6 +2247,9 @@ bam.copySection = function(section) {
 			omg.rearranger.addSectionButton);
 	newSection = new OMGSection(newDiv);
 	bam.song.div.appendChild(newDiv);
+	
+	newSection.div.style.borderWidth = "2px";
+	newSection.div.style.borderRadius = "8px";
 
 	bam.fadeIn([newDiv]);
 	
@@ -2255,6 +2260,8 @@ bam.copySection = function(section) {
 		newPartDiv = document.createElement("div");
 		newPartDiv.className = "part2";
 		newPartDiv.style.display = "block";
+		newPartDiv.style.borderWidth = "2px";
+		newPartDiv.style.borderRadius = "8px";
 		newDiv.appendChild(newPartDiv);
 
 		targets = bam.setTargetsSmallParts(null, ip, section.parts.length,
@@ -2283,9 +2290,9 @@ bam.setTargetsSmallParts = function(targets, partNo, partCount, w, h) {
 	h = h || 300;
 	
 	targets.targetX = 15;
-	targets.targetY = 15 +partNo * (h - 20)  / partCount;
-	targets.targetW = w - 40;
-	targets.targetH = (h - 20) / partCount - 20;
+	targets.targetY = 15 + partNo * (h - 15)  / partCount;
+	targets.targetW = w - 30 - 4; // margin and padding
+	targets.targetH = (h - 15) / partCount - 15;
 
 	return targets;
 }
@@ -2696,7 +2703,9 @@ bam.makePartDiv = function (part) {
 	var newDiv = document.createElement("div");
 	newDiv.className = "part2";
 	newDiv.style.display = "block";
-	
+	newDiv.style.borderWidth = "2px";
+	newDiv.style.borderRadius = "8px";
+
 	part.div = newDiv;
 	
 	if (part) {
@@ -2717,7 +2726,10 @@ bam.makeSectionDiv = function (section) {
 	bam.song.div.appendChild(newDiv);
 
 	section.div = newDiv;
-	
+
+	section.div.style.borderWidth = "2px";
+	section.div.style.borderRadius = "8px";
+
 	//I think makeParts() wants this
 	bam.section = section;
 	

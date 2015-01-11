@@ -74,28 +74,29 @@ hr {
 .section {
 	background-color:#99AAFF;
 	position:absolute;
-	height:102%;
-	width:102%;
-	left:-1%;
-	top:-1%;
+	height:100%;
+	width:100%;
+	left:0px;
+	top:0px;
 	overflow-x:hidden;	
 	overflow-y:hidden;
-	border-radius:8px;
-	border:2px solid black;
+	/*border-radius:8px;*/
+	border:0px solid black;
 	display:none;
 }
 .part2 {
 	background-color:#FFFF99;
 	position:absolute;	
-	left:-6px;
-	top:-6px;
-	height:102%;
-	width:102%;
+	left:0px;
+	top:0px;
+	height:100%;
+	width:100%;
 	overflow-x:hidden;	
 	overflow-y:hidden;
+	border:0px solid black;
+	/*padding:4px;
 	border-radius:8px;
-	border:2px solid black;
-	padding:4px;
+	*/
 	display:none;
 }
 

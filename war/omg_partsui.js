@@ -834,8 +834,23 @@ OMGMelodyMaker.prototype.drawCanvas = function () {
 
 OMGMelodyMaker.prototype.drawNoteEdittingDialog = function (canvas, context, x, y) {
 	
-	this.noteEdittingDialog.x = x;
-	this.noteEdittingDialog.y = y;
+	if (this.noteEdittingDialog.x == undefined) {
+		if (x - 120 < 0) {
+			x = 0;
+		}
+		else {
+			x = x - 120;
+		}
+		if (x + 240 > canvas.width) {
+			x = canvas.width - 240;
+		}
+
+		this.noteEdittingDialog.x = x;
+		this.noteEdittingDialog.y = y;
+		
+	}
+	x = this.noteEdittingDialog.x;
+	y = this.noteEdittingDialog.y;
 	
 	context.globalAlpha = 0.15;
 	context.fillStyle = "#808080";
@@ -843,13 +858,13 @@ OMGMelodyMaker.prototype.drawNoteEdittingDialog = function (canvas, context, x, 
 	
 	context.globalAlpha = 1;
 	context.fillStyle = "white";	
-	context.fillRect(x - 120, y, 240, 150);
+	context.fillRect(x, y, 240, 150);
 	context.strokeStyle = "black";	
-	context.strokeRect(x - 120, y, 240, 150);
+	context.strokeRect(x, y, 240, 150);
 	
-	this.drawButtons(context, canvas.noteButtonRow, x - 120 + 2, y + 4, 240, 40);
-	this.drawButtons(context, canvas.restButtonRow, x - 120 + 2, y + 44, 240, 40);
-	this.drawButtons(context, [{button:true, text:"Remove Note", width:120}], x - 60, y + 100, 240, 40);
+	this.drawButtons(context, canvas.noteButtonRow, x + 2, y + 4, 240, 40);
+	this.drawButtons(context, canvas.restButtonRow, x + 2, y + 44, 240, 40);
+	this.drawButtons(context, canvas.removeButtonRow, x + 60, y + 100, 240, 40);
 };
 
 OMGMelodyMaker.prototype.drawButtons = function (context, buttonRow, x, y, width, height) {
@@ -1036,6 +1051,7 @@ OMGMelodyMaker.prototype.onDisplay = function () {
 		
 		canvas.restButtonRow = [];
 		canvas.noteButtonRow = [];
+		canvas.removeButtonRow = [{button:true, text:"Remove Note", width:120}];
 		
 		canvas.bottomRow.push({button:true, width: 80, text: "Sine Wave"});
 
@@ -1479,7 +1495,7 @@ OMGMelodyMaker.prototype.ondownInEdittingDialog = function (x, y) {
 	this.drawCanvas();
 };
 
-OMGMelodyMaker.prototype.onmoveInEdittingDialog = function (x) {
+OMGMelodyMaker.prototype.onmoveInEdittingDialog = function (x, y) {
 	var button;
 	var row;
 	var rows = [this.canvas.noteButtonRow, this.canvas.restButtonRow];
@@ -1503,7 +1519,7 @@ OMGMelodyMaker.prototype.onmoveInEdittingDialog = function (x) {
 OMGMelodyMaker.prototype.onupInEdittingDialog = function (x, y) {
 	var button;
 	var row;
-	var rows = [this.canvas.noteButtonRow, this.canvas.restButtonRow];
+	var rows = [this.canvas.noteButtonRow, this.canvas.restButtonRow, ];
 	for (var ir = 0; ir < rows.length; ir++) {
 		row = rows[ir];
 

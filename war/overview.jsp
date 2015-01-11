@@ -308,6 +308,16 @@ var loggedIn = true;
 	<hr/>
 
 	<div class="try-details">
+			<span class="overview-try">OpenMusicGallery.com</span> can quickly create full length songs or sound tracks:
+	</div>
+
+	<div class="option-row">
+		<a class="create-panel-option" href="http://openmusicgallery.com">OpenMusicGallery.com</a>
+	</div>
+
+	<hr/>
+
+	<div class="try-details">
 			<span class="overview-try">OMG Bananas!</span> is a unique instrument for Android:
 	</div>
 

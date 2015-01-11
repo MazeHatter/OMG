@@ -1,5 +1,7 @@
+<!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <style>
 body {
     max-width:900px;
@@ -11,44 +13,55 @@ body {
 	width:80px;
 }
 
-#empty-message {
+#make-status {
 	color:#808080;
 	text-align:center;
 	padding:20px;
 }
+#stop-button  {
+	display:none;
+}
+.beta {
+	font-size:12pt;
+	color:#808080;
+}
+.made-song-tools {
+	color:#301000;
+	font-size:11pt;
+}
 </style>
 </head>
 <body>
-<h2>OpenMusicGallery.com</h2>
+<h2>OpenMusicGallery.com <span class="beta">(beta)</span></h2>
 
 <p>Get royalty free music.</p>
 
 <p>I need <br/>
 
-<input id="minutes" class="numeric-input" value="3"></input> minutes and 
+<input id="minutes" class="numeric-input" value="1"></input> minutes and 
 
 <br/><input class="numeric-input" id="seconds" value="20"></input> seconds of music</p>
 
 <p>That sounds like <br/> 
-<input></input>
+<input id="tags"></input>
 <br/><i>(Separate tags with spaces)</i></p>
 <button id="make-it-so">Make it so!</button>
+<button id="stop-button">Stop Playing</button>
 <hr>
 <div id="omg-results">
-<div id="empty-message">Awaiting your command.</div>
+<div id="make-status">Awaiting your command.</div>
 </div>
 <hr>
 <h3>What's going on here?</h3>
 
-<p>Open Music Gallery is a project to let people point and click and make music and mix and mash their creations
-	with other users. It includes an <a href="http://omgbananas.com">instrument</a> and a <a href="http://omgbam.com">DAW</a>
-	and is <a href="http://github.com/MazeHatter/OMG">open source</a>. 
-<ul>
-<li><a href="http://reddit.com/r/openmusic">feeback & discussion</a></li>
-<li><a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a></li>
-</ul>
-	
-<p>Back to <a href="/">openmusicgallery.net</a></p>
+<p>Open Music Gallery is a project to let users <a href="omgbam.jsp">point and click and make music</a> 
+	and <a href="overview.jsp?tab=browse">mix and mash their creations
+	with other users</a>. The elements of music are categorized and ranked, so new music can be made from them
+	 with search parameters.
+	It includes an HTML5 player, editor, 
+	and digital audio workstation called <a href="http://omgbam.com">OMG Bam!</a> 
+	and an instrument for mobile devices called <a href="http://omgbananas.com">OMG Bananas!</a>. 
+	The project is <a href="http://github.com/MazeHatter/OMG">open source</a>. 
 
 <h3>Who's it for?</h3>	
 
@@ -96,4 +109,131 @@ body {
 
 <p><a href="http://omgbam.com">omgbam.com</a> is the official editor and player. </p>
 
+<ul>
+	<li><a href="http://reddit.com/r/openmusic">feeback & discussion</a></li>
+	<li><a href="mailto:omg@openmusicgallery.net">omg@openmusicgallery.net</a></li>
+</ul>
+
 <p>Jam on.</p>
+
+<p><small><i>-- Maze</i></small></p>
+<script src="omg_util.js"></script>
+<script src="omg_player.js"></script>
+<script>
+omg.getEl("make-it-so", function () {
+
+	var minutes = parseInt(document.getElementById("minutes").value) || 0;
+	var seconds = parseInt(document.getElementById("seconds").value) || 0;
+
+	omg.make = {};
+	omg.make.status = document.getElementById("make-status");
+	omg.make.status.innerHTML = "Finding some beats...";
+	omg.make.totalSeconds = minutes * 60 + seconds; 
+
+	var tags = document.getElementById("tags").value;
+		
+	// ok, now we have a few options
+	// find a song in the gallery
+	// or compose one from sections
+	// or compose one from parts
+	// and probably various combinations thereof
+	
+	// currently the tags aren't consistently implemented on the server 
+	// so we'll just use the top rated drumparts, basslines, and melodies
+
+	var resultCount = 20;
+	
+	/*
+	omg.getList("MELODY", "mostvotes", resultCount, tags, function (results) {
+        hasResults("MELODY", results);
+	});
+	omg.getList("BASSLINE", "mostvotes", resultCount, tags, function (results) {
+		hasResults("BASSLINE", results);
+	});
+	*/
+	
+	omg.getList({type: "DRUMBEAT", order: "mostvotes", "maxResults": resultCount, 
+				 "tags": tags, "callback": function (results) {
+						hasResults("DRUMBEAT", results);
+			}
+	});
+	
+
+});
+
+function hasResults(type, results) {
+	// this should wait to do something when we get all three types
+	// but for now, just drum beats
+	var om = omg.make;
+
+	if (type == "DRUMBEAT")
+		om.drumbeatResults = results;
+		
+	//if (om.drumbeatResults && om.melodyResults && om.basslineResults) {
+	if (om.drumbeatResults) {
+		makeIt();
+	}	
+}
+
+function makeIt() {
+	// we're building a song from parts, section by section
+
+	omg.make.status.innerHTML = "Picking a beat...";
+		
+	// let's try picking a drumbeat
+	var drumbeats = omg.make.drumbeatResults.list;
+	var mainDrumbeat = drumbeats[Math.floor(Math.random() * drumbeats.length)];
+
+	mainDrumbeat.data = JSON.parse(mainDrumbeat.json);
+	var data = mainDrumbeat.data;
+	
+	// does this drum beat have beats? subbeats? bpm? subbeatMillis?
+	var beats = data.beats || omg.beats;
+	var subbeats = data.subbeats || omg.subbeats;
+		
+	var subbeatMillis = mainDrumbeat.subbeatMillis;
+	if (!subbeatMillis) {
+		if (mainDrumbeat.bpm) {
+			subbeatMillis = 1000 / (mainDrumbeat.bpm / 60 * subbeats); 
+		}
+		else {
+			subbeatMillis = 125;
+		}
+	}
+	
+	// ? maybe instead of local variables, this should have set
+	// the omg.*beats with drumbeats.*beats  
+	console.log("mainDrumbeat.data");
+	
+	// should get the div setup, eh?
+	var song = new OMGSong();
+	song.loop = false;
+	omg.make.song = song;
+		
+	var sectionSeconds = beats * subbeats * subbeatMillis / 1000;
+	
+	// going with sectionsNeeded for simplicity, rather than beats or seconds
+	var sectionsNeeded = Math.ceil(omg.make.totalSeconds / sectionSeconds);
+	
+	var section;
+	var part;
+	for (var isect = 0; isect < sectionsNeeded; isect++) {
+		section = new OMGSection();
+		part = new OMGDrumpart(undefined, mainDrumbeat.data);
+		
+		section.parts.push(part);
+		song.sections.push(section);
+	}
+	
+	omg.player.play(song);
+	var stopButton = document.getElementById("stop-button");
+	stopButton.style.display = "inline-block";
+	stopButton.onclick = function () {
+		omg.player.stop();
+	};
+	
+	omg.make.status.innerHTML = "Here is a song made with 1 drumbeats, 0 melodies, and 0 basslines" +
+					"<p class='made-song-tools'>Save - Share - Edit</p>";
+
+}
+</script>

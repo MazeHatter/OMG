@@ -71,6 +71,34 @@ omg.get = function (data, callback) {
 	});
 };
 
+omg.getList = function (params) {
+    var ooo;
+
+    var page = params.page || 1;
+
+    var type = params.type;
+    var order = params.order;
+    var results = params.maxResults;
+    var callback = params.callback;
+    
+    // tags?
+    
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/omg?type=" + type + "&order=" + order +
+    		"&page=" + page + "&results=" + results, true);
+    xhr.onreadystatechange = function(){
+        if (xhr.readyState == 4){
+
+            ooo = JSON.parse(xhr.responseText);
+            if (callback)
+            	callback(ooo);
+
+        }
+    };
+    xhr.send();        
+}
+
+
 omg.util.getTimeCaption = function (timeMS) {
 
     var seconds = Math.round((Date.now() - timeMS) / 1000);

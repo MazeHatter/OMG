@@ -71,8 +71,6 @@ if (typeof omg != "object")
         }
         else
         	p.subbeatLength = 125; 
-    	
-        console.log(p.subbeatLength);
         
     	var lastSection;
     	var nextSection;
@@ -95,7 +93,7 @@ if (typeof omg != "object")
                 }
             }
             
-            p.iSubBeat++;
+            p.iSubBeat++; 
             if (p.iSubBeat == beatsPerSection) {
             
             	lastSection = p.song.sections[p.song.playingSection];
