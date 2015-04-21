@@ -232,12 +232,18 @@ omg.util.splitInts = function (string) {
 	return ints;
 };
 
-omg.util.totalOffsets = function(element) {
+omg.util.totalOffsets = function(element, parent) {
     var top = 0, left = 0;
     do {
         top += element.offsetTop  || 0;
         left += element.offsetLeft || 0;
         element = element.offsetParent;
+        
+        if (parent && parent === element) {
+        	console.log("breaking!");
+        	break;
+        }
+        	
     } while(element);
 
     return {
@@ -324,7 +330,7 @@ omg.postOMG = function (type, data, callback) {
 			+ encodeURIComponent(JSON.stringify(data)));
 };
 
-omg.util.getUser = function (callback) {
+omg.util.getUser = function (callback, errorCallback) {
 
 	if (typeof(omg.url) != "string")
 		omg.url = "";
@@ -334,10 +340,20 @@ omg.util.getUser = function (callback) {
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState == 4) {
 			
-			var results = JSON.parse(xhr.responseText);
-			omg.util.user = results;
-			if (callback)
-				callback(results);
+			try {
+				var results = JSON.parse(xhr.responseText);
+				omg.util.user = results;
+				if (callback)
+					callback(results);
+				
+			}
+			catch (excp) {
+				console.log("error getting user");
+				console.log(excp);
+				
+				if (errorCallback)
+					errorCallback();
+			}
 
 		}
 	}

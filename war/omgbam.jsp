@@ -48,6 +48,29 @@ if (shareParam != null) {
 <% } %>
 
 </script>
+
+<style>
+html, body, #omgbam {
+
+	margin: 0px;
+	padding: 0px;
+	overflow-x:hidden;
+	overflow-y:hidden;
+	height:100%;
+}
+
+#bam-controls {
+	max-width:1024px;
+	margin:auto;
+	position:relative;
+	margin-top:22px;
+	/*overflow-x:hidden;
+	overflow-y:hidden;
+	height:100%;*/
+		
+}
+
+</style>
 <link rel="stylesheet" href="omgbam.css" type="text/css" />
 </head>
 
@@ -72,6 +95,7 @@ if (shareParam != null) {
 
 </div>
 
+<div id="omgbam">
 
 <div id="master" class="master">
 	<div class="artist">
@@ -88,7 +112,7 @@ if (shareParam != null) {
 
 
 
-<div id="bbody">
+<div id="bam-controls">
 
 	<div id="mm-initial-options" class="option-panel">
 		<!--<div class="panel-option">Show Me How</div>
@@ -169,7 +193,7 @@ if (shareParam != null) {
 
 	<div id="rearranger">
 
-		<div class="remixer-caption">Song<input class="entity-name" value="unnamed"/></div>
+		<div class="remixer-caption">Song</div> <input class="entity-name" value="unnamed"/>
 		
 		<div class="remixer-area" id="rearranger-area">
 					
@@ -250,7 +274,7 @@ if (shareParam != null) {
 		
 		<p><a class="login-cancel" href="javascript:void(0)">Go back to playing...</a></p>
 		</div>
-	</div>
+	</div> 
 
 
 <div id="demo-mode">
@@ -258,7 +282,8 @@ if (shareParam != null) {
 	<div id="demo-text"></div>
 </div>
 
-</div> <!--bbody-->
+</div> <!--bam-controls -->
+</div> <!--omgbam-->
 
 
 
@@ -270,6 +295,9 @@ if (shareParam != null) {
 <script src="omg_player.js"></script>
 
 <script>
+//black url, loadwhensetup=true
+bam.setup("", true);
+
 if (window.location.hostname != "localhost" && window.location.hostname.indexOf("192") != 0) {
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

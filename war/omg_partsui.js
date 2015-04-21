@@ -225,7 +225,7 @@ omg.ui.getImageForNote = function (note, upsideDown) {
 omg.ui.getNoteImageUrl = function (i, j) {
 	var fileName = omg.ui.noteImageUrls[i][j];
 	if (fileName) {
-		return "img/notes/" + fileName + ".png";	
+		return "/img/notes/" + fileName + ".png";	
 	}	
 };
 
@@ -236,30 +236,34 @@ omg.ui.setupNoteImages = function () {
 	if (!omg.ui.noteImageUrls) 
 		omg.ui.getImageUrlForNote({beats:1});
 	
+	var urlPrefix = "";
+	if (typeof(omg.url) == "string" && omg.url.length > 0) {
+		urlPrefix = omg.url;
+	}
+	
 	omg.ui.noteImages = [];
 	for (var i = 0; i < omg.ui.noteImageUrls.length; i++) {
 
-		
 		var noteImage = new Image();
-	    noteImage.src = omg.ui.getNoteImageUrl(i, 1);
+	    noteImage.src = urlPrefix + omg.ui.getNoteImageUrl(i, 1);
+	    
 	    var restImage = new Image();
-	    restImage.src = omg.ui.getNoteImageUrl(i, 2);
+	    restImage.src = urlPrefix + omg.ui.getNoteImageUrl(i, 2);
 	    
 	    var imageBundle = [noteImage, restImage];
 	    var upsideDown = omg.ui.getNoteImageUrl(i, 3); 
 	    if (upsideDown){
 	    	var upsideImage = new Image();
-	    	upsideImage.src = upsideDown;
+	    	upsideImage.src = urlPrefix + upsideDown;
 	    	imageBundle.push(upsideImage);
     	}
 
 	    
 		omg.ui.noteImages.push(imageBundle);
 	}
+	console.log("done");
 }
 
-//todo not necessary yet
-omg.ui.setupNoteImages();
 
 
 /*small canvas style
@@ -415,6 +419,19 @@ function OMGDrumMachine(canvas, part) {
 
 	};
 
+
+};
+
+OMGDrumMachine.prototype.setSize = function (width, height) {
+	var canvas = this.canvas;
+	canvas.height = height;
+	canvas.width = width;
+	canvas.style.height = height + "px";
+	//canvas.style.width = width + "px";
+
+	this.columnWidth = width / this.columns;
+	this.rowHeight =  height / this.rows;
+	this.drawLargeCanvas();			
 
 };
 
@@ -1040,8 +1057,28 @@ OMGMelodyMaker.prototype.updateOffsets = function () {
 	this.offsets = omg.util.totalOffsets(this.canvas);
 };
 
+OMGMelodyMaker.prototype.setSize = function (width, height) {
+	var canvas = this.canvas;
+	canvas.height = height;
+	canvas.width = width;
+	canvas.style.height = height + "px";
+	//canvas.style.width = width + "px";
+
+	//this.drawCanvas();			
+	console.log("setsize");
+	
+	if (this.frets) {
+		this.frets.height = 
+			(this.canvas.height - this.topFretTop - this.bottomFretBottom) / this.frets.length;
+		this.drawCanvas();
+	}
+
+};
+
+
 OMGMelodyMaker.prototype.onDisplay = function () {
 	var omgmm = this;
+	console.log("ondisplay");
 	if (!this.hasBeenShown) {
 		this.hasBeenShown = true;
 
@@ -1692,7 +1729,8 @@ OMGMelodyMaker.prototype.setPart = function(part, welcomeStyle) {
 	this.part = part;
 	this.data = part.data;
 	this.lastNewNote = 0;
-
+	//this.captionsAreSetup = false;
+	
 	if (this.data.notes.length == 0) {
 		this.canvas.mode = "APPEND";
 	}

@@ -25,12 +25,23 @@ var omg = {
 	downloadedSoundSets : []
 };
 
-window.onload = function() {
+bam.setup = function (url, loadWhenFinished) {
 
-	var bbody = document.getElementById("bbody")
-	bam.windowWidth = bbody.clientWidth;
-	bam.offsetLeft = bbody.offsetLeft;
-	bam.mobile = bam.windowWidth < 1000;
+	if (typeof(url) == "string") {
+		omg.url = url;
+	}
+
+	omg.ui.setupNoteImages();
+	
+	bam.bbody = document.getElementById("omgbam")
+	bam.controlsDiv = document.getElementById("bam-controls")
+	bam.windowWidth = bam.bbody.clientWidth;
+	bam.windowHeight = bam.bbody.clientHeight;
+	bam.offsetLeft = bam.controlsDiv.offsetLeft;
+	
+	bam.mobile = bam.windowWidth < 1000 && bam.windowWidth < bam.windowHeight;
+
+	bam.offsetTop = bam.mobile ? 100 : 88;
 	
 	bam.div = document.getElementById("master");
 	bam.zones = [];
@@ -89,9 +100,18 @@ window.onload = function() {
 		}
 	});
 
+	var getUserErrorCallback = function () {
+		//bam.load(getLoadParams());		
+	};
+	
 	omg.util.getUser(function (user) {
 
 		var loginLink = document.getElementById("login-link");
+
+		if (!loginLink) {
+			return;
+		}
+
 		var logoutLink = document.getElementById("logout-link");
 		if (user.isLoggedIn) {
 			loginLink.style.display = "none";
@@ -107,14 +127,15 @@ window.onload = function() {
 		
 		bam.setupArtistView();
 
-		bam.load(getLoadParams());
+		if (loadWhenFinished)
+			bam.load(getLoadParams());
 		
 
-	});
+	}, getUserErrorCallback);
 
 	window.onresize = function() {
-		bam.windowWidth = bbody.clientWidth;
-		bam.offsetLeft = bbody.offsetLeft;
+		bam.windowWidth = bam.bbody.clientWidth;
+		bam.offsetLeft = bam.bbody.offsetLeft;
 		bam.mobile = bam.windowWidth < 1000;
 		
 		for (var iz = 0; iz < bam.zones.length; iz++) {
@@ -291,6 +312,7 @@ function setupMelodyDiv(part) {
 	}
 	catch (exp) {
 		console.log("error drawing melody canvas");
+		console.log(exp);
 	}
 
 	var beatMarker = document.createElement("div");
@@ -380,7 +402,7 @@ function setupRemixer() {
 	omg.remixer.addMelodyButton.onclick = function() {
 
 		var newdiv = bam.createElementOverElement("part2",
-				omg.remixer.addMelodyButton);
+				omg.remixer.addMelodyButton, bam.bbody);
 
 		var newPart = new OMGPart(newdiv);
 
@@ -413,7 +435,7 @@ function setupRemixer() {
 	omg.remixer.addBasslineButton.onclick = function() {
 
 		var button = omg.remixer.addBasslineButton;
-		var newdiv = bam.createElementOverElement("part2", button);
+		var newdiv = bam.createElementOverElement("part2", button, bam.bbody);
 		
 		var newPart = new OMGPart(newdiv)
 		newPart.data.type = "BASSLINE";
@@ -447,7 +469,7 @@ function setupRemixer() {
 	omg.remixer.addDrumbeatButton.onclick = function() {
 
 		var newdiv = bam.createElementOverElement("part2",
-				omg.remixer.addDrumbeatButton);
+				omg.remixer.addDrumbeatButton, bam.bbody);
 		
 		var newPart = new OMGDrumpart(newdiv)
 
@@ -599,6 +621,7 @@ function setupRearranger() {
 	omg.rearranger.playingSection = 0;
 
 	omg.rearranger.songName = omg.rearranger.getElementsByClassName("entity-name")[0];
+	omg.rearranger.caption = omg.rearranger.getElementsByClassName("remixer-caption")[0];
 
 	omg.rearranger.shareButton = document.getElementById("share-song");
 	omg.rearranger.shareButton.onclick = function() {
@@ -935,6 +958,13 @@ function getLoadParams() {
 }
 
 bam.load = function (params)  {
+
+	if (!bam.windowWidth || bam.windowWidth < 0) {
+		bam.windowWidth = bam.bbody.clientWidth;
+		bam.windowHeight = bam.bbody.clientHeight;
+		//bam.offsetLeft = bam.bbody.offsetLeft;
+		bam.mobile = bam.windowWidth < 1000;
+	}
 
 	var pshare = params && params.command == "share";
 	var pnew = params && params.command == "new";
@@ -1352,14 +1382,24 @@ bam.setupBeatMaker = function() {
 
 	bam.beatmaker.ui = new OMGDrumMachine(canvas);
 
-	var width = canvas.clientWidth;
-	var offsets = omg.util.totalOffsets(canvas);
+	bam.beatmaker.setSize = function (width, height) {
+		if (width == undefined) {
+			width = canvas.clientWidth;
+		}
+		if (height == undefined) {
+			height = window.innerHeight - 150;			
 
-	var canvasHeight = window.innerHeight - 150;
-	canvas.height = canvasHeight;
-	canvas.width = width;
-	canvas.style.height = canvasHeight + "px";
+			//hack for module based use
+			if (bam.windowHeight) {
+				height = bam.bbody.clientHeight - bam.offsetTop - bam.controlsDiv.offsetTop - 15;
+			}
+		}
 
+		bam.beatmaker.ui.setSize(width, height);
+	};
+
+	bam.beatmaker.setSize();
+	
 	/*omg.player.onBeatPlayedListeners.push(function(iSubBeat) {
 		if (bam.part && bam.zones[bam.zones.length - 1] == bam.part.div && 
 				bam.part.data.type == "DRUMBEAT")
@@ -1375,9 +1415,26 @@ bam.setupMelodyMaker = function () {
 	var canvas = document.getElementById("melody-maker-canvas");
 	bam.mm.canvas = canvas;
 
-	canvas.style.height = window.innerHeight - 150 + "px";
-	
 	bam.mm.ui = new OMGMelodyMaker(canvas);
+
+	bam.mm.setSize = function (width, height) {
+		if (width == undefined) {
+			width = canvas.clientWidth;
+		}
+		if (height == undefined) {
+			height = window.innerHeight - 150;			
+
+			//hack for module based use
+			if (bam.windowHeight) {
+				height = bam.bbody.clientHeight - bam.offsetTop - bam.controlsDiv.offsetTop - 15;
+			}
+		}
+
+		bam.mm.ui.setSize(width, height);
+	};
+
+	bam.mm.setSize();
+
 	bam.mm.ui.hasDataCallback = function () {
 		if (!bam.mm.options.showing){
 			bam.slideInOptions(bam.mm.options);
@@ -1662,8 +1719,10 @@ bam.arrangeParts = function(callback) {
 	var children;
 	var child;
 	
-	var top = bam.mobile ? 60 : 88; 
+	var top = bam.offsetTop; //bam.mobile ? 60 : 88; 
 	var height = bam.mobile ? 75 : 105; 
+	
+	var spaceBetween = 18;
 	
 	if (div.className === "section") {
 		children = [];
@@ -1679,13 +1738,14 @@ bam.arrangeParts = function(callback) {
 
 			// 110, 88 + parts * 126, 640, 105
 			child.targetX = bam.offsetLeft - div.offsetLeft;
-			child.targetY = top + ip * (height + 21);
+			child.targetY = top + ip * (height + spaceBetween);
 			child.targetW = Math.min(640, bam.windowWidth - 15);
 			child.targetH = height;
 
 			children.push(child);
 		}
 
+		
 		child = {
 			div : omg.remixer.addButtons
 		};
@@ -1694,7 +1754,8 @@ bam.arrangeParts = function(callback) {
 		child.originalX = 0;
 		child.originalY = child.div.offsetTop;
 		child.targetX = 0;
-		child.targetY = top - 28 + Math.max(0.6, parts.length) * (height + 21);
+		child.targetY = top - bam.controlsDiv.offsetTop + 
+			Math.max(0.6, parts.length) * (height + spaceBetween);
 		child.targetW = child.div.clientWidth;
 		child.targetH = child.div.clientHeight;
 		children.push(child);
@@ -1826,8 +1887,15 @@ bam.arrangeSections = function(callback, animLength) {
 	var child;
 	var grandchild;
 
-	var top = bam.mobile ? 100 : 125;
-	var height = Math.min(300, window.innerHeight - top - 100);
+	var top = bam.offsetTop;
+	
+	//top = omg.rearranger.caption.offsetTop + omg.rearranger.caption.clientHeight;
+	console.log("top:")
+	console.log(top);
+	
+	var windowHeight = bam.windowHeight || window.innerHeight;
+	
+	var height = Math.min(300, windowHeight - top - 100);
 	
 	children = [];
 	var parts ;
@@ -1878,7 +1946,7 @@ bam.arrangeSections = function(callback, animLength) {
 	child.originalX = child.div.offsetLeft;
 	child.originalY = child.div.offsetTop;
 	child.targetX = 5 + bam.song.sections.length * 110 - div.slidLeft;
-	child.targetY = top - 22; //child.originalY;
+	child.targetY = top - Math.max(0, bam.controlsDiv.offsetTop); //the max keeps it from under 0, hack
 	child.targetW = child.originalW;
 	
 	child.targetH = height - 100;
@@ -2062,15 +2130,19 @@ bam.slideInOptions = function(div, callback, target) {
 
 	div.showing = true;
 
-	div.style.left = window.innerWidth + "px";
+	var windowWidth = bam.windowWidth; //instead of window.innerWidth
+	
+	div.style.left = windowWidth + "px";
 	div.style.display = "block";
 
 	var targetLeft;
 	if (target != undefined)
 		targetLeft = target;
-	else
-		targetLeft = 670;
-	var originalX = window.innerWidth;
+	else {
+		targetLeft = Math.min(670, windowWidth - div.clientWidth - 20);
+	}
+		
+	var originalX = windowWidth;
 
 	var startedAt = Date.now();
 
@@ -2124,15 +2196,20 @@ bam.slideUpOptions = function(div, callback, target) {
 
 	div.showing = true;
 
-	div.style.top = window.innerHeight + "px";
+	// kind of a hack to work with both modular and fullscreen implementations
+	var windowHeight = bam.windowHeight || window.innerHeight
+	
+	div.style.top = windowHeight + "px";
 	div.style.display = "block";
 
 	var targetY
 	if (target != undefined)
 		targetY = target;
-	else
-		targetY = 440;
-	var originalY = window.innerHeight;
+	else {
+		targetY = Math.min(440, windowHeight - div.clientHeight);
+	}
+		
+	var originalY = windowHeight;
 
 	var startedAt = Date.now();
 
@@ -2225,8 +2302,8 @@ bam.fadeIn = function(divs, callback) {
 	}, 1000 / 60);
 };
 
-bam.createElementOverElement = function(classname, button) {
-	var offsets = omg.util.totalOffsets(button)
+bam.createElementOverElement = function(classname, button, parent) {
+	var offsets = omg.util.totalOffsets(button, parent)
 
 	var newPartDiv = document.createElement("div");
 	newPartDiv.className = classname;
@@ -2244,7 +2321,7 @@ bam.createElementOverElement = function(classname, button) {
 bam.copySection = function(section) {
 	
 	var newDiv = bam.createElementOverElement("section",
-			omg.rearranger.addSectionButton);
+			omg.rearranger.addSectionButton, bam.bbody);
 	newSection = new OMGSection(newDiv);
 	bam.song.div.appendChild(newDiv);
 	
@@ -2803,6 +2880,10 @@ bam.makeSong = function (data) {
 bam.setupSharer = function () {
 	
 	bam.sharer = document.getElementById("share-zone");
+	if (!bam.sharer) {
+		return;
+	}
+	
 	bam.sharer.shareUrl = document.getElementById("share-url");
 
 	bam.sharer.share = function (params) {
@@ -2910,7 +2991,10 @@ bam.sectionZoneBeatPlayed = function (isubbeat) {
 
 bam.setupAlbumEditor = function () {
 	bam.albumEditor = document.getElementById("album-editor");
-
+	
+	if (!bam.albumEditor)
+		return;
+	
 	bam.albumEditor.albumName = bam.albumEditor.getElementsByClassName("entity-name")[0];
 	
 	bam.albumEditor.options = document.getElementById("album-option-panel");

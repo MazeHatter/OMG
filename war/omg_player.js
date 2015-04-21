@@ -534,11 +534,12 @@ if (typeof omg != "object")
         var url = sound;
         if (sound.indexOf("PRESET_") == 0) {
         	var preseturl;
-        	if (window.location.hostname != "localhost") {
+        	if (!omg.dev) {
         		preseturl = "https://dl.dropboxusercontent.com/u/24411900/omg/drums/";
         	}
         	else {
         		preseturl = "http://localhost:8888/audio/";
+        		//preseturl = "http://localhost:8889/audio/";
         	}
             url = preseturl + sound.substring(7).toLowerCase() + ".mp3";
         }
@@ -557,7 +558,8 @@ if (typeof omg != "object")
                 omg.player.loadedSounds[key] = buffer;
                 p.onSoundLoaded(true, part);
             }, function () {
-                omg.util.d("error :(");
+                omg.util.d("error loading sound url:");
+                omg.util.d(url)
                 p.onSoundLoaded(false, part);
             });
         }

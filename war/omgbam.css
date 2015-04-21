@@ -1,26 +1,9 @@
-html, body {
-	margin: 0px;
-	padding: 0px;
-	overflow-x:hidden;
-	overflow-y:hidden;
-	height:100%;
-}
 
 hr {
 	border-top:1px solid gray;
 	border-bottom:0px;
 }
 
-#bbody {
-	max-width:1024px;
-	margin:auto;
-	position:relative;
-	margin-top:22px;
-	/*overflow-x:hidden;
-	overflow-y:hidden;
-	height:100%;*/
-		
-}
 .master {
 	position:absolute;
 	top:0px;
@@ -772,6 +755,9 @@ h1 {
 	border-width:0px;
 	font-size:24pt;
 	background: transparent;
+	position:relative;
+	left:90px;
+	top:-62px;
 }
 
 .entity-name:hover {
